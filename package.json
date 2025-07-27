@@ -7,6 +7,16 @@
     "packages/*",
     "apps/*"
   ],
+  "scripts": {
+    "dev:web": "bun run --filter=web dev",
+    "dev:api": "bun run --filter=api dev",
+    "dev": "bun run dev:api & bun run dev:web",
+    "build": "bun run --filter=api build && bun run --filter=web build",
+    "db:generate": "bun run --filter=@tactile/database db:generate",
+    "db:migrate": "bun run --filter=@tactile/database db:migrate",
+    "db:studio": "bun run --filter=@tactile/database db:studio",
+    "db:seed": "bun run --filter=@tactile/database db:seed"
+  },
   "devDependencies": {
     "@types/bun": "latest"
   },
