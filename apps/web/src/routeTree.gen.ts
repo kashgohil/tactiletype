@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as TestRouteImport } from './routes/test'
 import { Route as RegisterRouteImport } from './routes/register'
 import { Route as ProfileRouteImport } from './routes/profile'
+import { Route as MultiplayerRouteImport } from './routes/multiplayer'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as LeaderboardRouteImport } from './routes/leaderboard'
 import { Route as IndexRouteImport } from './routes/index'
@@ -29,6 +30,11 @@ const RegisterRoute = RegisterRouteImport.update({
 const ProfileRoute = ProfileRouteImport.update({
   id: '/profile',
   path: '/profile',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const MultiplayerRoute = MultiplayerRouteImport.update({
+  id: '/multiplayer',
+  path: '/multiplayer',
   getParentRoute: () => rootRouteImport,
 } as any)
 const LoginRoute = LoginRouteImport.update({
@@ -51,6 +57,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/leaderboard': typeof LeaderboardRoute
   '/login': typeof LoginRoute
+  '/multiplayer': typeof MultiplayerRoute
   '/profile': typeof ProfileRoute
   '/register': typeof RegisterRoute
   '/test': typeof TestRoute
@@ -59,6 +66,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/leaderboard': typeof LeaderboardRoute
   '/login': typeof LoginRoute
+  '/multiplayer': typeof MultiplayerRoute
   '/profile': typeof ProfileRoute
   '/register': typeof RegisterRoute
   '/test': typeof TestRoute
@@ -68,6 +76,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/leaderboard': typeof LeaderboardRoute
   '/login': typeof LoginRoute
+  '/multiplayer': typeof MultiplayerRoute
   '/profile': typeof ProfileRoute
   '/register': typeof RegisterRoute
   '/test': typeof TestRoute
@@ -78,16 +87,25 @@ export interface FileRouteTypes {
     | '/'
     | '/leaderboard'
     | '/login'
+    | '/multiplayer'
     | '/profile'
     | '/register'
     | '/test'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/leaderboard' | '/login' | '/profile' | '/register' | '/test'
+  to:
+    | '/'
+    | '/leaderboard'
+    | '/login'
+    | '/multiplayer'
+    | '/profile'
+    | '/register'
+    | '/test'
   id:
     | '__root__'
     | '/'
     | '/leaderboard'
     | '/login'
+    | '/multiplayer'
     | '/profile'
     | '/register'
     | '/test'
@@ -97,6 +115,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   LeaderboardRoute: typeof LeaderboardRoute
   LoginRoute: typeof LoginRoute
+  MultiplayerRoute: typeof MultiplayerRoute
   ProfileRoute: typeof ProfileRoute
   RegisterRoute: typeof RegisterRoute
   TestRoute: typeof TestRoute
@@ -123,6 +142,13 @@ declare module '@tanstack/react-router' {
       path: '/profile'
       fullPath: '/profile'
       preLoaderRoute: typeof ProfileRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/multiplayer': {
+      id: '/multiplayer'
+      path: '/multiplayer'
+      fullPath: '/multiplayer'
+      preLoaderRoute: typeof MultiplayerRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/login': {
@@ -153,6 +179,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   LeaderboardRoute: LeaderboardRoute,
   LoginRoute: LoginRoute,
+  MultiplayerRoute: MultiplayerRoute,
   ProfileRoute: ProfileRoute,
   RegisterRoute: RegisterRoute,
   TestRoute: TestRoute,
