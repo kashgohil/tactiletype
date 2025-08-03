@@ -6,6 +6,7 @@ import { authRoutes } from './routes/auth';
 import { testRoutes } from './routes/tests';
 import { userRoutes } from './routes/users';
 import { multiplayerRoutes } from './routes/multiplayer';
+import analyticsRoutes from './routes/analytics';
 import { WebSocketHandler } from './websocket/server';
 
 const app = new Hono<{
@@ -48,6 +49,7 @@ app.route('/api/auth', authRoutes);
 app.route('/api/users', userRoutes);
 app.route('/api/tests', testRoutes);
 app.route('/api/multiplayer', multiplayerRoutes);
+app.route('/api/analytics', analyticsRoutes);
 
 // Error handling
 app.onError((err, c) => {
