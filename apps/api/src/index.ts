@@ -5,8 +5,14 @@ import { prettyJSON } from 'hono/pretty-json';
 import { authRoutes } from './routes/auth';
 import { testRoutes } from './routes/tests';
 import { userRoutes } from './routes/users';
+import { multiplayerRoutes } from './routes/multiplayer';
+import { WebSocketHandler } from './websocket/server';
 
-const app = new Hono();
+const app = new Hono<{
+  Variables: {
+    wsHandler: WebSocketHandler;
+  };
+}>();
 
 // Middleware
 app.use('*', logger());
@@ -31,10 +37,17 @@ app.get('/', (c) => {
   });
 });
 
+// Middleware to provide WebSocket handler to routes (will be set up later)
+app.use('*', async (c, next) => {
+  // WebSocket handler will be available in production setup
+  await next();
+});
+
 // Routes
 app.route('/api/auth', authRoutes);
 app.route('/api/users', userRoutes);
 app.route('/api/tests', testRoutes);
+app.route('/api/multiplayer', multiplayerRoutes);
 
 // Error handling
 app.onError((err, c) => {
@@ -56,8 +69,21 @@ app.notFound((c) => {
 const port = process.env.PORT || 3001;
 
 console.log(`🚀 Tactile API Server running on port ${port}`);
+console.log(`📡 WebSocket server will be available at ws://localhost:${port}/ws`);
 
 export default {
   port,
   fetch: app.fetch,
+  websocket: {
+    message(ws: any, message: any) {
+      // Handle WebSocket messages here
+      console.log('WebSocket message received:', message);
+    },
+    open(ws: any) {
+      console.log('WebSocket connection opened');
+    },
+    close(ws: any) {
+      console.log('WebSocket connection closed');
+    },
+  },
 };
