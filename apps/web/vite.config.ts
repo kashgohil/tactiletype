@@ -11,5 +11,12 @@ export default defineConfig({
       '/api': { changeOrigin: true, target: 'http://localhost:8002' },
     },
   },
-  plugins: [react(), tanstackRouter(), tailwindcss()],
+  plugins: [
+    tanstackRouter({
+      target: 'react',
+      autoCodeSplitting: true,
+    }),
+    react(),
+    tailwindcss(),
+  ],
 });
