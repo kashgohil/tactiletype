@@ -2,18 +2,18 @@ import { Hono } from 'hono';
 import { cors } from 'hono/cors';
 import { logger } from 'hono/logger';
 import { prettyJSON } from 'hono/pretty-json';
+import analyticsRoutes from './routes/analytics';
 import { authRoutes } from './routes/auth';
+import { multiplayerRoutes } from './routes/multiplayer';
 import { testRoutes } from './routes/tests';
 import { userRoutes } from './routes/users';
-import { multiplayerRoutes } from './routes/multiplayer';
-import analyticsRoutes from './routes/analytics';
 import { WebSocketHandler } from './websocket/server';
 
 const app = new Hono<{
   Variables: {
     wsHandler: WebSocketHandler;
   };
-}>();
+}>().basePath('/api');
 
 // Middleware
 app.use('*', logger());
@@ -21,7 +21,7 @@ app.use('*', prettyJSON());
 app.use(
   '*',
   cors({
-    origin: ['http://localhost:5173', 'http://localhost:3000'],
+    origin: ['http://localhost:3002'],
     allowHeaders: ['Content-Type', 'Authorization'],
     allowMethods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
     credentials: true,
@@ -31,7 +31,7 @@ app.use(
 // Health check
 app.get('/', (c) => {
   return c.json({
-    message: 'Tactile API Server',
+    message: 'tactiletype API Server',
     version: '1.0.0',
     status: 'healthy',
     timestamp: new Date().toISOString(),
@@ -45,11 +45,11 @@ app.use('*', async (c, next) => {
 });
 
 // Routes
-app.route('/api/auth', authRoutes);
-app.route('/api/users', userRoutes);
-app.route('/api/tests', testRoutes);
-app.route('/api/multiplayer', multiplayerRoutes);
-app.route('/api/analytics', analyticsRoutes);
+app.route('/auth', authRoutes);
+app.route('/users', userRoutes);
+app.route('/tests', testRoutes);
+app.route('/multiplayer', multiplayerRoutes);
+app.route('/analytics', analyticsRoutes);
 
 // Error handling
 app.onError((err, c) => {
@@ -70,8 +70,10 @@ app.notFound((c) => {
 
 const port = process.env.PORT || 3001;
 
-console.log(`🚀 Tactile API Server running on port ${port}`);
-console.log(`📡 WebSocket server will be available at ws://localhost:${port}/ws`);
+console.log(`🚀 tactiletype API Server running on port ${port}`);
+console.log(
+  `📡 WebSocket server will be available at ws://localhost:${port}/ws`
+);
 
 export default {
   port,
