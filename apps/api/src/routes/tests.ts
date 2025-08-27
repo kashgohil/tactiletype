@@ -1,9 +1,10 @@
-import { Hono } from 'hono';
 import { zValidator } from '@hono/zod-validator';
-import { verify } from 'hono/jwt';
+import { db, testResults, testTexts, users } from '@tactile/database';
+import { and, desc, eq, gte, sql } from 'drizzle-orm';
+import { Hono } from 'hono';
 import { z } from 'zod';
-import { db, testTexts, testResults, users } from '@tactile/database';
-import { eq, desc, and, gte, sql } from 'drizzle-orm';
+import { authMiddleware } from '../middleware/auth';
+import { optionalAuthMiddleware } from '../middleware/optionalAuth';
 
 type Variables = {
   user: {
@@ -14,45 +15,6 @@ type Variables = {
 };
 
 const testRoutes = new Hono<{ Variables: Variables }>();
-
-const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key';
-
-// Middleware to verify JWT token (optional for some routes)
-const optionalAuthMiddleware = async (c: any, next: any) => {
-  try {
-    const authHeader = c.req.header('Authorization');
-    
-    if (authHeader && authHeader.startsWith('Bearer ')) {
-      const token = authHeader.substring(7);
-      const payload = await verify(token, JWT_SECRET);
-      c.set('user', payload);
-    }
-    
-    await next();
-  } catch (error) {
-    // Continue without auth if token is invalid
-    await next();
-  }
-};
-
-// Required auth middleware
-const authMiddleware = async (c: any, next: any) => {
-  try {
-    const authHeader = c.req.header('Authorization');
-    
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      return c.json({ error: 'No token provided' }, 401);
-    }
-
-    const token = authHeader.substring(7);
-    const payload = await verify(token, JWT_SECRET);
-    
-    c.set('user', payload);
-    await next();
-  } catch (error) {
-    return c.json({ error: 'Invalid token' }, 401);
-  }
-};
 
 // Test result submission schema
 const submitResultSchema = z.object({
@@ -72,11 +34,11 @@ testRoutes.get('/texts', optionalAuthMiddleware, async (c) => {
     const limit = parseInt(c.req.query('limit') || '20');
 
     let whereConditions = [eq(testTexts.isActive, true)];
-    
+
     if (language) {
       whereConditions.push(eq(testTexts.language, language));
     }
-    
+
     if (difficulty) {
       whereConditions.push(eq(testTexts.difficulty, difficulty));
     }
@@ -97,7 +59,6 @@ testRoutes.get('/texts', optionalAuthMiddleware, async (c) => {
     });
 
     return c.json({ texts });
-
   } catch (error) {
     console.error('Get texts error:', error);
     return c.json({ error: 'Failed to get test texts' }, 500);
@@ -127,7 +88,6 @@ testRoutes.get('/texts/:id', optionalAuthMiddleware, async (c) => {
     }
 
     return c.json({ text });
-
   } catch (error) {
     console.error('Get text error:', error);
     return c.json({ error: 'Failed to get test text' }, 500);
@@ -135,52 +95,59 @@ testRoutes.get('/texts/:id', optionalAuthMiddleware, async (c) => {
 });
 
 // Submit test result
-testRoutes.post('/results', authMiddleware, zValidator('json', submitResultSchema), async (c) => {
-  try {
-    const user = c.get('user') as any;
-    const resultData = c.req.valid('json');
+testRoutes.post(
+  '/results',
+  authMiddleware,
+  zValidator('json', submitResultSchema),
+  async (c) => {
+    try {
+      const user = c.get('user') as any;
+      const resultData = c.req.valid('json');
 
-    // Verify test text exists
-    const testText = await db.query.testTexts.findFirst({
-      where: eq(testTexts.id, resultData.testTextId),
-    });
+      // Verify test text exists
+      const testText = await db.query.testTexts.findFirst({
+        where: eq(testTexts.id, resultData.testTextId),
+      });
 
-    if (!testText) {
-      return c.json({ error: 'Test text not found' }, 404);
+      if (!testText) {
+        return c.json({ error: 'Test text not found' }, 404);
+      }
+
+      // Insert test result
+      const [result] = await db
+        .insert(testResults)
+        .values({
+          userId: user.userId,
+          testTextId: resultData.testTextId,
+          wpm: resultData.wpm.toString(),
+          accuracy: resultData.accuracy.toString(),
+          errors: resultData.errors,
+          timeTaken: resultData.timeTaken,
+          keystrokeData: resultData.keystrokeData,
+        })
+        .returning();
+
+      if (!result) {
+        return c.json({ error: 'Failed to save test result' }, 500);
+      }
+
+      return c.json({
+        message: 'Test result submitted successfully',
+        result: {
+          id: result.id,
+          wpm: parseFloat(result.wpm),
+          accuracy: parseFloat(result.accuracy),
+          errors: result.errors,
+          timeTaken: result.timeTaken,
+          completedAt: result.completedAt,
+        },
+      });
+    } catch (error) {
+      console.error('Submit result error:', error);
+      return c.json({ error: 'Failed to submit test result' }, 500);
     }
-
-    // Insert test result
-    const [result] = await db.insert(testResults).values({
-      userId: user.userId,
-      testTextId: resultData.testTextId,
-      wpm: resultData.wpm.toString(),
-      accuracy: resultData.accuracy.toString(),
-      errors: resultData.errors,
-      timeTaken: resultData.timeTaken,
-      keystrokeData: resultData.keystrokeData,
-    }).returning();
-
-    if (!result) {
-      return c.json({ error: 'Failed to save test result' }, 500);
-    }
-
-    return c.json({
-      message: 'Test result submitted successfully',
-      result: {
-        id: result.id,
-        wpm: parseFloat(result.wpm),
-        accuracy: parseFloat(result.accuracy),
-        errors: result.errors,
-        timeTaken: result.timeTaken,
-        completedAt: result.completedAt,
-      },
-    });
-
-  } catch (error) {
-    console.error('Submit result error:', error);
-    return c.json({ error: 'Failed to submit test result' }, 500);
   }
-});
+);
 
 // Get leaderboard
 testRoutes.get('/leaderboard', async (c) => {
@@ -191,13 +158,22 @@ testRoutes.get('/leaderboard', async (c) => {
     let timeFilter;
     switch (timeframe) {
       case 'daily':
-        timeFilter = gte(testResults.completedAt, sql`now() - interval '1 day'`);
+        timeFilter = gte(
+          testResults.completedAt,
+          sql`now() - interval '1 day'`
+        );
         break;
       case 'weekly':
-        timeFilter = gte(testResults.completedAt, sql`now() - interval '1 week'`);
+        timeFilter = gte(
+          testResults.completedAt,
+          sql`now() - interval '1 week'`
+        );
         break;
       case 'monthly':
-        timeFilter = gte(testResults.completedAt, sql`now() - interval '1 month'`);
+        timeFilter = gte(
+          testResults.completedAt,
+          sql`now() - interval '1 month'`
+        );
         break;
       default:
         timeFilter = undefined;
@@ -220,7 +196,6 @@ testRoutes.get('/leaderboard', async (c) => {
       .limit(limit);
 
     return c.json({ leaderboard });
-
   } catch (error) {
     console.error('Get leaderboard error:', error);
     return c.json({ error: 'Failed to get leaderboard' }, 500);
@@ -246,7 +221,7 @@ testRoutes.get('/results', authMiddleware, async (c) => {
       },
     });
 
-    const formattedResults = results.map(result => ({
+    const formattedResults = results.map((result) => ({
       id: result.id,
       wpm: parseFloat(result.wpm),
       accuracy: parseFloat(result.accuracy),
@@ -257,7 +232,6 @@ testRoutes.get('/results', authMiddleware, async (c) => {
     }));
 
     return c.json({ results: formattedResults });
-
   } catch (error) {
     console.error('Get results error:', error);
     return c.json({ error: 'Failed to get test results' }, 500);
