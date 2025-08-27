@@ -1,7 +1,29 @@
+import { Button } from '@/components/ui/button';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
+import { cn } from '@/lib/utils';
+import {
+  ALargeSmall,
+  AtSign,
+  Hash,
+  Quote,
+  RotateCcw,
+  type LucideIcon,
+} from 'lucide-react';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useAuth } from '../contexts';
 import type { TestText } from '../services/api';
-import { testResultsApi, testTextsApi } from '../services/api';
+import { testResultsApi } from '../services/api';
 import type { TypingState, TypingStats } from '../utils/typingEngine';
 import {
   TypingEngine,
@@ -9,13 +31,30 @@ import {
   generateTestText,
 } from '../utils/typingEngine';
 
+type Mode = 'text' | 'punctuation' | 'numbers' | 'quotes';
+type Difficulty = 'easy' | 'medium' | 'hard';
+
+const Difficulties: Record<Difficulty, { id: Difficulty; label: string }> = {
+  easy: { id: 'easy', label: 'Easy' },
+  medium: { id: 'medium', label: 'Medium' },
+  hard: { id: 'hard', label: 'Hard' },
+};
+
+const Modes: Record<Mode, { id: Mode; label: string; icon: LucideIcon }> = {
+  text: { id: 'text', label: 'Text', icon: ALargeSmall },
+  punctuation: { id: 'punctuation', label: 'Punctuation', icon: AtSign },
+  numbers: { id: 'numbers', label: 'Numbers', icon: Hash },
+  quotes: { id: 'quotes', label: 'Quotes', icon: Quote },
+};
+
 export const TypingTest: React.FC = () => {
   const { user } = useAuth();
+
+  const [currentMode, setCurrentMode] = useState<Mode>('text');
+  const [focused, setFocused] = useState(true);
   const [testText, setTestText] = useState('');
-  const [currentTestText, setCurrentTestText] = useState<TestText | null>(null);
-  const [selectedDifficulty, setSelectedDifficulty] =
-    useState<string>('medium');
-  const [isLoadingTexts, setIsLoadingTexts] = useState(false);
+  const [currentTestText] = useState<TestText | null>(null);
+  const [difficulty, setDifficulty] = useState<Difficulty>('medium');
   const [isSubmittingResult, setIsSubmittingResult] = useState(false);
   const [engine, setEngine] = useState<TypingEngine | null>(null);
   const [stats, setStats] = useState<TypingStats>({
@@ -34,97 +73,57 @@ export const TypingTest: React.FC = () => {
     endTime: null,
     isComplete: false,
     isStarted: false,
+    keystrokeEvents: [],
   });
   const [isTestActive, setIsTestActive] = useState(false);
-  const inputRef = useRef<HTMLInputElement>(null);
+
+  const inputRef = useRef<HTMLInputElement | null>(null);
 
   // Initialize test with API text or fallback
   const initializeTest = useCallback(async () => {
-    try {
-      setIsLoadingTexts(true);
-      const texts = await testTextsApi.getAll({
-        difficulty: selectedDifficulty,
-        limit: 10,
-      });
+    const selectedText = generateTestText(100);
+    setTestText(selectedText);
 
-      let selectedText: string;
-      let selectedTestText: TestText | null = null;
+    const newEngine = new TypingEngine(
+      selectedText,
+      (newStats) => setStats(newStats),
+      (newState) => setState(newState)
+    );
 
-      if (texts.length > 0) {
-        // Select a random text from available texts
-        const randomIndex = Math.floor(Math.random() * texts.length);
-        selectedTestText = texts[randomIndex];
-        selectedText = selectedTestText.content;
-        setCurrentTestText(selectedTestText);
-      } else {
-        // Fallback to generated text
-        selectedText = generateTestText(50);
-        setCurrentTestText(null);
-      }
-
-      setTestText(selectedText);
-
-      const newEngine = new TypingEngine(
-        selectedText,
-        (newStats) => setStats(newStats),
-        (newState) => setState(newState)
-      );
-
-      setEngine(newEngine);
-      setIsTestActive(true);
-
-      // Focus input after a short delay
-      setTimeout(() => {
-        inputRef.current?.focus();
-      }, 100);
-    } catch (error) {
-      console.error('Failed to initialize test:', error);
-      // Fallback to generated text
-      const fallbackText = generateTestText(50);
-      setTestText(fallbackText);
-      setCurrentTestText(null);
-
-      const newEngine = new TypingEngine(
-        fallbackText,
-        (newStats) => setStats(newStats),
-        (newState) => setState(newState)
-      );
-
-      setEngine(newEngine);
-      setIsTestActive(true);
-
-      setTimeout(() => {
-        inputRef.current?.focus();
-      }, 100);
-    } finally {
-      setIsLoadingTexts(false);
-    }
-  }, [selectedDifficulty]);
+    setEngine(newEngine);
+    setIsTestActive(true);
+  }, []);
 
   // Submit test result
   const submitResult = useCallback(
     async (finalStats: TypingStats) => {
-      if (!user || !currentTestText) {
-        return; // Can't submit without user or test text
+      if (!user || !currentTestText || !engine) {
+        return; // Can't submit without user, test text, or engine
       }
 
       try {
         setIsSubmittingResult(true);
+
+        // Get detailed keystroke data for analytics
+        const keystrokeEvents = engine.getKeystrokeEvents();
+        const keystrokeData = JSON.stringify(keystrokeEvents);
+
         await testResultsApi.submit({
           testTextId: currentTestText.id,
           wpm: finalStats.wpm,
           accuracy: finalStats.accuracy,
           errors: finalStats.incorrectChars,
           timeTaken: finalStats.timeElapsed,
+          keystrokeData, // Include detailed keystroke data
         });
-        console.log('Test result submitted successfully');
+        console.log('Test result submitted successfully with analytics data');
       } catch (error) {
         console.error('Failed to submit test result:', error);
       } finally {
         setIsSubmittingResult(false);
       }
     },
-    [user, currentTestText]
+    [user, currentTestText, engine]
   );
 
   // Reset test
@@ -161,6 +160,7 @@ export const TypingTest: React.FC = () => {
   // Initialize test on component mount
   useEffect(() => {
     initializeTest();
+    inputRef.current?.focus();
   }, [initializeTest]);
 
   // Render character with appropriate styling
@@ -172,23 +172,20 @@ export const TypingTest: React.FC = () => {
 
     switch (status) {
       case 'correct':
-        className +=
-          'text-green-600 bg-green-100 dark:bg-green-900 dark:text-green-300';
+        className += 'text-text bg-accent/50';
         break;
       case 'incorrect':
-        className +=
-          'text-red-600 bg-red-100 dark:bg-red-900 dark:text-red-300';
+        className += 'text-rose-500 bg-accent/50';
         break;
       case 'current':
-        className +=
-          'text-gray-900 dark:text-white bg-blue-200 dark:bg-blue-800 animate-pulse';
+        className += 'text-gray-500 bg-accent animate-pulse';
         break;
       default:
-        className += 'text-gray-500 dark:text-gray-400';
+        className += 'text-gray-400';
     }
 
     return (
-      <span key={index} className={className}>
+      <span key={index} className={cn(className)}>
         {char === ' ' ? '\u00A0' : char}
       </span>
     );
@@ -196,38 +193,9 @@ export const TypingTest: React.FC = () => {
 
   const progress = engine ? engine.getProgress() : 0;
 
-  return (
-    <div className="max-w-4xl mx-auto">
-      <h1 className="text-4xl font-bold text-center mb-8 text-gray-900 dark:text-white">
-        Typing Test
-      </h1>
-
-      {/* Difficulty Selector */}
-      <div className="mb-6">
-        <div className="flex justify-center items-center space-x-4">
-          <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
-            Difficulty:
-          </label>
-          <select
-            value={selectedDifficulty}
-            onChange={(e) => setSelectedDifficulty(e.target.value)}
-            disabled={isTestActive}
-            className="px-3 py-1 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-          >
-            <option value="easy">Easy</option>
-            <option value="medium">Medium</option>
-            <option value="hard">Hard</option>
-          </select>
-          {currentTestText && (
-            <span className="text-sm text-gray-500 dark:text-gray-400">
-              "{currentTestText.title}" ({currentTestText.wordCount} words)
-            </span>
-          )}
-        </div>
-      </div>
-
-      {/* Stats Display */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+  function testStats() {
+    return (
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8 text-ro">
         <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-4 text-center">
           <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">
             {stats.wpm}
@@ -257,78 +225,109 @@ export const TypingTest: React.FC = () => {
           </div>
         </div>
       </div>
+    );
+  }
 
-      {/* Progress Bar */}
-      <div className="mb-6">
-        <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
-          <div
-            className="bg-blue-600 h-2 rounded-full transition-all duration-300 ease-out"
-            style={{ width: `${progress}%` }}
-          ></div>
+  function text() {
+    let counter = 0;
+    const chunks = testText.split(' ');
+    return chunks.map((word, wordIndex) => {
+      return (
+        <div className="flex items-center" key={wordIndex}>
+          {word.split('').map((char) => {
+            return renderCharacter(char, counter++);
+          })}
+          {wordIndex < chunks.length - 1 && renderCharacter(' ', counter++)}
         </div>
-      </div>
+      );
+    });
+  }
 
-      {/* Test Text Display */}
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-8 mb-6">
-        <div className="text-xl leading-relaxed font-mono select-none">
-          {testText
-            .split('')
-            .map((char, index) => renderCharacter(char, index))}
-        </div>
-      </div>
-
-      {/* Hidden Input for Capturing Keystrokes */}
-      <input
-        ref={inputRef}
-        type="text"
-        className="opacity-0 absolute -z-10"
-        onKeyDown={handleKeyDown}
-        disabled={!isTestActive}
-        autoComplete="off"
-        autoCapitalize="off"
-        autoCorrect="off"
-        spellCheck={false}
-      />
-
-      {/* Controls */}
-      <div className="flex justify-center space-x-4">
-        {!isTestActive && !state.isComplete && (
-          <button
-            onClick={initializeTest}
-            disabled={isLoadingTexts}
-            className="bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white px-6 py-2 rounded-lg transition-colors"
-          >
-            {isLoadingTexts ? 'Loading...' : 'Start Test'}
-          </button>
-        )}
-
-        {isTestActive && (
-          <button
-            onClick={resetTest}
-            className="bg-gray-600 hover:bg-gray-700 text-white px-6 py-2 rounded-lg transition-colors"
-          >
-            Reset
-          </button>
-        )}
-
-        {state.isComplete && (
-          <div className="flex space-x-4">
-            <button
-              onClick={initializeTest}
-              disabled={isLoadingTexts}
-              className="bg-green-600 hover:bg-green-700 disabled:bg-green-400 text-white px-6 py-2 rounded-lg transition-colors"
-            >
-              {isLoadingTexts ? 'Loading...' : 'New Test'}
-            </button>
-            <button
-              onClick={resetTest}
-              className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg transition-colors"
-            >
-              Retry
-            </button>
+  return (
+    <div className="h-full flex flex-col gap-4 items-center justify-center">
+      <div className="bg-accent/30 rounded-lg w-full -translate-y-20">
+        <div className="flex items-center justify-between p-8 rounded-lg text-zinc-700 gap-2 w-full">
+          <div className="flex items-center gap-2">
+            {Object.values(Modes).map(({ id, icon: Icon, label }) => (
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    key={id}
+                    onClick={() => setCurrentMode(id)}
+                    size="icon"
+                    className={id === currentMode ? 'bg-accent/50' : ''}
+                  >
+                    <Icon />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent side="bottom">{label}</TooltipContent>
+              </Tooltip>
+            ))}
           </div>
-        )}
+          <div className="flex items-center gap-2">
+            <Select
+              value={difficulty}
+              onValueChange={(dif: Difficulty) => setDifficulty(dif)}
+            >
+              <SelectTrigger>
+                <SelectValue className="capitalize">
+                  {Difficulties[difficulty]?.label || difficulty}
+                </SelectValue>
+              </SelectTrigger>
+              <SelectContent>
+                {Object.values(Difficulties).map((difficulty) => (
+                  <SelectItem key={difficulty.id} value={difficulty.id}>
+                    {difficulty.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button variant="ghost" size="icon" onClick={resetTest}>
+                  <RotateCcw />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent side="bottom">Refresh</TooltipContent>
+            </Tooltip>
+          </div>
+        </div>
 
+        <div
+          className="p-8 mt-4 mb-6 flex flex-wrap text-3xl leading-relaxed font-mono select-none outline-none relative"
+          onKeyDown={handleKeyDown}
+          onBlur={() => setFocused(false)}
+          onFocus={() => setFocused(true)}
+          tabIndex={0}
+          ref={inputRef}
+        >
+          <div
+            className={cn(
+              'absolute inset-0 flex items-center justify-center transition-all text-center backdrop-blur-none opacity-0 z-1',
+              !focused && 'backdrop-blur-sm opacity-100'
+            )}
+          >
+            Click here to focus
+          </div>
+
+          {text()}
+          {/* {testText.split(' ').map((word, wordIndex) => (
+            <div className="flex items-center px-2" key={wordIndex}>
+              {word
+                .split('')
+                .map((char, index) =>
+                  renderCharacter(char, parseInt(`${wordIndex}${index}`))
+                )}
+            </div>
+          ))} */}
+          {/* {testText
+            .split('')
+            .map((char, index) => renderCharacter(char, index))} */}
+        </div>
+      </div>
+
+      <div className="flex justify-center space-x-4">
         {/* Result submission status */}
         {isSubmittingResult && (
           <div className="text-sm text-gray-600 dark:text-gray-400">
@@ -337,7 +336,6 @@ export const TypingTest: React.FC = () => {
         )}
       </div>
 
-      {/* Test Complete Message */}
       {state.isComplete && (
         <div className="mt-8 bg-green-50 dark:bg-green-900 border border-green-200 dark:border-green-700 rounded-lg p-6 text-center">
           <h2 className="text-2xl font-bold text-green-800 dark:text-green-200 mb-4">
@@ -363,16 +361,6 @@ export const TypingTest: React.FC = () => {
               <div className="text-sm">Time taken</div>
             </div>
           </div>
-        </div>
-      )}
-
-      {/* Instructions */}
-      {!state.isStarted && isTestActive && (
-        <div className="mt-6 text-center text-gray-600 dark:text-gray-400">
-          <p>Click here and start typing to begin the test</p>
-          <p className="text-sm mt-2">
-            The timer will start automatically when you type the first character
-          </p>
         </div>
       )}
     </div>
