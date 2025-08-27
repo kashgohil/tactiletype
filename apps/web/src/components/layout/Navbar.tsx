@@ -1,72 +1,84 @@
-import React from 'react';
 import { Link } from '@tanstack/react-router';
+import { ChartPie, Crown, Gamepad2, Keyboard, LogIn } from 'lucide-react';
+import React from 'react';
 import { useAuth } from '../../contexts';
+import { Button } from '../ui/button';
+import { Tooltip, TooltipContent, TooltipTrigger } from '../ui/tooltip';
 
 export const Navbar: React.FC = () => {
-  const { user, logout } = useAuth();
+  const { user } = useAuth();
 
   return (
-    <nav className="bg-white dark:bg-gray-800 shadow-md">
-      <div className="container mx-auto px-4">
-        <div className="flex justify-between items-center h-16">
-          <Link to="/" className="text-2xl font-bold text-blue-600 dark:text-blue-400">
-            Tactile
+    <nav className="p-4">
+      <div className="container mx-auto p-4 bg-accent/30 rounded-lg">
+        <div className="flex justify-between items-center">
+          <Link
+            to="/"
+            className="text-2xl font-bold flex items-center gap-2 font-saira"
+          >
+            <img
+              src="/tactiletype-256x256.png"
+              alt="TactileType"
+              height={36}
+              width={36}
+            />
+            tactiletype
           </Link>
 
-          <div className="flex items-center space-x-6">
-            <Link
-              to="/test"
-              className="text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
-            >
-              Test
-            </Link>
-            
-            <Link
-              to="/leaderboard"
-              className="text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
-            >
-              Leaderboard
-            </Link>
-
-            <Link
-              to="/multiplayer"
-              className="text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
-            >
-              Multiplayer
-            </Link>
-
-            {user ? (
-              <div className="flex items-center space-x-4">
-                <Link
-                  to="/profile"
-                  className="text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
-                >
-                  {user.username}
+          <div className="flex items-center">
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Link to="/test">
+                  <Button variant="link" size="icon">
+                    <Keyboard />
+                  </Button>
                 </Link>
-                
-                <button
-                  onClick={logout}
-                  className="bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded text-sm transition-colors"
-                >
-                  Logout
-                </button>
-              </div>
-            ) : (
-              <div className="flex items-center space-x-4">
-                <Link
-                  to="/login"
-                  className="text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
-                >
-                  Login
+              </TooltipTrigger>
+              <TooltipContent>Test</TooltipContent>
+            </Tooltip>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Link to="/leaderboard">
+                  <Button variant="link" size="icon">
+                    <Crown />
+                  </Button>
                 </Link>
-                
-                <Link
-                  to="/register"
-                  className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded transition-colors"
-                >
-                  Sign Up
+              </TooltipTrigger>
+              <TooltipContent>Leaderboard</TooltipContent>
+            </Tooltip>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Link to="/multiplayer">
+                  <Button variant="link" size="icon">
+                    <Gamepad2 />
+                  </Button>
                 </Link>
-              </div>
+              </TooltipTrigger>
+              <TooltipContent>Multiplayer</TooltipContent>
+            </Tooltip>
+            {user && (
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Link to="/analytics">
+                    <Button variant="link" size="icon">
+                      <ChartPie />
+                    </Button>
+                  </Link>
+                </TooltipTrigger>
+                <TooltipContent>Analytics</TooltipContent>
+              </Tooltip>
+            )}
+            {!user && (
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Link to="/login">
+                    <Button variant="link" size="icon">
+                      <LogIn />
+                    </Button>
+                  </Link>
+                </TooltipTrigger>
+                <TooltipContent>Login</TooltipContent>
+              </Tooltip>
             )}
           </div>
         </div>
