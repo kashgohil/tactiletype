@@ -9,13 +9,10 @@ export const Navbar: React.FC = () => {
   const { user } = useAuth();
 
   return (
-    <nav className="p-4">
+    <nav className="p-4 w-full">
       <div className="container mx-auto p-4 bg-accent/30 rounded-lg">
         <div className="flex justify-between items-center">
-          <Link
-            to="/"
-            className="text-2xl font-bold flex items-center gap-2 font-saira"
-          >
+          <Link to="/" className="text-2xl font-bold flex items-center gap-2">
             <img
               src="/tactiletype-256x256.png"
               alt="TactileType"
