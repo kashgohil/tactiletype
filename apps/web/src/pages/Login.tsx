@@ -1,5 +1,7 @@
-import React, { useState } from 'react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { Link, useNavigate } from '@tanstack/react-router';
+import React, { useState } from 'react';
 import { useAuth } from '../contexts';
 
 export const Login: React.FC = () => {
@@ -7,7 +9,7 @@ export const Login: React.FC = () => {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  
+
   const { login } = useAuth();
   const navigate = useNavigate();
 
@@ -28,8 +30,14 @@ export const Login: React.FC = () => {
 
   return (
     <div className="max-w-md mx-auto bg-white dark:bg-gray-800 rounded-lg shadow-md p-8">
-      <h1 className="text-2xl font-bold text-center mb-8 text-gray-900 dark:text-white">
-        Log In to Tactile
+      <h1 className="flex items-center justify-center gap-2 text-2xl font-bold text-center mb-8">
+        <img
+          src="/tactiletype-256x256.png"
+          alt="tactiletype"
+          height={36}
+          width={36}
+        />
+        <span className="font-saira">tactiletype</span>
       </h1>
 
       {error && (
@@ -38,50 +46,47 @@ export const Login: React.FC = () => {
         </div>
       )}
 
-      <form onSubmit={handleSubmit} className="space-y-6">
+      <form onSubmit={handleSubmit} className="space-y-2">
         <div>
-          <label htmlFor="email" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-            Email
-          </label>
-          <input
+          <Input
             type="email"
             id="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             required
             className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-            placeholder="Enter your email"
+            placeholder="Email"
           />
         </div>
 
         <div>
-          <label htmlFor="password" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-            Password
-          </label>
-          <input
+          <Input
             type="password"
             id="password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             required
             className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-            placeholder="Enter your password"
+            placeholder="Password"
           />
         </div>
 
-        <button
+        <Button
           type="submit"
           disabled={isLoading}
-          className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white font-semibold py-2 px-4 rounded-md transition-colors"
+          className="w-full font-semibold py-2 px-4 rounded-md transition-colors"
         >
           {isLoading ? 'Logging in...' : 'Log In'}
-        </button>
+        </Button>
       </form>
 
       <div className="mt-6 text-center">
-        <p className="text-gray-600 dark:text-gray-400">
+        <p>
           Don't have an account?{' '}
-          <Link to="/register" className="text-blue-600 hover:text-blue-700 font-medium">
+          <Link
+            to="/register"
+            className="text-accent font-medium hover:underline"
+          >
             Sign up
           </Link>
         </p>
