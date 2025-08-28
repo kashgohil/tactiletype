@@ -9,8 +9,8 @@ export const Navbar: React.FC = () => {
   const { user } = useAuth();
 
   return (
-    <nav className="p-4 w-full">
-      <div className="container mx-auto p-4 bg-accent/30 rounded-lg">
+    <nav className="p-4 w-full sticky top-0">
+      <div className="container mx-auto p-4 bg-accent/30 rounded-lg backdrop-blur-3xl">
         <div className="flex justify-between items-center">
           <Link to="/" className="text-2xl font-bold flex items-center gap-2">
             <img
