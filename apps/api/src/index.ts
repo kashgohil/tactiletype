@@ -2,6 +2,8 @@ import { Hono } from 'hono';
 import { cors } from 'hono/cors';
 import { logger } from 'hono/logger';
 import { prettyJSON } from 'hono/pretty-json';
+import { OAuthProviderFactory } from './auth/oauth';
+import { csrfProtection } from './middleware/csrf';
 import analyticsRoutes from './routes/analytics';
 import { authRoutes } from './routes/auth';
 import { multiplayerRoutes } from './routes/multiplayer';
@@ -15,20 +17,20 @@ const app = new Hono<{
   };
 }>().basePath('/api');
 
-// Middleware
 app.use('*', logger());
 app.use('*', prettyJSON());
 app.use(
   '*',
   cors({
     origin: ['http://localhost:3002'],
-    allowHeaders: ['Content-Type', 'Authorization'],
+    allowHeaders: ['Content-Type', 'Authorization', 'X-CSRF-Token'],
     allowMethods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
     credentials: true,
   })
 );
 
-// Health check
+app.use('*', csrfProtection());
+
 app.get('/', (c) => {
   return c.json({
     message: 'tactiletype API Server',
@@ -38,20 +40,19 @@ app.get('/', (c) => {
   });
 });
 
-// Middleware to provide WebSocket handler to routes (will be set up later)
+OAuthProviderFactory.initialize();
+
 app.use('*', async (c, next) => {
   // WebSocket handler will be available in production setup
   await next();
 });
 
-// Routes
 app.route('/auth', authRoutes);
 app.route('/users', userRoutes);
 app.route('/tests', testRoutes);
 app.route('/multiplayer', multiplayerRoutes);
 app.route('/analytics', analyticsRoutes);
 
-// Error handling
 app.onError((err, c) => {
   console.error('API Error:', err);
   return c.json(
@@ -63,17 +64,14 @@ app.onError((err, c) => {
   );
 });
 
-// 404 handler
 app.notFound((c) => {
   return c.json({ error: 'Not Found' }, 404);
 });
 
 const port = process.env.PORT || 3001;
 
-console.log(`🚀 tactiletype API Server running on port ${port}`);
-console.log(
-  `📡 WebSocket server will be available at ws://localhost:${port}/ws`
-);
+console.log(`tactiletype API Server running on port ${port}`);
+console.log(`WebSocket server will be available at ws://localhost:${port}/ws`);
 
 export default {
   port,

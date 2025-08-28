@@ -3,10 +3,14 @@ import { db, users } from '@tactile/database';
 import bcrypt from 'bcryptjs';
 import { eq } from 'drizzle-orm';
 import { Hono } from 'hono';
+import { setCookie } from 'hono/cookie';
 import { sign, verify } from 'hono/jwt';
 import { z } from 'zod';
+import { OAuthProviderFactory } from '../auth/oauth';
+import { JWT_SECRET } from '../constants';
+import { setCsrfCookie } from '../middleware/csrf';
 
-const authRoutes = new Hono();
+const authRoutes = new Hono().basePath('/auth');
 
 // Validation schemas
 const registerSchema = z.object({
@@ -20,14 +24,11 @@ const loginSchema = z.object({
   password: z.string(),
 });
 
-const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key';
-
 // Register endpoint
 authRoutes.post('/register', zValidator('json', registerSchema), async (c) => {
   try {
     const { email, username, password } = c.req.valid('json');
 
-    // Check if user already exists
     const existingUser = await db.query.users.findFirst({
       where: eq(users.email, email),
     });
@@ -36,7 +37,6 @@ authRoutes.post('/register', zValidator('json', registerSchema), async (c) => {
       return c.json({ error: 'User already exists' }, 400);
     }
 
-    // Check if username is taken
     const existingUsername = await db.query.users.findFirst({
       where: eq(users.username, username),
     });
@@ -45,10 +45,8 @@ authRoutes.post('/register', zValidator('json', registerSchema), async (c) => {
       return c.json({ error: 'Username already taken' }, 400);
     }
 
-    // Hash password
     const passwordHash = await bcrypt.hash(password, 12);
 
-    // Create user
     const [newUser] = await db
       .insert(users)
       .values({
@@ -77,6 +75,8 @@ authRoutes.post('/register', zValidator('json', registerSchema), async (c) => {
       },
       JWT_SECRET
     );
+
+    setCsrfCookie(c);
 
     return c.json({
       message: 'User registered successfully',
@@ -121,6 +121,8 @@ authRoutes.post('/login', zValidator('json', loginSchema), async (c) => {
       JWT_SECRET
     );
 
+    setCsrfCookie(c);
+
     return c.json({
       message: 'Login successful',
       user: {
@@ -160,6 +162,8 @@ authRoutes.get('/me', async (c) => {
       return c.json({ error: 'User not found' }, 404);
     }
 
+    setCsrfCookie(c);
+
     return c.json({
       user: {
         id: user.id,
@@ -175,9 +179,68 @@ authRoutes.get('/me', async (c) => {
   }
 });
 
-// Logout endpoint (client-side token removal)
 authRoutes.post('/logout', (c) => {
   return c.json({ message: 'Logged out successfully' });
+});
+
+authRoutes.get('/sso/:provider', async (c) => {
+  const provider = c.req.param('provider');
+  const oauthProvider = OAuthProviderFactory.getProvider(provider);
+
+  if (!oauthProvider) {
+    return c.json({ error: 'OAuth provider not supported' }, 400);
+  }
+
+  const state = oauthProvider.generateOAuthState();
+  const authUrl = oauthProvider.getAuthUrl(state);
+
+  return c.json({ authUrl, state });
+});
+
+authRoutes.get('/sso/:provider/callback', async (c) => {
+  try {
+    const provider = c.req.param('provider');
+    const code = c.req.query('code');
+    const state = c.req.query('state');
+
+    if (!code) {
+      return c.json({ error: 'Authorization code is required' }, 400);
+    }
+
+    if (!state) {
+      return c.json({ error: 'State parameter is required for security' }, 400);
+    }
+
+    const oauthProvider = OAuthProviderFactory.getProvider(provider);
+    if (!oauthProvider) {
+      return c.json({ error: 'OAuth provider not supported' }, 400);
+    }
+
+    if (!oauthProvider.validateOAuthState(state)) {
+      return c.json({ error: 'Invalid state parameter' }, 403);
+    }
+
+    const oauthUser = await oauthProvider.handleCallback(code, state);
+    const { user, isNew } = await oauthProvider.findOrCreateUser(oauthUser);
+
+    const token = await oauthProvider.generateJWT(user);
+
+    const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
+    const redirectUrl = new URL('/auth/sso/callback', frontendUrl);
+
+    setCookie(c, 'token', token, {
+      httpOnly: false,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'Strict',
+      maxAge: 15 * 60,
+      path: '/',
+    });
+
+    return c.redirect(redirectUrl.toString());
+  } catch (error) {
+    console.error('OAuth callback error:', error);
+    return c.json({ error: 'OAuth authentication failed' }, 500);
+  }
 });
 
 export { authRoutes };
