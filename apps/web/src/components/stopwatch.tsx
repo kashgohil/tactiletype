@@ -9,10 +9,6 @@ export function Stopwatch({
 }) {
   const [timeLeft, setTimeLeft] = useState(duration);
 
-  useEffect(() => {
-    setTimeLeft(duration);
-  }, [duration]);
-
   const { hours, minutes, seconds } = useMemo(() => {
     const hours = Math.floor(timeLeft / 3600);
     const mins = Math.floor((timeLeft % 3600) / 60);
