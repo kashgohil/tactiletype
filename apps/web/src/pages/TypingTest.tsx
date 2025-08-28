@@ -145,6 +145,17 @@ export const TypingTest: React.FC = () => {
     [user, currentTestText, engine]
   );
 
+  // Timer end handler
+  const handleTimerEnd = useCallback(() => {
+    if (engine && !engine.getState().isComplete) {
+      // Complete the test when timer runs out
+      engine.completeTest();
+      setIsTestActive(false);
+      const finalStats = engine.calculateStats();
+      submitResult(finalStats);
+    }
+  }, [engine, submitResult]);
+
   // Reset test
   const resetTest = useCallback(() => {
     engine?.reset();
@@ -282,7 +293,10 @@ export const TypingTest: React.FC = () => {
               {isTestActive ? (
                 <div className="h-9 text-xl flex items-center justify-center w-full gap-2">
                   {currentMode === 'timer' && (
-                    <Stopwatch duration={timerDuration} onEnd={() => {}} />
+                    <Stopwatch
+                      duration={timerDuration}
+                      onEnd={handleTimerEnd}
+                    />
                   )}
                   {currentMode === 'words' && (
                     <span>
