@@ -7,9 +7,17 @@ export function Footer() {
         <p>
           &copy; {new Date().getFullYear()} tactiletype. All rights reserved.
         </p>
-        <Link to="/terms" className="underline">
-          Terms
-        </Link>
+        <div className="flex gap-4">
+          <Link to="/terms" className="underline">
+            Terms
+          </Link>
+          <Link to="/privacy" className="underline">
+            Privacy
+          </Link>
+          <Link to="/contact" className="underline">
+            Contact
+          </Link>
+        </div>
       </div>
     </div>
   );

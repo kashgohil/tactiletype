@@ -13,9 +13,11 @@ import { Route as TestRouteImport } from './routes/test'
 import { Route as TermsRouteImport } from './routes/terms'
 import { Route as RegisterRouteImport } from './routes/register'
 import { Route as ProfileRouteImport } from './routes/profile'
+import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as MultiplayerRouteImport } from './routes/multiplayer'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as LeaderboardRouteImport } from './routes/leaderboard'
+import { Route as ContactRouteImport } from './routes/contact'
 import { Route as AnalyticsRouteImport } from './routes/analytics'
 import { Route as IndexRouteImport } from './routes/index'
 
@@ -39,6 +41,11 @@ const ProfileRoute = ProfileRouteImport.update({
   path: '/profile',
   getParentRoute: () => rootRouteImport,
 } as any)
+const PrivacyRoute = PrivacyRouteImport.update({
+  id: '/privacy',
+  path: '/privacy',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const MultiplayerRoute = MultiplayerRouteImport.update({
   id: '/multiplayer',
   path: '/multiplayer',
@@ -52,6 +59,11 @@ const LoginRoute = LoginRouteImport.update({
 const LeaderboardRoute = LeaderboardRouteImport.update({
   id: '/leaderboard',
   path: '/leaderboard',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ContactRoute = ContactRouteImport.update({
+  id: '/contact',
+  path: '/contact',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AnalyticsRoute = AnalyticsRouteImport.update({
@@ -68,9 +80,11 @@ const IndexRoute = IndexRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/analytics': typeof AnalyticsRoute
+  '/contact': typeof ContactRoute
   '/leaderboard': typeof LeaderboardRoute
   '/login': typeof LoginRoute
   '/multiplayer': typeof MultiplayerRoute
+  '/privacy': typeof PrivacyRoute
   '/profile': typeof ProfileRoute
   '/register': typeof RegisterRoute
   '/terms': typeof TermsRoute
@@ -79,9 +93,11 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/analytics': typeof AnalyticsRoute
+  '/contact': typeof ContactRoute
   '/leaderboard': typeof LeaderboardRoute
   '/login': typeof LoginRoute
   '/multiplayer': typeof MultiplayerRoute
+  '/privacy': typeof PrivacyRoute
   '/profile': typeof ProfileRoute
   '/register': typeof RegisterRoute
   '/terms': typeof TermsRoute
@@ -91,9 +107,11 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/analytics': typeof AnalyticsRoute
+  '/contact': typeof ContactRoute
   '/leaderboard': typeof LeaderboardRoute
   '/login': typeof LoginRoute
   '/multiplayer': typeof MultiplayerRoute
+  '/privacy': typeof PrivacyRoute
   '/profile': typeof ProfileRoute
   '/register': typeof RegisterRoute
   '/terms': typeof TermsRoute
@@ -104,9 +122,11 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/analytics'
+    | '/contact'
     | '/leaderboard'
     | '/login'
     | '/multiplayer'
+    | '/privacy'
     | '/profile'
     | '/register'
     | '/terms'
@@ -115,9 +135,11 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/analytics'
+    | '/contact'
     | '/leaderboard'
     | '/login'
     | '/multiplayer'
+    | '/privacy'
     | '/profile'
     | '/register'
     | '/terms'
@@ -126,9 +148,11 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/analytics'
+    | '/contact'
     | '/leaderboard'
     | '/login'
     | '/multiplayer'
+    | '/privacy'
     | '/profile'
     | '/register'
     | '/terms'
@@ -138,9 +162,11 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AnalyticsRoute: typeof AnalyticsRoute
+  ContactRoute: typeof ContactRoute
   LeaderboardRoute: typeof LeaderboardRoute
   LoginRoute: typeof LoginRoute
   MultiplayerRoute: typeof MultiplayerRoute
+  PrivacyRoute: typeof PrivacyRoute
   ProfileRoute: typeof ProfileRoute
   RegisterRoute: typeof RegisterRoute
   TermsRoute: typeof TermsRoute
@@ -177,6 +203,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ProfileRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/privacy': {
+      id: '/privacy'
+      path: '/privacy'
+      fullPath: '/privacy'
+      preLoaderRoute: typeof PrivacyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/multiplayer': {
       id: '/multiplayer'
       path: '/multiplayer'
@@ -196,6 +229,13 @@ declare module '@tanstack/react-router' {
       path: '/leaderboard'
       fullPath: '/leaderboard'
       preLoaderRoute: typeof LeaderboardRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/contact': {
+      id: '/contact'
+      path: '/contact'
+      fullPath: '/contact'
+      preLoaderRoute: typeof ContactRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/analytics': {
@@ -218,9 +258,11 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AnalyticsRoute: AnalyticsRoute,
+  ContactRoute: ContactRoute,
   LeaderboardRoute: LeaderboardRoute,
   LoginRoute: LoginRoute,
   MultiplayerRoute: MultiplayerRoute,
+  PrivacyRoute: PrivacyRoute,
   ProfileRoute: ProfileRoute,
   RegisterRoute: RegisterRoute,
   TermsRoute: TermsRoute,
