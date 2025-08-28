@@ -1,6 +1,7 @@
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Link, useNavigate } from '@tanstack/react-router';
+import { motion } from 'motion/react';
 import React, { useState } from 'react';
 import { useAuth } from '../contexts';
 
@@ -29,7 +30,13 @@ export const Login: React.FC = () => {
   };
 
   return (
-    <div className="max-w-md mx-auto bg-white dark:bg-gray-800 rounded-lg shadow-md p-8">
+    <motion.div
+      initial={{ opacity: 0, y: '-30%' }}
+      animate={{ opacity: 1, y: '-40%' }}
+      exit={{ opacity: 0, y: -40 }}
+      transition={{ duration: 0.3, ease: 'easeInOut' }}
+      className="max-w-md w-full my-auto mx-auto bg-white dark:bg-gray-800 rounded-lg shadow-md p-8"
+    >
       <h1 className="flex items-center justify-center gap-2 text-2xl font-bold text-center mb-8">
         <img
           src="/tactiletype-256x256.png"
@@ -91,6 +98,6 @@ export const Login: React.FC = () => {
           </Link>
         </p>
       </div>
-    </div>
+    </motion.div>
   );
 };
