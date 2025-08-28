@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as TestRouteImport } from './routes/test'
+import { Route as TermsRouteImport } from './routes/terms'
 import { Route as RegisterRouteImport } from './routes/register'
 import { Route as ProfileRouteImport } from './routes/profile'
 import { Route as MultiplayerRouteImport } from './routes/multiplayer'
@@ -21,6 +22,11 @@ import { Route as IndexRouteImport } from './routes/index'
 const TestRoute = TestRouteImport.update({
   id: '/test',
   path: '/test',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TermsRoute = TermsRouteImport.update({
+  id: '/terms',
+  path: '/terms',
   getParentRoute: () => rootRouteImport,
 } as any)
 const RegisterRoute = RegisterRouteImport.update({
@@ -67,6 +73,7 @@ export interface FileRoutesByFullPath {
   '/multiplayer': typeof MultiplayerRoute
   '/profile': typeof ProfileRoute
   '/register': typeof RegisterRoute
+  '/terms': typeof TermsRoute
   '/test': typeof TestRoute
 }
 export interface FileRoutesByTo {
@@ -77,6 +84,7 @@ export interface FileRoutesByTo {
   '/multiplayer': typeof MultiplayerRoute
   '/profile': typeof ProfileRoute
   '/register': typeof RegisterRoute
+  '/terms': typeof TermsRoute
   '/test': typeof TestRoute
 }
 export interface FileRoutesById {
@@ -88,6 +96,7 @@ export interface FileRoutesById {
   '/multiplayer': typeof MultiplayerRoute
   '/profile': typeof ProfileRoute
   '/register': typeof RegisterRoute
+  '/terms': typeof TermsRoute
   '/test': typeof TestRoute
 }
 export interface FileRouteTypes {
@@ -100,6 +109,7 @@ export interface FileRouteTypes {
     | '/multiplayer'
     | '/profile'
     | '/register'
+    | '/terms'
     | '/test'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -110,6 +120,7 @@ export interface FileRouteTypes {
     | '/multiplayer'
     | '/profile'
     | '/register'
+    | '/terms'
     | '/test'
   id:
     | '__root__'
@@ -120,6 +131,7 @@ export interface FileRouteTypes {
     | '/multiplayer'
     | '/profile'
     | '/register'
+    | '/terms'
     | '/test'
   fileRoutesById: FileRoutesById
 }
@@ -131,6 +143,7 @@ export interface RootRouteChildren {
   MultiplayerRoute: typeof MultiplayerRoute
   ProfileRoute: typeof ProfileRoute
   RegisterRoute: typeof RegisterRoute
+  TermsRoute: typeof TermsRoute
   TestRoute: typeof TestRoute
 }
 
@@ -141,6 +154,13 @@ declare module '@tanstack/react-router' {
       path: '/test'
       fullPath: '/test'
       preLoaderRoute: typeof TestRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/terms': {
+      id: '/terms'
+      path: '/terms'
+      fullPath: '/terms'
+      preLoaderRoute: typeof TermsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/register': {
@@ -203,6 +223,7 @@ const rootRouteChildren: RootRouteChildren = {
   MultiplayerRoute: MultiplayerRoute,
   ProfileRoute: ProfileRoute,
   RegisterRoute: RegisterRoute,
+  TermsRoute: TermsRoute,
   TestRoute: TestRoute,
 }
 export const routeTree = rootRouteImport
