@@ -1,3 +1,4 @@
+import { Stopwatch } from '@/components/stopwatch';
 import { Button } from '@/components/ui/button';
 import {
   Select,
@@ -6,6 +7,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { Separator } from '@/components/ui/separator';
 import {
   Tooltip,
   TooltipContent,
@@ -18,8 +20,11 @@ import {
   Hash,
   Quote,
   RotateCcw,
+  Timer,
+  WholeWord,
   type LucideIcon,
 } from 'lucide-react';
+import { AnimatePresence, motion } from 'motion/react';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useAuth } from '../contexts';
 import type { TestText } from '../services/api';
@@ -28,11 +33,15 @@ import type { TypingState, TypingStats } from '../utils/typingEngine';
 import {
   TypingEngine,
   formatTime,
-  generateTestText,
+  initializeText,
 } from '../utils/typingEngine';
 
-type Mode = 'text' | 'punctuation' | 'numbers' | 'quotes';
+type Type = 'text' | 'punctuation' | 'numbers' | 'quotes';
 type Difficulty = 'easy' | 'medium' | 'hard';
+type Mode = 'timer' | 'words';
+
+const TimerOptions = [10, 15, 30, 60];
+const wordsOptions = [25, 50, 75, 100, 200];
 
 const Difficulties: Record<Difficulty, { id: Difficulty; label: string }> = {
   easy: { id: 'easy', label: 'Easy' },
@@ -40,22 +49,29 @@ const Difficulties: Record<Difficulty, { id: Difficulty; label: string }> = {
   hard: { id: 'hard', label: 'Hard' },
 };
 
-const Modes: Record<Mode, { id: Mode; label: string; icon: LucideIcon }> = {
+const Types: Record<Type, { id: Type; label: string; icon: LucideIcon }> = {
   text: { id: 'text', label: 'Text', icon: ALargeSmall },
   punctuation: { id: 'punctuation', label: 'Punctuation', icon: AtSign },
   numbers: { id: 'numbers', label: 'Numbers', icon: Hash },
   quotes: { id: 'quotes', label: 'Quotes', icon: Quote },
 };
 
+const Modes: Record<Mode, { id: Mode; label: string; icon: LucideIcon }> = {
+  timer: { id: 'timer', label: 'Timer', icon: Timer },
+  words: { id: 'words', label: 'Words', icon: WholeWord },
+};
+
 export const TypingTest: React.FC = () => {
   const { user } = useAuth();
 
-  const [currentMode, setCurrentMode] = useState<Mode>('text');
+  const [wordsCount, setWordsCount] = useState(wordsOptions[0]);
+  const [timerDuration, setTimerDuration] = useState(TimerOptions[0]);
+  const [currentMode, setCurrentMode] = useState<Mode>('timer');
+  const [currentType, setCurrentType] = useState<Type>('text');
   const [focused, setFocused] = useState(true);
   const [testText, setTestText] = useState('');
   const [currentTestText] = useState<TestText | null>(null);
   const [difficulty, setDifficulty] = useState<Difficulty>('medium');
-  const [isSubmittingResult, setIsSubmittingResult] = useState(false);
   const [engine, setEngine] = useState<TypingEngine | null>(null);
   const [stats, setStats] = useState<TypingStats>({
     wpm: 0,
@@ -80,8 +96,15 @@ export const TypingTest: React.FC = () => {
   const inputRef = useRef<HTMLInputElement | null>(null);
 
   // Initialize test with API text or fallback
-  const initializeTest = useCallback(async () => {
-    const selectedText = generateTestText(100);
+  const initializeTest = useCallback(() => {
+    const selectedText = initializeText(
+      currentType,
+      currentMode,
+      timerDuration,
+      wordsCount,
+      difficulty
+    );
+
     setTestText(selectedText);
 
     const newEngine = new TypingEngine(
@@ -91,8 +114,7 @@ export const TypingTest: React.FC = () => {
     );
 
     setEngine(newEngine);
-    setIsTestActive(true);
-  }, []);
+  }, [currentType, currentMode, wordsCount, timerDuration, difficulty]);
 
   // Submit test result
   const submitResult = useCallback(
@@ -102,8 +124,6 @@ export const TypingTest: React.FC = () => {
       }
 
       try {
-        setIsSubmittingResult(true);
-
         // Get detailed keystroke data for analytics
         const keystrokeEvents = engine.getKeystrokeEvents();
         const keystrokeData = JSON.stringify(keystrokeEvents);
@@ -119,8 +139,6 @@ export const TypingTest: React.FC = () => {
         console.log('Test result submitted successfully with analytics data');
       } catch (error) {
         console.error('Failed to submit test result:', error);
-      } finally {
-        setIsSubmittingResult(false);
       }
     },
     [user, currentTestText, engine]
@@ -129,17 +147,24 @@ export const TypingTest: React.FC = () => {
   // Reset test
   const resetTest = useCallback(() => {
     engine?.reset();
-    setIsTestActive(true);
+    setIsTestActive(false);
     inputRef.current?.focus();
   }, [engine]);
 
   // Handle key press
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent) => {
-      if (!engine || !isTestActive) return;
+      if (!engine) return;
+
+      if (!isTestActive) setIsTestActive(true);
 
       // Prevent default behavior for certain keys
-      if (e.key === 'Tab' || e.key === 'Enter') {
+      if (
+        e.key === 'Tab' ||
+        e.key === 'Enter' ||
+        e.key === 'Option' ||
+        e.key === 'Command'
+      ) {
         e.preventDefault();
         return;
       }
@@ -162,6 +187,12 @@ export const TypingTest: React.FC = () => {
     initializeTest();
     inputRef.current?.focus();
   }, [initializeTest]);
+
+  // Centralized focus restoration for configuration changes
+  useEffect(() => {
+    // Focus the typing test container whenever any configuration changes
+    inputRef.current?.focus();
+  }, [currentType, currentMode, timerDuration, wordsCount, difficulty]);
 
   // Render character with appropriate styling
   const renderCharacter = (char: string, index: number) => {
@@ -191,9 +222,8 @@ export const TypingTest: React.FC = () => {
     );
   };
 
-  const progress = engine ? engine.getProgress() : 0;
-
   function testStats() {
+    const progress = engine ? engine.getProgress() : 0;
     return (
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8 text-ro">
         <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-4 text-center">
@@ -245,124 +275,207 @@ export const TypingTest: React.FC = () => {
 
   return (
     <div className="h-full flex flex-col gap-4 items-center justify-center">
-      <div className="bg-accent/30 rounded-lg w-full -translate-y-20">
-        <div className="flex items-center justify-between p-8 rounded-lg text-zinc-700 gap-2 w-full">
-          <div className="flex items-center gap-2">
-            {Object.values(Modes).map(({ id, icon: Icon, label }) => (
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button
-                    variant="ghost"
-                    key={id}
-                    onClick={() => setCurrentMode(id)}
-                    size="icon"
-                    className={id === currentMode ? 'bg-accent/50' : ''}
-                  >
-                    <Icon />
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent side="bottom">{label}</TooltipContent>
-              </Tooltip>
-            ))}
-          </div>
-          <div className="flex items-center gap-2">
-            <Select
-              value={difficulty}
-              onValueChange={(dif: Difficulty) => setDifficulty(dif)}
-            >
-              <SelectTrigger>
-                <SelectValue className="capitalize">
-                  {Difficulties[difficulty]?.label || difficulty}
-                </SelectValue>
-              </SelectTrigger>
-              <SelectContent>
-                {Object.values(Difficulties).map((difficulty) => (
-                  <SelectItem key={difficulty.id} value={difficulty.id}>
-                    {difficulty.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button variant="ghost" size="icon" onClick={resetTest}>
-                  <RotateCcw />
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent side="bottom">Refresh</TooltipContent>
-            </Tooltip>
-          </div>
-        </div>
-
-        <div
-          className="p-8 mt-4 mb-6 flex flex-wrap text-3xl leading-relaxed font-mono select-none outline-none relative"
-          onKeyDown={handleKeyDown}
-          onBlur={() => setFocused(false)}
-          onFocus={() => setFocused(true)}
-          tabIndex={0}
-          ref={inputRef}
-        >
-          <div
-            className={cn(
-              'absolute inset-0 flex items-center justify-center transition-all text-center backdrop-blur-none opacity-0 z-1',
-              !focused && 'backdrop-blur-sm opacity-100'
-            )}
+      <AnimatePresence mode="wait">
+        {!state.isComplete ? (
+          <motion.div
+            key="typing-test"
+            className="bg-accent/30 rounded-lg w-full"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: -20 }}
+            exit={{ opacity: 0, y: -40 }}
+            transition={{ duration: 0.3, ease: 'easeInOut' }}
           >
-            Click here to focus
-          </div>
+            <div className="flex items-center justify-between p-8 rounded-lg text-zinc-700 gap-2 w-full">
+              {isTestActive ? (
+                <div className="h-9 text-xl flex items-center justify-center w-full gap-2">
+                  {currentMode === 'timer' && (
+                    <Stopwatch duration={timerDuration} onEnd={() => {}} />
+                  )}
+                  {currentMode === 'words' && (
+                    <span>
+                      {engine?.getCompletedWords() || 0} / {wordsCount} words
+                    </span>
+                  )}
+                </div>
+              ) : (
+                <>
+                  <div className="flex items-center gap-2 h-9">
+                    {Object.values(Types).map(({ id, icon: Icon, label }) => (
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Button
+                            variant="ghost"
+                            key={id}
+                            onClick={() => {
+                              setCurrentType(id);
+                              inputRef.current?.focus();
+                            }}
+                            size="icon"
+                            className={id === currentType ? 'bg-accent/50' : ''}
+                          >
+                            <Icon />
+                          </Button>
+                        </TooltipTrigger>
+                        <TooltipContent side="bottom">{label}</TooltipContent>
+                      </Tooltip>
+                    ))}
+                    <Separator orientation="vertical" className="mx-4" />
+                    {Object.values(Modes).map(({ id, icon: Icon, label }) => (
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Button
+                            variant="ghost"
+                            key={id}
+                            onClick={() => {
+                              setCurrentMode(id);
+                              inputRef.current?.focus();
+                            }}
+                            size="icon"
+                            className={id === currentMode ? 'bg-accent/50' : ''}
+                          >
+                            <Icon />
+                          </Button>
+                        </TooltipTrigger>
+                        <TooltipContent side="bottom">{label}</TooltipContent>
+                      </Tooltip>
+                    ))}
+                    <Separator orientation="vertical" className="mx-4" />
+                    {currentMode === 'timer' && (
+                      <Select
+                        value={String(timerDuration)}
+                        onValueChange={(value) => {
+                          setTimerDuration(parseInt(value));
+                          inputRef.current?.focus();
+                        }}
+                      >
+                        <SelectTrigger>
+                          <SelectValue className="capitalize">
+                            {timerDuration} s
+                          </SelectValue>
+                        </SelectTrigger>
+                        <SelectContent>
+                          {TimerOptions.map((option) => (
+                            <SelectItem key={option} value={String(option)}>
+                              {option} s
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    )}
+                    {currentMode === 'words' && (
+                      <Select
+                        value={String(wordsCount)}
+                        onValueChange={(value) => {
+                          setWordsCount(parseInt(value));
+                          inputRef.current?.focus();
+                        }}
+                      >
+                        <SelectTrigger>
+                          <SelectValue className="capitalize">
+                            {wordsCount} words
+                          </SelectValue>
+                        </SelectTrigger>
+                        <SelectContent>
+                          {wordsOptions.map((option) => (
+                            <SelectItem key={option} value={String(option)}>
+                              {option} words
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    )}
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Select
+                      value={difficulty}
+                      onValueChange={(dif: Difficulty) => {
+                        setDifficulty(dif);
+                        inputRef.current?.focus();
+                      }}
+                    >
+                      <SelectTrigger>
+                        <SelectValue className="capitalize">
+                          {Difficulties[difficulty]?.label || difficulty}
+                        </SelectValue>
+                      </SelectTrigger>
+                      <SelectContent>
+                        {Object.values(Difficulties).map((difficulty) => (
+                          <SelectItem key={difficulty.id} value={difficulty.id}>
+                            {difficulty.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button variant="ghost" size="icon" onClick={resetTest}>
+                          <RotateCcw />
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent side="bottom">Refresh</TooltipContent>
+                    </Tooltip>
+                  </div>
+                </>
+              )}
+            </div>
 
-          {text()}
-          {/* {testText.split(' ').map((word, wordIndex) => (
-            <div className="flex items-center px-2" key={wordIndex}>
-              {word
-                .split('')
-                .map((char, index) =>
-                  renderCharacter(char, parseInt(`${wordIndex}${index}`))
+            <div
+              className="p-8 mt-4 mb-6 flex flex-wrap text-3xl leading-relaxed font-mono select-none outline-none relative max-h-[50vh] overflow-y-auto"
+              onKeyDown={handleKeyDown}
+              onBlur={() => setFocused(false)}
+              onFocus={() => setFocused(true)}
+              tabIndex={0}
+              ref={inputRef}
+            >
+              <div
+                className={cn(
+                  'absolute inset-0 flex items-center justify-center transition-all text-center backdrop-blur-none opacity-0 z-1',
+                  !focused && 'backdrop-blur-sm opacity-100'
                 )}
-            </div>
-          ))} */}
-          {/* {testText
-            .split('')
-            .map((char, index) => renderCharacter(char, index))} */}
-        </div>
-      </div>
-
-      <div className="flex justify-center space-x-4">
-        {/* Result submission status */}
-        {isSubmittingResult && (
-          <div className="text-sm text-gray-600 dark:text-gray-400">
-            Saving result...
-          </div>
-        )}
-      </div>
-
-      {state.isComplete && (
-        <div className="mt-8 bg-green-50 dark:bg-green-900 border border-green-200 dark:border-green-700 rounded-lg p-6 text-center">
-          <h2 className="text-2xl font-bold text-green-800 dark:text-green-200 mb-4">
-            Test Complete! 🎉
-          </h2>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-green-700 dark:text-green-300">
-            <div>
-              <div className="text-xl font-semibold">{stats.wpm}</div>
-              <div className="text-sm">Words per minute</div>
-            </div>
-            <div>
-              <div className="text-xl font-semibold">{stats.accuracy}%</div>
-              <div className="text-sm">Accuracy</div>
-            </div>
-            <div>
-              <div className="text-xl font-semibold">{stats.correctChars}</div>
-              <div className="text-sm">Correct characters</div>
-            </div>
-            <div>
-              <div className="text-xl font-semibold">
-                {formatTime(stats.timeElapsed)}
+              >
+                Click here to focus
               </div>
-              <div className="text-sm">Time taken</div>
+
+              {text()}
             </div>
-          </div>
-        </div>
-      )}
+          </motion.div>
+        ) : (
+          <motion.div
+            key="test-completed"
+            className="bg-green-50 dark:bg-green-900 border border-green-200 dark:border-green-700 rounded-lg p-6 text-center"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 20 }}
+            transition={{ duration: 0.3, ease: 'easeInOut' }}
+          >
+            <h2 className="text-2xl font-bold text-green-800 dark:text-green-200 mb-4">
+              Test Complete! 🎉
+            </h2>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-green-700 dark:text-green-300">
+              <div>
+                <div className="text-xl font-semibold">{stats.wpm}</div>
+                <div className="text-sm">Words per minute</div>
+              </div>
+              <div>
+                <div className="text-xl font-semibold">{stats.accuracy}%</div>
+                <div className="text-sm">Accuracy</div>
+              </div>
+              <div>
+                <div className="text-xl font-semibold">
+                  {stats.correctChars}
+                </div>
+                <div className="text-sm">Correct characters</div>
+              </div>
+              <div>
+                <div className="text-xl font-semibold">
+                  {formatTime(stats.timeElapsed)}
+                </div>
+                <div className="text-sm">Time taken</div>
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 };
