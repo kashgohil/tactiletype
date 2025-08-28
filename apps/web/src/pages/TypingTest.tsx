@@ -34,6 +34,7 @@ import {
   TypingEngine,
   formatTime,
   initializeText,
+  isNonPrintingKey,
 } from '../utils/typingEngine';
 
 type Type = 'text' | 'punctuation' | 'numbers' | 'quotes';
@@ -156,17 +157,9 @@ export const TypingTest: React.FC = () => {
     (e: React.KeyboardEvent) => {
       if (!engine) return;
 
-      if (!isTestActive) setIsTestActive(true);
-
-      // Prevent default behavior for certain keys
-      if (
-        e.key === 'Tab' ||
-        e.key === 'Enter' ||
-        e.key === 'Option' ||
-        e.key === 'Command'
-      ) {
-        e.preventDefault();
-        return;
+      e.preventDefault();
+      if (!isTestActive && !isNonPrintingKey(e.key)) {
+        setIsTestActive(true);
       }
 
       engine.handleKeyPress(e.key);
