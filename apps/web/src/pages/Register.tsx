@@ -38,7 +38,7 @@ export const Register: React.FC = () => {
           height={36}
           width={36}
         />
-        <span className="font-saira">tactiletype</span>
+        <span>tactiletype</span>
       </h1>
 
       {error && (
