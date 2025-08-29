@@ -1,3 +1,4 @@
+import { getCsrfTokenFromCookie } from '@/utils/csrf';
 import axios from 'axios';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
@@ -11,6 +12,7 @@ api.interceptors.request.use((config) => {
   const token = localStorage.getItem('auth_token');
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
+    config.headers.set('X-CSRF-Token', getCsrfTokenFromCookie() || '');
   }
   return config;
 });
@@ -59,7 +61,11 @@ export interface SubmitResultData {
 
 // Test Texts API
 export const testTextsApi = {
-  getAll: async (params?: { language?: string; difficulty?: string; limit?: number }) => {
+  getAll: async (params?: {
+    language?: string;
+    difficulty?: string;
+    limit?: number;
+  }) => {
     const response = await api.get('/api/tests/texts', { params });
     return response.data.texts as TestText[];
   },
@@ -85,7 +91,10 @@ export const testResultsApi = {
 
 // Leaderboard API
 export const leaderboardApi = {
-  get: async (params?: { timeframe?: 'daily' | 'weekly' | 'monthly' | 'all'; limit?: number }) => {
+  get: async (params?: {
+    timeframe?: 'daily' | 'weekly' | 'monthly' | 'all';
+    limit?: number;
+  }) => {
     const response = await api.get('/api/tests/leaderboard', { params });
     return response.data.leaderboard as LeaderboardEntry[];
   },
