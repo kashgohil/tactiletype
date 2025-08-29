@@ -1,5 +1,8 @@
+import { Github } from '@/assets/github';
+import { Google } from '@/assets/google';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import api from '@/services/api';
 import { Link, useNavigate } from '@tanstack/react-router';
 import { motion } from 'motion/react';
 import React, { useState } from 'react';
@@ -10,6 +13,7 @@ export const Login: React.FC = () => {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [isOAuthLoading, setIsOAuthLoading] = useState<string | null>(null);
 
   const { login } = useAuth();
   const navigate = useNavigate();
@@ -26,6 +30,21 @@ export const Login: React.FC = () => {
       setError(err instanceof Error ? err.message : 'Login failed');
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleOAuthLogin = async (provider: 'google' | 'github') => {
+    setError('');
+    setIsOAuthLoading(provider);
+
+    try {
+      const response = await api.get(`/api/auth/${provider}`);
+
+      const data = response.data;
+      window.location.href = data.authUrl;
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'OAuth login failed');
+      setIsOAuthLoading(null);
     }
   };
 
@@ -86,6 +105,49 @@ export const Login: React.FC = () => {
           {isLoading ? 'Logging in...' : 'Log In'}
         </Button>
       </form>
+
+      <div className="mt-6">
+        <div className="relative">
+          <div className="absolute inset-0 flex items-center">
+            <span className="w-full border-t border-gray-300 dark:border-gray-600" />
+          </div>
+          <div className="relative flex justify-center text-sm">
+            <span className="px-2 bg-white dark:bg-gray-800 text-gray-500 dark:text-gray-400">
+              Or continue with
+            </span>
+          </div>
+        </div>
+
+        <div className="mt-6 grid grid-cols-2 gap-3">
+          <Button
+            onClick={() => handleOAuthLogin('google')}
+            disabled={isOAuthLoading !== null}
+            variant="outline"
+            className="w-full flex items-center justify-center gap-2 py-2 px-4 border border-gray-300 dark:border-gray-600 rounded-md hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+          >
+            {isOAuthLoading === 'google' ? (
+              <div className="w-4 h-4 border-2 border-gray-300 border-t-blue-500 rounded-full animate-spin" />
+            ) : (
+              <Google />
+            )}
+            Google
+          </Button>
+
+          <Button
+            onClick={() => handleOAuthLogin('github')}
+            disabled={isOAuthLoading !== null}
+            variant="outline"
+            className="w-full flex items-center justify-center gap-2 py-2 px-4 border border-gray-300 dark:border-gray-600 rounded-md hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+          >
+            {isOAuthLoading === 'github' ? (
+              <div className="w-4 h-4 border-2 border-gray-300 border-t-gray-600 rounded-full animate-spin" />
+            ) : (
+              <Github />
+            )}
+            GitHub
+          </Button>
+        </div>
+      </div>
 
       <div className="mt-6 text-center">
         <p>
