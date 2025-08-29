@@ -226,42 +226,6 @@ export const TypingTest: React.FC = () => {
     );
   };
 
-  function testStats() {
-    const progress = engine ? engine.getProgress() : 0;
-    return (
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8 text-ro">
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-4 text-center">
-          <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">
-            {stats.wpm}
-          </div>
-          <div className="text-sm text-gray-600 dark:text-gray-400">WPM</div>
-        </div>
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-4 text-center">
-          <div className="text-2xl font-bold text-green-600 dark:text-green-400">
-            {stats.accuracy}%
-          </div>
-          <div className="text-sm text-gray-600 dark:text-gray-400">
-            Accuracy
-          </div>
-        </div>
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-4 text-center">
-          <div className="text-2xl font-bold text-purple-600 dark:text-purple-400">
-            {formatTime(stats.timeElapsed)}
-          </div>
-          <div className="text-sm text-gray-600 dark:text-gray-400">Time</div>
-        </div>
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-4 text-center">
-          <div className="text-2xl font-bold text-orange-600 dark:text-orange-400">
-            {Math.round(progress)}%
-          </div>
-          <div className="text-sm text-gray-600 dark:text-gray-400">
-            Progress
-          </div>
-        </div>
-      </div>
-    );
-  }
-
   function text() {
     let counter = 0;
     const chunks = testText.split(' ');
@@ -284,9 +248,9 @@ export const TypingTest: React.FC = () => {
           <motion.div
             key="typing-test"
             className="bg-accent/30 rounded-lg w-full"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: -20 }}
-            exit={{ opacity: 0, y: -40 }}
+            initial={{ opacity: 0, y: 0 }}
+            animate={{ opacity: 1, y: -50 }}
+            exit={{ opacity: 0, y: -60 }}
             transition={{ duration: 0.3, ease: 'easeInOut' }}
           >
             <div className="flex items-center justify-between p-8 rounded-lg text-zinc-700 gap-2 w-full">
@@ -436,7 +400,7 @@ export const TypingTest: React.FC = () => {
             >
               <div
                 className={cn(
-                  'absolute inset-0 flex items-center justify-center transition-all text-center backdrop-blur-none opacity-0 z-1',
+                  'absolute inset-0 flex items-center justify-center transition-all delay-300 text-center backdrop-blur-none opacity-0 z-1',
                   !focused && 'backdrop-blur-sm opacity-100'
                 )}
               >
@@ -449,16 +413,14 @@ export const TypingTest: React.FC = () => {
         ) : (
           <motion.div
             key="test-completed"
-            className="bg-green-50 dark:bg-green-900 border border-green-200 dark:border-green-700 rounded-lg p-6 text-center"
             initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
+            animate={{ opacity: 1, y: '-20%' }}
             exit={{ opacity: 0, y: 20 }}
+            className="bg-accent/30 border border-accent rounded-lg p-6 text-center"
             transition={{ duration: 0.3, ease: 'easeInOut' }}
           >
-            <h2 className="text-2xl font-bold text-green-800 dark:text-green-200 mb-4">
-              Test Complete! 🎉
-            </h2>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-green-700 dark:text-green-300">
+            <h2 className="text-2xl font-bold mb-4">Test Complete!</h2>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               <div>
                 <div className="text-xl font-semibold">{stats.wpm}</div>
                 <div className="text-sm">Words per minute</div>
