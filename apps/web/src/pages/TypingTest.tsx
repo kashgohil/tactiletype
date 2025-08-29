@@ -14,6 +14,7 @@ import {
   TooltipTrigger,
 } from '@/components/ui/tooltip';
 import { cn } from '@/lib/utils';
+import type { Difficulty, TestMode, TestType } from '@tactile/types';
 import {
   ALargeSmall,
   AtSign,
@@ -37,10 +38,6 @@ import {
   isNonPrintingKey,
 } from '../utils/typingEngine';
 
-type Type = 'text' | 'punctuation' | 'numbers' | 'quotes';
-type Difficulty = 'easy' | 'medium' | 'hard';
-type Mode = 'timer' | 'words';
-
 const TimerOptions = [10, 15, 30, 60];
 const wordsOptions = [25, 50, 75, 100, 200];
 
@@ -50,14 +47,20 @@ const Difficulties: Record<Difficulty, { id: Difficulty; label: string }> = {
   hard: { id: 'hard', label: 'Hard' },
 };
 
-const Types: Record<Type, { id: Type; label: string; icon: LucideIcon }> = {
+const Types: Record<
+  TestType,
+  { id: TestType; label: string; icon: LucideIcon }
+> = {
   text: { id: 'text', label: 'Text', icon: ALargeSmall },
   punctuation: { id: 'punctuation', label: 'Punctuation', icon: AtSign },
   numbers: { id: 'numbers', label: 'Numbers', icon: Hash },
   quotes: { id: 'quotes', label: 'Quotes', icon: Quote },
 };
 
-const Modes: Record<Mode, { id: Mode; label: string; icon: LucideIcon }> = {
+const Modes: Record<
+  TestMode,
+  { id: TestMode; label: string; icon: LucideIcon }
+> = {
   timer: { id: 'timer', label: 'Timer', icon: Timer },
   words: { id: 'words', label: 'Words', icon: WholeWord },
 };
@@ -67,8 +70,8 @@ export const TypingTest: React.FC = () => {
 
   const [wordsCount, setWordsCount] = useState(wordsOptions[0]);
   const [timerDuration, setTimerDuration] = useState(TimerOptions[0]);
-  const [currentMode, setCurrentMode] = useState<Mode>('timer');
-  const [currentType, setCurrentType] = useState<Type>('text');
+  const [currentMode, setCurrentMode] = useState<TestMode>('timer');
+  const [currentType, setCurrentType] = useState<TestType>('text');
   const [focused, setFocused] = useState(true);
   const [testText, setTestText] = useState('');
   const [currentTestText] = useState<TestText | null>(null);
