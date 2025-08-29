@@ -11,8 +11,11 @@ api.interceptors.request.use((config) => {
   const token = localStorage.getItem('auth_token');
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
-    config.headers.set('X-CSRF-Token', getCsrfTokenFromCookie() || '');
   }
+  if (!config.headers['Content-Type']) {
+    config.headers['Content-Type'] = 'application/json';
+  }
+  config.headers['X-CSRF-Token'] = getCsrfTokenFromCookie() || '';
   return config;
 });
 
