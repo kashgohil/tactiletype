@@ -3,7 +3,6 @@ import { db, users } from '@tactile/database';
 import bcrypt from 'bcryptjs';
 import { eq } from 'drizzle-orm';
 import { Hono } from 'hono';
-import { setCookie } from 'hono/cookie';
 import { sign, verify } from 'hono/jwt';
 import { z } from 'zod';
 import { OAuthProviderFactory } from '../auth/oauth';
@@ -183,6 +182,7 @@ authRoutes.post('/logout', (c) => {
   return c.json({ message: 'Logged out successfully' });
 });
 
+// OAuth routes
 authRoutes.get('/sso/:provider', async (c) => {
   const provider = c.req.param('provider');
   const oauthProvider = OAuthProviderFactory.getProvider(provider);
@@ -191,7 +191,9 @@ authRoutes.get('/sso/:provider', async (c) => {
     return c.json({ error: 'OAuth provider not supported' }, 400);
   }
 
+  // Generate secure state parameter for CSRF protection
   const state = oauthProvider.generateOAuthState();
+
   const authUrl = oauthProvider.getAuthUrl(state);
 
   return c.json({ authUrl, state });
@@ -216,25 +218,25 @@ authRoutes.get('/sso/:provider/callback', async (c) => {
       return c.json({ error: 'OAuth provider not supported' }, 400);
     }
 
+    // Validate state parameter for OAuth protection
     if (!oauthProvider.validateOAuthState(state)) {
       return c.json({ error: 'Invalid state parameter' }, 403);
     }
 
+    // Handle OAuth callback
     const oauthUser = await oauthProvider.handleCallback(code, state);
+
+    // Find or create user
     const { user, isNew } = await oauthProvider.findOrCreateUser(oauthUser);
 
+    // Generate JWT token
     const token = await oauthProvider.generateJWT(user);
 
+    // Redirect to frontend with token
     const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
     const redirectUrl = new URL('/auth/sso/callback', frontendUrl);
-
-    setCookie(c, 'token', token, {
-      httpOnly: false,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'Strict',
-      maxAge: 15 * 60,
-      path: '/',
-    });
+    redirectUrl.searchParams.set('token', token);
+    redirectUrl.searchParams.set('isNew', isNew.toString());
 
     return c.redirect(redirectUrl.toString());
   } catch (error) {
