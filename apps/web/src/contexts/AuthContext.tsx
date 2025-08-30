@@ -1,3 +1,4 @@
+import api from '@/services/api';
 import type { AuthResponse, User } from '@tactile/types';
 import React, { useEffect, useState } from 'react';
 import { AuthContext, type AuthContextType } from './context';
@@ -6,8 +7,6 @@ interface AuthProviderProps {
   children: React.ReactNode;
 }
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
-
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [token, setToken] = useState<string | null>(null);
@@ -15,20 +14,14 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const verifyToken = React.useCallback(async (token: string) => {
     try {
-      const response = await fetch(`${API_BASE_URL}/api/auth/me`, {
+      const response = await api.get('/api/auth/me', {
         headers: {
           Authorization: `Bearer ${token}`,
         },
       });
 
-      if (response.ok) {
-        const data = await response.json();
-        setUser(data.user);
-      } else {
-        // Token is invalid, remove it
-        localStorage.removeItem('auth_token');
-        setToken(null);
-      }
+      const data = await response.data;
+      setUser(data.user);
     } catch (error) {
       console.error('Token verification failed:', error);
       localStorage.removeItem('auth_token');
@@ -52,20 +45,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const login = async (email: string, password: string) => {
     try {
-      const response = await fetch(`${API_BASE_URL}/api/auth/login`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ email, password }),
+      const response = await api.post('/api/auth/login', {
+        data: { email, password },
       });
 
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error || 'Login failed');
-      }
-
-      const data: AuthResponse = await response.json();
+      const data: AuthResponse = await response.data;
 
       setUser(data.user);
       setToken(data.token);
@@ -79,20 +63,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const register = React.useCallback(
     async (email: string, username: string, password: string) => {
       try {
-        const response = await fetch(`${API_BASE_URL}/api/auth/register`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ email, username, password }),
+        const response = await api.post('/api/auth/register', {
+          data: { email, username, password },
         });
 
-        if (!response.ok) {
-          const error = await response.json();
-          throw new Error(error.error || 'Registration failed');
-        }
-
-        const data: AuthResponse = await response.json();
+        const data: AuthResponse = await response.data;
 
         setUser(data.user);
         setToken(data.token);
@@ -111,12 +86,31 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     localStorage.removeItem('auth_token');
   }, []);
 
+  const handleOAuthCallback = React.useCallback(
+    async (token: string) => {
+      try {
+        setToken(token);
+        localStorage.setItem('auth_token', token);
+
+        // Verify token and get user info
+        await verifyToken(token);
+      } catch (error) {
+        console.error('OAuth callback handling failed:', error);
+        localStorage.removeItem('auth_token');
+        setToken(null);
+        throw error;
+      }
+    },
+    [verifyToken]
+  );
+
   const value: AuthContextType = {
     user,
     token,
     login,
     register,
     logout,
+    handleOAuthCallback,
     isLoading,
   };
 
