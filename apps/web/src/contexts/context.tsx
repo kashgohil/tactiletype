@@ -11,6 +11,7 @@ export interface AuthContextType {
     password: string
   ) => Promise<void>;
   logout: () => void;
+  handleOAuthCallback: (token: string) => Promise<void>;
   isLoading: boolean;
 }
 
