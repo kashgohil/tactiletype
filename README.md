@@ -155,10 +155,14 @@ bun run db:studio
 ## 🌐 API Endpoints
 
 ### Authentication
-- `POST /api/auth/register` - User registration
-- `POST /api/auth/login` - User login
-- `GET /api/auth/me` - Get current user
-- `POST /api/auth/logout` - User logout
+- `POST /api/auth/register` - User registration (CSRF protected)
+- `POST /api/auth/login` - User login (CSRF protected)
+- `GET /api/auth/me` - Get current user (sets CSRF cookie)
+- `POST /api/auth/logout` - User logout (CSRF protected)
+- `GET /api/auth/google` - Initiate Google OAuth (with state protection)
+- `GET /api/auth/github` - Initiate GitHub OAuth (with state protection)
+- `GET /api/auth/callback/google` - Google OAuth callback (state validated)
+- `GET /api/auth/callback/github` - GitHub OAuth callback (state validated)
 
 ### Users
 - `GET /api/users/profile` - Get user profile
@@ -181,12 +185,77 @@ DATABASE_URL=postgresql://localhost:5432/tactile
 JWT_SECRET=your-super-secret-jwt-key
 PORT=3001
 NODE_ENV=development
+
+# OAuth Configuration (Optional)
+GOOGLE_CLIENT_ID=your-google-client-id
+GOOGLE_CLIENT_SECRET=your-google-client-secret
+GITHUB_CLIENT_ID=your-github-client-id
+GITHUB_CLIENT_SECRET=your-github-client-secret
+BASE_URL=http://localhost:3001
+FRONTEND_URL=http://localhost:5173
 ```
 
 ### Frontend (`apps/web/.env`)
 ```env
 VITE_API_URL=http://localhost:3001
 ```
+
+## 🔒 Security Features
+
+### CSRF Protection
+Tactile implements comprehensive CSRF (Cross-Site Request Forgery) protection:
+
+**For Basic Authentication:**
+- CSRF tokens are automatically generated and set as secure HTTP-only cookies
+- All state-changing requests (login, register, logout) require valid CSRF tokens
+- Tokens are single-use and expire after 15 minutes
+- Frontend automatically reads CSRF tokens from cookies (no API calls needed)
+- Cookies are configured with `SameSite=Strict` and `Secure` flags for maximum security
+
+**For OAuth (SSO):**
+- OAuth state parameters are cryptographically secure and CSRF-protected
+- State parameters are validated on callback to prevent CSRF attacks
+- Invalid or missing state parameters result in authentication failure
+
+**Security Features:**
+- **Cookie-based**: CSRF tokens are stored in secure HTTP-only cookies
+- **Automatic**: No manual token management required in frontend code
+- **Single-use**: Each token can only be used once to prevent replay attacks
+- **Expiration**: Tokens automatically expire after 15 minutes
+- **Secure flags**: Cookies use `Secure`, `HttpOnly`, and `SameSite=Strict` attributes
+
+**API Endpoints:**
+- All POST/PUT/DELETE endpoints validate CSRF tokens automatically
+- OAuth callbacks validate state parameters
+- Successful authentication responses include fresh CSRF tokens
+
+## 🔐 OAuth Setup (Optional)
+
+Tactile supports OAuth authentication with Google and GitHub. To enable OAuth:
+
+### Google OAuth Setup
+1. Go to [Google Cloud Console](https://console.cloud.google.com/)
+2. Create a new project or select existing one
+3. Enable the Google+ API
+4. Create OAuth 2.0 credentials
+5. Add authorized redirect URIs:
+   - `http://localhost:3001/api/auth/callback/google` (development)
+   - `https://yourdomain.com/api/auth/callback/google` (production)
+6. Set `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET` in your `.env` file
+
+### GitHub OAuth Setup
+1. Go to [GitHub Developer Settings](https://github.com/settings/developers)
+2. Create a new OAuth App
+3. Set Authorization callback URL:
+   - `http://localhost:3001/api/auth/callback/github` (development)
+   - `https://yourdomain.com/api/auth/callback/github` (production)
+4. Set `GITHUB_CLIENT_ID` and `GITHUB_CLIENT_SECRET` in your `.env` file
+
+### OAuth API Endpoints
+- `GET /api/auth/google` - Initiate Google OAuth
+- `GET /api/auth/github` - Initiate GitHub OAuth
+- `GET /api/auth/callback/google` - Google OAuth callback
+- `GET /api/auth/callback/github` - GitHub OAuth callback
 
 ## 🧪 Testing
 
