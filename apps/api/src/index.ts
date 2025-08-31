@@ -47,7 +47,7 @@ app.use('*', async (c, next) => {
   await next();
 });
 
-app.route('/auth', authRoutes);
+app.route('/', authRoutes);
 app.route('/users', userRoutes);
 app.route('/tests', testRoutes);
 app.route('/multiplayer', multiplayerRoutes);

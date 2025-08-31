@@ -9,7 +9,7 @@ export default defineConfig({
   server: {
     port: 3002,
     proxy: {
-      '/api': { changeOrigin: true, target: 'http://localhost:8002' },
+      '/api': { changeOrigin: true, target: 'http://localhost:3001' },
     },
   },
   plugins: [

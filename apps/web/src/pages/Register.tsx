@@ -39,7 +39,7 @@ export const Register: React.FC = () => {
     setIsOAuthLoading(provider);
 
     try {
-      const response = await api.get(`/api/auth/${provider}`);
+      const response = await api.get(`/api/auth/sso/${provider}`);
 
       const data = await response.data;
       window.location.href = data.authUrl;

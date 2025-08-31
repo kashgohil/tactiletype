@@ -31,7 +31,7 @@ export class OAuthProviderFactory {
       const googleProvider = new GoogleOAuthProvider(
         googleClientId,
         googleClientSecret,
-        `${baseUrl}/api/auth/callback/google`
+        `${baseUrl}/api/auth/sso/google/callback`
       );
       this.registerProvider('google', googleProvider);
     }
@@ -40,7 +40,7 @@ export class OAuthProviderFactory {
       const githubProvider = new GitHubOAuthProvider(
         githubClientId,
         githubClientSecret,
-        `${baseUrl}/api/auth/callback/github`
+        `${baseUrl}/api/auth/sso/github/callback`
       );
       this.registerProvider('github', githubProvider);
     }
