@@ -6,6 +6,7 @@ import {
   Keyboard,
   LogIn,
   Palette,
+  User,
 } from 'lucide-react';
 import React from 'react';
 import { useAuth } from '../../contexts';
@@ -80,6 +81,18 @@ export const Navbar: React.FC = () => {
                   </Link>
                 </TooltipTrigger>
                 <TooltipContent>Analytics</TooltipContent>
+              </Tooltip>
+            )}
+            {user && (
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Link to="/profile">
+                    <Button variant="link" size="icon">
+                      <User />
+                    </Button>
+                  </Link>
+                </TooltipTrigger>
+                <TooltipContent>Profile</TooltipContent>
               </Tooltip>
             )}
             {!user && (

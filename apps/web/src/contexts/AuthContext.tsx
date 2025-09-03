@@ -20,7 +20,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         },
       });
 
-      const data = await response.data;
+      const data = response.data;
       setUser(data.user);
     } catch (error) {
       console.error('Token verification failed:', error);
