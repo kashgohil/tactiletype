@@ -5,7 +5,7 @@ import { testResultsApi } from '../services/api';
 import { formatTime } from '../utils/typingEngine';
 
 export const Profile: React.FC = () => {
-  const { user, logout } = useAuth();
+  const { user } = useAuth();
   const [testResults, setTestResults] = useState<TestResult[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -66,56 +66,31 @@ export const Profile: React.FC = () => {
       : null;
 
   return (
-    <div className="max-w-6xl mx-auto">
-      <h1 className="text-4xl font-bold text-center mb-8 text-gray-900 dark:text-white">
-        Profile
-      </h1>
-
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+    <div className="py-12">
+      <div className="flex flex-col gap-8">
         {/* User Info */}
-        <div className="lg:col-span-1">
-          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
-            <h2 className="text-xl font-bold mb-4 text-gray-900 dark:text-white">
-              User Information
-            </h2>
+        <div className="bg-white rounded-lg shadow-md space-y-4 p-6">
+          <div>
+            <label className="block text-sm font-medium text-accent">
+              Username
+            </label>
+            <p className="text-lg">{user.username}</p>
+          </div>
 
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                  Username
-                </label>
-                <p className="text-lg text-gray-900 dark:text-white">
-                  {user.username}
-                </p>
-              </div>
+          <div>
+            <label className="block text-sm font-medium text-accent">
+              Email
+            </label>
+            <p className="text-lg">{user.email}</p>
+          </div>
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                  Email
-                </label>
-                <p className="text-lg text-gray-900 dark:text-white">
-                  {user.email}
-                </p>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                  Member Since
-                </label>
-                <p className="text-lg text-gray-900 dark:text-white">
-                  {new Date(user.createdAt).toLocaleDateString()}
-                </p>
-              </div>
-            </div>
-
-            <div className="mt-6">
-              <button
-                onClick={logout}
-                className="w-full bg-red-600 hover:bg-red-700 text-white font-semibold py-2 px-4 rounded-md transition-colors"
-              >
-                Logout
-              </button>
-            </div>
+          <div>
+            <label className="block text-sm font-medium text-accent">
+              Member Since
+            </label>
+            <p className="text-lg">
+              {new Date(user.createdAt).toLocaleDateString()}
+            </p>
           </div>
         </div>
 
