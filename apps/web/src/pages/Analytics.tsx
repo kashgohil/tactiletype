@@ -1,16 +1,16 @@
-import React, { useEffect, useState } from 'react';
-import { useAuth } from '../contexts';
-import { ProgressChart } from '../components/analytics/ProgressChart';
-import { ErrorHeatmap } from '../components/analytics/ErrorHeatmap';
-import { GoalTracker } from '../components/analytics/GoalTracker';
-import { RecommendationsPanel } from '../components/analytics/RecommendationsPanel';
-import { ReportGenerator } from '../components/analytics/ReportGenerator';
 import type {
-  AnalyticsDashboard,
   AccuracyHeatmap,
+  AnalyticsDashboard,
   UserGoal,
   UserRecommendation,
 } from '@tactile/types';
+import React, { useEffect, useState } from 'react';
+import { ErrorHeatmap } from '../components/analytics/ErrorHeatmap';
+import { GoalTracker } from '../components/analytics/GoalTracker';
+import { ProgressChart } from '../components/analytics/ProgressChart';
+import { RecommendationsPanel } from '../components/analytics/RecommendationsPanel';
+import { ReportGenerator } from '../components/analytics/ReportGenerator';
+import { useAuth } from '../contexts';
 
 // Mock data for development - will be replaced with API calls
 const mockDashboardData: AnalyticsDashboard = {
@@ -73,11 +73,26 @@ const mockDashboardData: AnalyticsDashboard = {
   ],
   errorAnalysis: {
     mostProblematicChars: [
-      { character: 'q', errorCount: 12, errorRate: 8.5, suggestions: ['Practice Q finger placement'] },
-      { character: 'z', errorCount: 8, errorRate: 6.2, suggestions: ['Use pinky finger for Z'] },
+      {
+        character: 'q',
+        errorCount: 12,
+        errorRate: 8.5,
+        suggestions: ['Practice Q finger placement'],
+      },
+      {
+        character: 'z',
+        errorCount: 8,
+        errorRate: 6.2,
+        suggestions: ['Use pinky finger for Z'],
+      },
     ],
     mostProblematicWords: [
-      { word: 'the', errorCount: 5, errorRate: 2.1, commonMistakes: ['teh', 'hte'] },
+      {
+        word: 'the',
+        errorCount: 5,
+        errorRate: 2.1,
+        commonMistakes: ['teh', 'hte'],
+      },
     ],
     commonPatterns: [],
     improvementAreas: ['Focus on Q and Z keys', 'Practice common words'],
@@ -153,7 +168,8 @@ const mockRecommendations: UserRecommendation[] = [
     userId: 'user1',
     type: 'practice_focus',
     title: 'Focus on Q and Z Keys',
-    description: 'Your accuracy with Q and Z keys is below average. Practice these characters to improve overall accuracy.',
+    description:
+      'Your accuracy with Q and Z keys is below average. Practice these characters to improve overall accuracy.',
     priority: 4,
     isRead: false,
     isApplied: false,
@@ -164,7 +180,8 @@ const mockRecommendations: UserRecommendation[] = [
     userId: 'user1',
     type: 'goal_suggestion',
     title: 'Set a Consistency Goal',
-    description: 'Your typing rhythm varies significantly. Consider setting a consistency goal to improve your typing flow.',
+    description:
+      'Your typing rhythm varies significantly. Consider setting a consistency goal to improve your typing flow.',
     priority: 3,
     isRead: true,
     isApplied: false,
@@ -174,12 +191,18 @@ const mockRecommendations: UserRecommendation[] = [
 
 export const Analytics: React.FC = () => {
   const { user } = useAuth();
-  const [dashboardData, setDashboardData] = useState<AnalyticsDashboard | null>(null);
+  const [dashboardData, setDashboardData] = useState<AnalyticsDashboard | null>(
+    null
+  );
   const [heatmapData, setHeatmapData] = useState<AccuracyHeatmap | null>(null);
   const [goals, setGoals] = useState<UserGoal[]>([]);
-  const [recommendations, setRecommendations] = useState<UserRecommendation[]>([]);
+  const [recommendations, setRecommendations] = useState<UserRecommendation[]>(
+    []
+  );
   const [loading, setLoading] = useState(true);
-  const [selectedTimeframe, setSelectedTimeframe] = useState<'daily' | 'weekly' | 'monthly'>('weekly');
+  const [selectedTimeframe, setSelectedTimeframe] = useState<
+    'daily' | 'weekly' | 'monthly'
+  >('weekly');
 
   useEffect(() => {
     const fetchAnalyticsData = async () => {
@@ -191,7 +214,7 @@ export const Analytics: React.FC = () => {
         // const overview = await analyticsApi.getOverview();
         // const trends = await analyticsApi.getTrends(selectedTimeframe);
         // const errorAnalysis = await analyticsApi.getErrorAnalysis();
-        
+
         // For now, use mock data
         setDashboardData(mockDashboardData);
         setHeatmapData(mockHeatmapData);
@@ -235,7 +258,7 @@ export const Analytics: React.FC = () => {
     try {
       // TODO: Replace with actual API call
       // await analyticsApi.deleteGoal(goalId);
-      setGoals(goals.filter(goal => goal.id !== goalId));
+      setGoals(goals.filter((goal) => goal.id !== goalId));
     } catch (error) {
       console.error('Failed to delete goal:', error);
     }
@@ -245,28 +268,36 @@ export const Analytics: React.FC = () => {
     try {
       // TODO: Replace with actual API call
       // await analyticsApi.markRecommendationAsRead(recommendationId);
-      setRecommendations(recommendations.map(rec =>
-        rec.id === recommendationId ? { ...rec, isRead: true } : rec
-      ));
+      setRecommendations(
+        recommendations.map((rec) =>
+          rec.id === recommendationId ? { ...rec, isRead: true } : rec
+        )
+      );
     } catch (error) {
       console.error('Failed to mark recommendation as read:', error);
     }
   };
 
-  const handleMarkRecommendationAsApplied = async (recommendationId: string) => {
+  const handleMarkRecommendationAsApplied = async (
+    recommendationId: string
+  ) => {
     try {
       // TODO: Replace with actual API call
       // await analyticsApi.markRecommendationAsApplied(recommendationId);
-      setRecommendations(recommendations.map(rec =>
-        rec.id === recommendationId ? { ...rec, isApplied: true } : rec
-      ));
+      setRecommendations(
+        recommendations.map((rec) =>
+          rec.id === recommendationId ? { ...rec, isApplied: true } : rec
+        )
+      );
     } catch (error) {
       console.error('Failed to mark recommendation as applied:', error);
     }
   };
 
   const handleDismissRecommendation = (recommendationId: string) => {
-    setRecommendations(recommendations.filter(rec => rec.id !== recommendationId));
+    setRecommendations(
+      recommendations.filter((rec) => rec.id !== recommendationId)
+    );
   };
 
   const handleExportData = async (format: 'csv' | 'json') => {
@@ -282,7 +313,7 @@ export const Analytics: React.FC = () => {
   const formatTime = (seconds: number): string => {
     const hours = Math.floor(seconds / 3600);
     const minutes = Math.floor((seconds % 3600) / 60);
-    
+
     if (hours > 0) {
       return `${hours}h ${minutes}m`;
     }
@@ -309,12 +340,18 @@ export const Analytics: React.FC = () => {
           <div className="h-8 bg-gray-200 dark:bg-gray-700 rounded w-1/4 mb-8"></div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
             {[...Array(4)].map((_, i) => (
-              <div key={i} className="h-24 bg-gray-200 dark:bg-gray-700 rounded-lg"></div>
+              <div
+                key={i}
+                className="h-24 bg-gray-200 dark:bg-gray-700 rounded-lg"
+              ></div>
             ))}
           </div>
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
             {[...Array(2)].map((_, i) => (
-              <div key={i} className="h-80 bg-gray-200 dark:bg-gray-700 rounded-lg"></div>
+              <div
+                key={i}
+                className="h-80 bg-gray-200 dark:bg-gray-700 rounded-lg"
+              ></div>
             ))}
           </div>
         </div>
@@ -329,26 +366,27 @@ export const Analytics: React.FC = () => {
           Analytics Dashboard
         </h1>
         <p className="text-gray-600 dark:text-gray-400">
-          No analytics data available. Complete some typing tests to see your progress!
+          No analytics data available. Complete some typing tests to see your
+          progress!
         </p>
       </div>
     );
   }
 
   return (
-    <div className="max-w-7xl mx-auto">
-      <div className="flex items-center justify-between mb-8">
-        <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
-          Analytics Dashboard
-        </h1>
-        
+    <div>
+      <div className="flex items-center justify-end mb-8">
         <div className="flex items-center space-x-4">
           <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
             Timeframe:
           </label>
           <select
             value={selectedTimeframe}
-            onChange={(e) => setSelectedTimeframe(e.target.value as 'daily' | 'weekly' | 'monthly')}
+            onChange={(e) =>
+              setSelectedTimeframe(
+                e.target.value as 'daily' | 'weekly' | 'monthly'
+              )
+            }
             className="px-3 py-1 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
           >
             <option value="daily">Daily</option>
@@ -363,7 +401,9 @@ export const Analytics: React.FC = () => {
         <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Total Tests</p>
+              <p className="text-sm font-medium text-gray-600 dark:text-gray-400">
+                Total Tests
+              </p>
               <p className="text-2xl font-bold text-gray-900 dark:text-white">
                 {dashboardData.overview.totalTests}
               </p>
@@ -375,7 +415,9 @@ export const Analytics: React.FC = () => {
         <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Average WPM</p>
+              <p className="text-sm font-medium text-gray-600 dark:text-gray-400">
+                Average WPM
+              </p>
               <p className="text-2xl font-bold text-blue-600 dark:text-blue-400">
                 {dashboardData.overview.averageWpm}
               </p>
@@ -387,7 +429,9 @@ export const Analytics: React.FC = () => {
         <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Average Accuracy</p>
+              <p className="text-sm font-medium text-gray-600 dark:text-gray-400">
+                Average Accuracy
+              </p>
               <p className="text-2xl font-bold text-green-600 dark:text-green-400">
                 {dashboardData.overview.averageAccuracy}%
               </p>
@@ -399,7 +443,9 @@ export const Analytics: React.FC = () => {
         <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Time Spent</p>
+              <p className="text-sm font-medium text-gray-600 dark:text-gray-400">
+                Time Spent
+              </p>
               <p className="text-2xl font-bold text-purple-600 dark:text-purple-400">
                 {formatTime(dashboardData.overview.totalTimeSpent)}
               </p>
@@ -434,30 +480,35 @@ export const Analytics: React.FC = () => {
             Characters to Improve
           </h3>
           <div className="space-y-3">
-            {dashboardData.errorAnalysis.mostProblematicChars.slice(0, 5).map((char, index) => (
-              <div key={index} className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
-                <div className="flex items-center space-x-3">
-                  <div className="w-8 h-8 bg-red-100 dark:bg-red-900 rounded-lg flex items-center justify-center">
-                    <span className="font-mono font-bold text-red-600 dark:text-red-400">
-                      {char.character}
-                    </span>
+            {dashboardData.errorAnalysis.mostProblematicChars
+              .slice(0, 5)
+              .map((char, index) => (
+                <div
+                  key={index}
+                  className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700 rounded-lg"
+                >
+                  <div className="flex items-center space-x-3">
+                    <div className="w-8 h-8 bg-red-100 dark:bg-red-900 rounded-lg flex items-center justify-center">
+                      <span className="font-mono font-bold text-red-600 dark:text-red-400">
+                        {char.character}
+                      </span>
+                    </div>
+                    <div>
+                      <p className="font-medium text-gray-900 dark:text-white">
+                        {char.errorCount} errors
+                      </p>
+                      <p className="text-sm text-gray-600 dark:text-gray-400">
+                        {char.errorRate.toFixed(1)}% error rate
+                      </p>
+                    </div>
                   </div>
-                  <div>
-                    <p className="font-medium text-gray-900 dark:text-white">
-                      {char.errorCount} errors
-                    </p>
+                  <div className="text-right">
                     <p className="text-sm text-gray-600 dark:text-gray-400">
-                      {char.errorRate.toFixed(1)}% error rate
+                      {char.suggestions[0]}
                     </p>
                   </div>
                 </div>
-                <div className="text-right">
-                  <p className="text-sm text-gray-600 dark:text-gray-400">
-                    {char.suggestions[0]}
-                  </p>
-                </div>
-              </div>
-            ))}
+              ))}
           </div>
         </div>
 
@@ -468,26 +519,37 @@ export const Analytics: React.FC = () => {
           </h3>
           <div className="space-y-3">
             {dashboardData.errorAnalysis.improvementAreas.map((area, index) => (
-              <div key={index} className="flex items-start space-x-3 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
-                <div className="text-blue-500 dark:text-blue-400 mt-0.5">💡</div>
+              <div
+                key={index}
+                className="flex items-start space-x-3 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg"
+              >
+                <div className="text-blue-500 dark:text-blue-400 mt-0.5">
+                  💡
+                </div>
                 <p className="text-gray-900 dark:text-white">{area}</p>
               </div>
             ))}
-            
+
             {/* Additional improvement suggestions */}
             <div className="flex items-start space-x-3 p-3 bg-green-50 dark:bg-green-900/20 rounded-lg">
-              <div className="text-green-500 dark:text-green-400 mt-0.5">🎯</div>
+              <div className="text-green-500 dark:text-green-400 mt-0.5">
+                🎯
+              </div>
               <p className="text-gray-900 dark:text-white">
-                Your consistency score is {dashboardData.overview.consistencyScore.toFixed(1)}%. 
-                Try to maintain steady typing rhythm.
+                Your consistency score is{' '}
+                {dashboardData.overview.consistencyScore.toFixed(1)}%. Try to
+                maintain steady typing rhythm.
               </p>
             </div>
-            
+
             <div className="flex items-start space-x-3 p-3 bg-purple-50 dark:bg-purple-900/20 rounded-lg">
-              <div className="text-purple-500 dark:text-purple-400 mt-0.5">📈</div>
+              <div className="text-purple-500 dark:text-purple-400 mt-0.5">
+                📈
+              </div>
               <p className="text-gray-900 dark:text-white">
-                You're improving at {dashboardData.overview.improvementRate.toFixed(1)}% rate. 
-                Keep up the great work!
+                You're improving at{' '}
+                {dashboardData.overview.improvementRate.toFixed(1)}% rate. Keep
+                up the great work!
               </p>
             </div>
           </div>
@@ -500,7 +562,7 @@ export const Analytics: React.FC = () => {
             onCreateGoal={handleCreateGoal}
             onDeleteGoal={handleDeleteGoal}
           />
-          
+
           <RecommendationsPanel
             recommendations={recommendations}
             onMarkAsRead={handleMarkRecommendationAsRead}
