@@ -163,6 +163,29 @@ export const usersRelations = relations(users, ({ many, one }) => ({
   practiceSessions: many(practiceSessions),
 }));
 
+export const oauthAccountsRelations = relations(oauthAccounts, ({ one }) => ({
+  user: one(users, {
+    fields: [oauthAccounts.userId],
+    references: [users.id],
+  }),
+}));
+
+export const userProfilesRelations = relations(userProfiles, ({ one }) => ({
+  user: one(users, {
+    fields: [userProfiles.userId],
+    references: [users.id],
+  }),
+}));
+
+export const testTextsRelations = relations(testTexts, ({ one, many }) => ({
+  createdBy: one(users, {
+    fields: [testTexts.createdBy],
+    references: [users.id],
+  }),
+  testResults: many(testResults),
+  multiplayerRooms: many(multiplayerRooms),
+}));
+
 export const testResultsRelations = relations(testResults, ({ one, many }) => ({
   user: one(users, { fields: [testResults.userId], references: [users.id] }),
   testText: one(testTexts, {
@@ -188,7 +211,6 @@ export const multiplayerRoomsRelations = relations(
   })
 );
 
-
 // Advanced Analytics Tables for Phase 4
 
 // Detailed keystroke analytics
@@ -203,8 +225,14 @@ export const keystrokeAnalytics = pgTable(
       .references(() => users.id, { onDelete: 'cascade' })
       .notNull(),
     keystrokeData: text('keystroke_data').notNull(), // JSON array of detailed keystroke events
-    averageKeystrokeTime: decimal('avg_keystroke_time', { precision: 8, scale: 3 }), // milliseconds
-    keystrokeVariance: decimal('keystroke_variance', { precision: 8, scale: 3 }),
+    averageKeystrokeTime: decimal('avg_keystroke_time', {
+      precision: 8,
+      scale: 3,
+    }), // milliseconds
+    keystrokeVariance: decimal('keystroke_variance', {
+      precision: 8,
+      scale: 3,
+    }),
     typingRhythm: decimal('typing_rhythm', { precision: 5, scale: 2 }), // consistency score 0-100
     createdAt: timestamp('created_at').defaultNow().notNull(),
   },
@@ -272,7 +300,9 @@ export const userGoals = pgTable(
       .notNull(),
     goalType: varchar('goal_type', { length: 50 }).notNull(), // 'wpm', 'accuracy', 'consistency', 'daily_tests'
     targetValue: decimal('target_value', { precision: 8, scale: 2 }).notNull(),
-    currentValue: decimal('current_value', { precision: 8, scale: 2 }).default('0'),
+    currentValue: decimal('current_value', { precision: 8, scale: 2 }).default(
+      '0'
+    ),
     targetDate: timestamp('target_date'),
     isActive: boolean('is_active').default(true),
     isAchieved: boolean('is_achieved').default(false),
@@ -324,7 +354,10 @@ export const userAchievements = pgTable(
   (table) => [
     index('user_achievements_user_idx').on(table.userId),
     index('user_achievements_achievement_idx').on(table.achievementId),
-    index('user_achievements_user_achievement_idx').on(table.userId, table.achievementId),
+    index('user_achievements_user_achievement_idx').on(
+      table.userId,
+      table.achievementId
+    ),
   ]
 );
 
@@ -376,16 +409,19 @@ export const practiceSessions = pgTable(
 );
 
 // Analytics Relations
-export const keystrokeAnalyticsRelations = relations(keystrokeAnalytics, ({ one }) => ({
-  testResult: one(testResults, {
-    fields: [keystrokeAnalytics.testResultId],
-    references: [testResults.id],
-  }),
-  user: one(users, {
-    fields: [keystrokeAnalytics.userId],
-    references: [users.id],
-  }),
-}));
+export const keystrokeAnalyticsRelations = relations(
+  keystrokeAnalytics,
+  ({ one }) => ({
+    testResult: one(testResults, {
+      fields: [keystrokeAnalytics.testResultId],
+      references: [testResults.id],
+    }),
+    user: one(users, {
+      fields: [keystrokeAnalytics.userId],
+      references: [users.id],
+    }),
+  })
+);
 
 export const errorAnalyticsRelations = relations(errorAnalytics, ({ one }) => ({
   testResult: one(testResults, {
@@ -398,12 +434,15 @@ export const errorAnalyticsRelations = relations(errorAnalytics, ({ one }) => ({
   }),
 }));
 
-export const performanceInsightsRelations = relations(performanceInsights, ({ one }) => ({
-  user: one(users, {
-    fields: [performanceInsights.userId],
-    references: [users.id],
-  }),
-}));
+export const performanceInsightsRelations = relations(
+  performanceInsights,
+  ({ one }) => ({
+    user: one(users, {
+      fields: [performanceInsights.userId],
+      references: [users.id],
+    }),
+  })
+);
 
 export const userGoalsRelations = relations(userGoals, ({ one }) => ({
   user: one(users, {
@@ -416,30 +455,39 @@ export const achievementsRelations = relations(achievements, ({ many }) => ({
   userAchievements: many(userAchievements),
 }));
 
-export const userAchievementsRelations = relations(userAchievements, ({ one }) => ({
-  user: one(users, {
-    fields: [userAchievements.userId],
-    references: [users.id],
-  }),
-  achievement: one(achievements, {
-    fields: [userAchievements.achievementId],
-    references: [achievements.id],
-  }),
-}));
+export const userAchievementsRelations = relations(
+  userAchievements,
+  ({ one }) => ({
+    user: one(users, {
+      fields: [userAchievements.userId],
+      references: [users.id],
+    }),
+    achievement: one(achievements, {
+      fields: [userAchievements.achievementId],
+      references: [achievements.id],
+    }),
+  })
+);
 
-export const userRecommendationsRelations = relations(userRecommendations, ({ one }) => ({
-  user: one(users, {
-    fields: [userRecommendations.userId],
-    references: [users.id],
-  }),
-}));
+export const userRecommendationsRelations = relations(
+  userRecommendations,
+  ({ one }) => ({
+    user: one(users, {
+      fields: [userRecommendations.userId],
+      references: [users.id],
+    }),
+  })
+);
 
-export const practiceSessionsRelations = relations(practiceSessions, ({ one }) => ({
-  user: one(users, {
-    fields: [practiceSessions.userId],
-    references: [users.id],
-  }),
-}));
+export const practiceSessionsRelations = relations(
+  practiceSessions,
+  ({ one }) => ({
+    user: one(users, {
+      fields: [practiceSessions.userId],
+      references: [users.id],
+    }),
+  })
+);
 
 export const roomParticipantsRelations = relations(
   roomParticipants,
