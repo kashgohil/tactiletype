@@ -1,15 +1,8 @@
 import { Link } from '@tanstack/react-router';
-import {
-  ChartPie,
-  Crown,
-  Gamepad2,
-  Keyboard,
-  LogIn,
-  Palette,
-  User,
-} from 'lucide-react';
+import { ChartPie, Crown, Gamepad2, Keyboard, LogIn, User } from 'lucide-react';
 import React from 'react';
 import { useAuth } from '../../contexts';
+import { ThemePicker } from '../ThemePicker';
 import { Button } from '../ui/button';
 import { Tooltip, TooltipContent, TooltipTrigger } from '../ui/tooltip';
 
@@ -31,16 +24,7 @@ export const Navbar: React.FC = () => {
           </Link>
 
           <div className="flex items-center">
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Link to="/test">
-                  <Button variant="link" size="icon">
-                    <Palette />
-                  </Button>
-                </Link>
-              </TooltipTrigger>
-              <TooltipContent>Theme</TooltipContent>
-            </Tooltip>
+            <ThemePicker />
             <Tooltip>
               <TooltipTrigger asChild>
                 <Link to="/test">
