@@ -179,6 +179,10 @@ export type WSMessageType =
   | 'connected'
   | 'error';
 
+export type Difficulty = 'easy' | 'medium' | 'hard';
+export type TestType = 'text' | 'punctuation' | 'numbers' | 'quotes';
+export type TestMode = 'timer' | 'words';
+
 export interface JoinRoomMessage extends WSMessage {
   type: 'join_room';
   data: {
@@ -278,4 +282,290 @@ export interface ApiError {
   message: string;
   code?: string;
   status: number;
+}
+
+// Phase 4: Advanced Analytics Types
+
+// Keystroke analytics
+export interface KeystrokeAnalytics {
+  id: string;
+  testResultId: string;
+  userId: string;
+  keystrokeData: KeystrokeEvent[];
+  averageKeystrokeTime: number;
+  keystrokeVariance: number;
+  typingRhythm: number;
+  createdAt: string;
+}
+
+// Enhanced keystroke event with timing data
+export interface DetailedKeystrokeEvent extends KeystrokeEvent {
+  timeSincePrevious?: number;
+  expectedChar: string;
+  actualChar: string;
+  isBackspace: boolean;
+  wordIndex: number;
+  characterIndex: number;
+}
+
+// Error analytics
+export interface ErrorAnalytics {
+  id: string;
+  testResultId: string;
+  userId: string;
+  characterErrors: Record<string, number>;
+  wordErrors: Record<string, number>;
+  errorPatterns: ErrorPattern[];
+  mostProblematicChars: string[];
+  createdAt: string;
+}
+
+export interface ErrorPattern {
+  pattern: string;
+  frequency: number;
+  context: string;
+  suggestions: string[];
+}
+
+// Performance insights
+export interface PerformanceInsights {
+  id: string;
+  userId: string;
+  timeframe: 'daily' | 'weekly' | 'monthly';
+  date: string;
+  avgWpm: number;
+  avgAccuracy: number;
+  testCount: number;
+  totalTimeSpent: number;
+  improvementRate: number;
+  consistencyScore: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+// User goals
+export interface UserGoal {
+  id: string;
+  userId: string;
+  goalType: 'wpm' | 'accuracy' | 'consistency' | 'daily_tests';
+  targetValue: number;
+  currentValue: number;
+  targetDate?: string;
+  isActive: boolean;
+  isAchieved: boolean;
+  achievedAt?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+// Achievements
+export interface Achievement {
+  id: string;
+  name: string;
+  description: string;
+  category: 'speed' | 'accuracy' | 'consistency' | 'milestone';
+  criteria: AchievementCriteria;
+  badgeIcon?: string;
+  points: number;
+  rarity: 'common' | 'rare' | 'epic' | 'legendary';
+  isActive: boolean;
+  createdAt: string;
+}
+
+export interface AchievementCriteria {
+  type: string;
+  value: number;
+  comparison: 'gte' | 'lte' | 'eq';
+  timeframe?: string;
+  additionalConditions?: Record<string, any>;
+}
+
+export interface UserAchievement {
+  id: string;
+  userId: string;
+  achievementId: string;
+  unlockedAt: string;
+  progress: number;
+  achievement?: Achievement;
+}
+
+// Recommendations
+export interface UserRecommendation {
+  id: string;
+  userId: string;
+  type: 'practice_focus' | 'goal_suggestion' | 'improvement_tip';
+  title: string;
+  description: string;
+  actionData?: Record<string, any>;
+  priority: number;
+  isRead: boolean;
+  isApplied: boolean;
+  validUntil?: string;
+  createdAt: string;
+}
+
+// Practice sessions
+export interface PracticeSession {
+  id: string;
+  userId: string;
+  focusArea: 'speed' | 'accuracy' | 'specific_chars' | 'words';
+  targetContent?: string;
+  sessionData: PracticeSessionData;
+  duration: number;
+  improvementScore: number;
+  createdAt: string;
+}
+
+export interface PracticeSessionData {
+  exercises: PracticeExercise[];
+  results: PracticeResult[];
+  configuration: PracticeConfiguration;
+}
+
+export interface PracticeExercise {
+  type: string;
+  content: string;
+  targetMetric: string;
+  difficulty: number;
+}
+
+export interface PracticeResult {
+  exerciseIndex: number;
+  wpm: number;
+  accuracy: number;
+  errors: number;
+  timeTaken: number;
+  improvement: number;
+}
+
+export interface PracticeConfiguration {
+  duration: number;
+  focusChars?: string[];
+  focusWords?: string[];
+  difficultyLevel: number;
+  adaptiveDifficulty: boolean;
+}
+
+// Analytics dashboard types
+export interface AnalyticsDashboard {
+  overview: AnalyticsOverview;
+  progressCharts: ProgressChart[];
+  errorAnalysis: ErrorAnalysisSummary;
+  recommendations: UserRecommendation[];
+  achievements: UserAchievement[];
+  goals: UserGoal[];
+}
+
+export interface AnalyticsOverview {
+  totalTests: number;
+  totalTimeSpent: number;
+  averageWpm: number;
+  averageAccuracy: number;
+  improvementRate: number;
+  consistencyScore: number;
+  currentStreak: number;
+  longestStreak: number;
+}
+
+export interface ProgressChart {
+  type: 'wpm' | 'accuracy' | 'consistency' | 'time_spent';
+  timeframe: 'daily' | 'weekly' | 'monthly';
+  data: ChartDataPoint[];
+  trend: 'improving' | 'declining' | 'stable';
+  trendPercentage: number;
+}
+
+export interface ChartDataPoint {
+  date: string;
+  value: number;
+  label?: string;
+}
+
+export interface ErrorAnalysisSummary {
+  mostProblematicChars: CharacterError[];
+  mostProblematicWords: WordError[];
+  commonPatterns: ErrorPattern[];
+  improvementAreas: string[];
+}
+
+export interface CharacterError {
+  character: string;
+  errorCount: number;
+  errorRate: number;
+  suggestions: string[];
+}
+
+export interface WordError {
+  word: string;
+  errorCount: number;
+  errorRate: number;
+  commonMistakes: string[];
+}
+
+// Heatmap data for character-level accuracy
+export interface AccuracyHeatmap {
+  characters: HeatmapCell[];
+  maxValue: number;
+  minValue: number;
+}
+
+export interface HeatmapCell {
+  character: string;
+  accuracy: number;
+  frequency: number;
+  color: string;
+}
+
+// Advanced statistics
+export interface AdvancedStats {
+  keystrokeAnalytics: KeystrokeStats;
+  rhythmAnalysis: TypingRhythm;
+  errorPatterns: ErrorPattern[];
+  performanceTrends: PerformanceTrend[];
+  personalBests: PersonalBest[];
+}
+
+export interface KeystrokeStats {
+  averageTime: number;
+  variance: number;
+  fastestKeys: KeySpeed[];
+  slowestKeys: KeySpeed[];
+  mostAccurateKeys: KeyAccuracy[];
+  leastAccurateKeys: KeyAccuracy[];
+}
+
+export interface KeySpeed {
+  key: string;
+  averageTime: number;
+  frequency: number;
+}
+
+export interface KeyAccuracy {
+  key: string;
+  accuracy: number;
+  frequency: number;
+}
+
+export interface TypingRhythm {
+  consistency: number;
+  burstTyping: boolean;
+  averageBurstLength: number;
+  pauseFrequency: number;
+  rhythmScore: number;
+}
+
+export interface PerformanceTrend {
+  metric: string;
+  timeframe: string;
+  trend: 'up' | 'down' | 'stable';
+  changePercentage: number;
+  dataPoints: number;
+}
+
+export interface PersonalBest {
+  metric: string;
+  value: number;
+  achievedAt: string;
+  testId: string;
+  context: string;
 }
