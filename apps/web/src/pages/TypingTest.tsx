@@ -210,22 +210,32 @@ export const TypingTest: React.FC = () => {
 
     switch (status) {
       case 'correct':
-        className += 'text-text bg-accent/50';
+        className += 'text-text';
         break;
       case 'incorrect':
-        className += 'text-rose-500 bg-accent/50';
+        className += 'text-rose-500';
         break;
       case 'current':
-        className += 'text-gray-500 bg-accent animate-pulse';
+        className += 'text-gray-400';
         break;
       default:
         className += 'text-gray-400';
     }
 
     return (
-      <span key={index} className={cn(className)}>
+      <div
+        key={index}
+        className={cn(className, 'relative transition-colors duration-200')}
+      >
         {char === ' ' ? '\u00A0' : char}
-      </span>
+        {state.currentIndex === index ? (
+          <motion.div
+            layoutId="cursor"
+            transition={{ delay: 0, duration: 0.2 }}
+            className="absolute inset-0 border-l-3 border-accent animate-pulse"
+          />
+        ) : null}
+      </div>
     );
   };
 
