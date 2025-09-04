@@ -6,7 +6,14 @@ import {
 } from '@/components/ui/select';
 import type { AnalyticsDashboard, UserRecommendation } from '@tactile/types';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { ChartBar, Sparkle, Target, Timer } from 'lucide-react';
+import {
+  ChartBar,
+  Lightbulb,
+  LineChart,
+  Sparkle,
+  Target,
+  Timer,
+} from 'lucide-react';
 import React from 'react';
 import { ErrorHeatmap } from '../components/analytics/ErrorHeatmap';
 import { GoalTracker } from '../components/analytics/GoalTracker';
@@ -234,7 +241,7 @@ export const Analytics: React.FC = () => {
   }
 
   return (
-    <div>
+    <div className="pt-4 pb-8">
       <div className="flex items-center justify-end mb-8">
         <div className="flex items-center space-x-4">
           <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
@@ -298,7 +305,7 @@ export const Analytics: React.FC = () => {
         <div className="bg-accent/10 rounded-lg p-6">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium ">Time Spent</p>
+              <p className="text-sm font-medium">Time Spent</p>
               <p className="text-2xl font-bold text-accent">
                 {formatTime(dashboardData.overview.totalTimeSpent)}
               </p>
@@ -328,20 +335,18 @@ export const Analytics: React.FC = () => {
       {/* Improvement Areas */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Most Problematic Characters */}
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
-          <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
-            Characters to Improve
-          </h3>
+        <div className="bg-accent/10 rounded-lg p-6">
+          <h3 className="text-lg mb-4 font-semibold">Characters to Improve</h3>
           <div className="space-y-3">
             {dashboardData.errorAnalysis.mostProblematicChars
               .slice(0, 5)
               .map((char, index) => (
                 <div
                   key={index}
-                  className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700 rounded-lg"
+                  className="flex items-center justify-between p-3 bg-accent/10 rounded-lg"
                 >
                   <div className="flex items-center space-x-3">
-                    <div className="w-8 h-8 bg-red-100 dark:bg-red-900 rounded-lg flex items-center justify-center">
+                    <div className="w-8 h-8 bg-red-200 rounded-lg flex items-center justify-center">
                       <span className="font-mono font-bold text-red-600 dark:text-red-400">
                         {char.character}
                       </span>
@@ -366,40 +371,32 @@ export const Analytics: React.FC = () => {
         </div>
 
         {/* Improvement Suggestions */}
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
-          <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
-            Improvement Areas
-          </h3>
+        <div className="bg-accent/10 rounded-lg p-6">
+          <h3 className="text-lg font-semibold mb-4">Improvement Areas</h3>
           <div className="space-y-3">
             {dashboardData.errorAnalysis.improvementAreas.map((area, index) => (
               <div
                 key={index}
-                className="flex items-start space-x-3 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg"
+                className="flex items-start space-x-3 p-3 bg-accent/10 rounded-lg"
               >
-                <div className="text-blue-500 dark:text-blue-400 mt-0.5">
-                  💡
-                </div>
-                <p className="text-gray-900 dark:text-white">{area}</p>
+                <Lightbulb className="text-accent" />
+                <p>{area}</p>
               </div>
             ))}
 
             {/* Additional improvement suggestions */}
-            <div className="flex items-start space-x-3 p-3 bg-green-50 dark:bg-green-900/20 rounded-lg">
-              <div className="text-green-500 dark:text-green-400 mt-0.5">
-                🎯
-              </div>
-              <p className="text-gray-900 dark:text-white">
+            <div className="flex items-start space-x-3 p-3 bg-accent/10 rounded-lg">
+              <Target className="text-accent" />
+              <p>
                 Your consistency score is{' '}
                 {dashboardData.overview.consistencyScore.toFixed(1)}%. Try to
                 maintain steady typing rhythm.
               </p>
             </div>
 
-            <div className="flex items-start space-x-3 p-3 bg-purple-50 dark:bg-purple-900/20 rounded-lg">
-              <div className="text-purple-500 dark:text-purple-400 mt-0.5">
-                📈
-              </div>
-              <p className="text-gray-900 dark:text-white">
+            <div className="flex items-start space-x-3 p-3 bg-accent/10 rounded-lg">
+              <LineChart className="text-accent" />
+              <p>
                 You're improving at{' '}
                 {dashboardData.overview.improvementRate.toFixed(1)}% rate. Keep
                 up the great work!
@@ -409,7 +406,7 @@ export const Analytics: React.FC = () => {
         </div>
 
         {/* Goals and Recommendations */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+        <div className="grid grid-rows-2 gap-6 mb-8">
           <GoalTracker
             goals={goalsQuery.data || []}
             onCreateGoal={handleCreateGoal}

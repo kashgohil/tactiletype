@@ -1,5 +1,14 @@
-import React, { useState } from 'react';
 import type { AnalyticsOverview, ProgressChart } from '@tactile/types';
+import { BarChart } from 'lucide-react';
+import React, { useState } from 'react';
+import { Button } from '../ui/button';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '../ui/select';
 
 interface ReportGeneratorProps {
   overview: AnalyticsOverview;
@@ -33,11 +42,11 @@ export const ReportGenerator: React.FC<ReportGeneratorProps> = ({
     setIsGenerating(true);
     try {
       // TODO: Implement actual report generation
-      await new Promise(resolve => setTimeout(resolve, 2000)); // Simulate generation
-      
+      await new Promise((resolve) => setTimeout(resolve, 2000)); // Simulate generation
+
       // For now, just export the data
       onExportData('json');
-      
+
       console.log('Report generated with settings:', reportData);
     } catch (error) {
       console.error('Failed to generate report:', error);
@@ -65,9 +74,15 @@ export const ReportGenerator: React.FC<ReportGeneratorProps> = ({
       sections: [
         'Executive Summary',
         'Performance Overview',
-        ...(reportData.includeCharts ? ['Progress Charts', 'Trend Analysis'] : []),
-        ...(reportData.includeDetailedStats ? ['Detailed Statistics', 'Error Analysis'] : []),
-        ...(reportData.includeRecommendations ? ['Improvement Recommendations'] : []),
+        ...(reportData.includeCharts
+          ? ['Progress Charts', 'Trend Analysis']
+          : []),
+        ...(reportData.includeDetailedStats
+          ? ['Detailed Statistics', 'Error Analysis']
+          : []),
+        ...(reportData.includeRecommendations
+          ? ['Improvement Recommendations']
+          : []),
         'Conclusion',
       ],
     };
@@ -78,7 +93,7 @@ export const ReportGenerator: React.FC<ReportGeneratorProps> = ({
   const formatTime = (seconds: number): string => {
     const hours = Math.floor(seconds / 3600);
     const minutes = Math.floor((seconds % 3600) / 60);
-    
+
     if (hours > 0) {
       return `${hours}h ${minutes}m`;
     }
@@ -86,92 +101,114 @@ export const ReportGenerator: React.FC<ReportGeneratorProps> = ({
   };
 
   const getImprovementInsight = () => {
-    const wpmChart = progressCharts.find(chart => chart.type === 'wpm');
-    const accuracyChart = progressCharts.find(chart => chart.type === 'accuracy');
-    
+    const wpmChart = progressCharts.find((chart) => chart.type === 'wpm');
+    const accuracyChart = progressCharts.find(
+      (chart) => chart.type === 'accuracy'
+    );
+
     const insights = [];
-    
+
     if (wpmChart && wpmChart.trendPercentage > 0) {
-      insights.push(`Speed improved by ${wpmChart.trendPercentage.toFixed(1)}%`);
+      insights.push(
+        `Speed improved by ${wpmChart.trendPercentage.toFixed(1)}%`
+      );
     }
-    
+
     if (accuracyChart && accuracyChart.trendPercentage > 0) {
-      insights.push(`Accuracy improved by ${accuracyChart.trendPercentage.toFixed(1)}%`);
+      insights.push(
+        `Accuracy improved by ${accuracyChart.trendPercentage.toFixed(1)}%`
+      );
     }
-    
+
     if (overview.improvementRate > 0) {
-      insights.push(`Overall improvement rate: ${overview.improvementRate.toFixed(1)}%`);
+      insights.push(
+        `Overall improvement rate: ${overview.improvementRate.toFixed(1)}%`
+      );
     }
-    
-    return insights.length > 0 ? insights : ['Continue practicing to see improvement trends'];
+
+    return insights.length > 0
+      ? insights
+      : ['Continue practicing to see improvement trends'];
   };
 
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
+    <div className="bg-accent/10 rounded-lg p-6">
       <div className="flex items-center justify-between mb-6">
-        <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-          Generate Report
-        </h3>
+        <h3 className="text-lg font-semibold">Generate Report</h3>
         <div className="flex items-center space-x-2">
-          <button
-            onClick={() => onExportData('csv')}
-            className="bg-gray-600 hover:bg-gray-700 text-white px-3 py-1 rounded text-sm transition-colors"
-          >
+          <Button onClick={() => onExportData('csv')} size="sm" variant="ghost">
             Export CSV
-          </button>
-          <button
+          </Button>
+          <Button
             onClick={() => onExportData('json')}
-            className="bg-gray-600 hover:bg-gray-700 text-white px-3 py-1 rounded text-sm transition-colors"
+            size="sm"
+            variant="ghost"
           >
             Export JSON
-          </button>
+          </Button>
         </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Report Configuration */}
         <div>
-          <h4 className="text-md font-medium text-gray-900 dark:text-white mb-4">
-            Report Configuration
-          </h4>
-          
+          <h4 className="text-md font-medium mb-4">Report Configuration</h4>
+
           <div className="space-y-4">
             {/* Time Period */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              <label className="block text-sm font-medium text-text/50 mb-2">
                 Time Period
               </label>
-              <select
+              <Select
                 value={reportData.period}
-                onChange={(e) => setReportData({ ...reportData, period: e.target.value as 'week' | 'month' | 'quarter' | 'year' })}
-                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                onValueChange={(value) =>
+                  setReportData({
+                    ...reportData,
+                    period: value as 'week' | 'month' | 'quarter' | 'year',
+                  })
+                }
               >
-                <option value="week">Last Week</option>
-                <option value="month">Last Month</option>
-                <option value="quarter">Last Quarter</option>
-                <option value="year">Last Year</option>
-              </select>
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Select time period" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="week">Last Week</SelectItem>
+                  <SelectItem value="month">Last Month</SelectItem>
+                  <SelectItem value="quarter">Last Quarter</SelectItem>
+                  <SelectItem value="year">Last Year</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
 
             {/* Report Format */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              <label className="block text-sm font-medium text-text/50 mb-2">
                 Format
               </label>
-              <select
+              <Select
                 value={reportData.format}
-                onChange={(e) => setReportData({ ...reportData, format: e.target.value as 'pdf' | 'html' | 'json' })}
-                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                onValueChange={(value) =>
+                  setReportData({
+                    ...reportData,
+                    format: value as 'pdf' | 'html' | 'json',
+                  })
+                }
               >
-                <option value="pdf">PDF Report</option>
-                <option value="html">HTML Report</option>
-                <option value="json">JSON Data</option>
-              </select>
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Select report format" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="pdf">PDF Report</SelectItem>
+                  <SelectItem value="html">HTML Report</SelectItem>
+                  <SelectItem value="json">JSON Data</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
 
             {/* Include Options */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              <label className="block text-sm font-medium text-text/50 mb-2">
                 Include in Report
               </label>
               <div className="space-y-2">
@@ -179,31 +216,46 @@ export const ReportGenerator: React.FC<ReportGeneratorProps> = ({
                   <input
                     type="checkbox"
                     checked={reportData.includeCharts}
-                    onChange={(e) => setReportData({ ...reportData, includeCharts: e.target.checked })}
+                    onChange={(e) =>
+                      setReportData({
+                        ...reportData,
+                        includeCharts: e.target.checked,
+                      })
+                    }
                     className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
                   />
                   <span className="ml-2 text-sm text-gray-700 dark:text-gray-300">
                     Progress Charts & Visualizations
                   </span>
                 </label>
-                
+
                 <label className="flex items-center">
                   <input
                     type="checkbox"
                     checked={reportData.includeDetailedStats}
-                    onChange={(e) => setReportData({ ...reportData, includeDetailedStats: e.target.checked })}
+                    onChange={(e) =>
+                      setReportData({
+                        ...reportData,
+                        includeDetailedStats: e.target.checked,
+                      })
+                    }
                     className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
                   />
                   <span className="ml-2 text-sm text-gray-700 dark:text-gray-300">
                     Detailed Statistics & Error Analysis
                   </span>
                 </label>
-                
+
                 <label className="flex items-center">
                   <input
                     type="checkbox"
                     checked={reportData.includeRecommendations}
-                    onChange={(e) => setReportData({ ...reportData, includeRecommendations: e.target.checked })}
+                    onChange={(e) =>
+                      setReportData({
+                        ...reportData,
+                        includeRecommendations: e.target.checked,
+                      })
+                    }
                     className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
                   />
                   <span className="ml-2 text-sm text-gray-700 dark:text-gray-300">
@@ -214,10 +266,10 @@ export const ReportGenerator: React.FC<ReportGeneratorProps> = ({
             </div>
 
             {/* Generate Button */}
-            <button
+            <Button
               onClick={generateReport}
               disabled={isGenerating}
-              className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white px-4 py-2 rounded-lg transition-colors flex items-center justify-center"
+              className="w-full flex items-center justify-center"
             >
               {isGenerating ? (
                 <>
@@ -225,58 +277,48 @@ export const ReportGenerator: React.FC<ReportGeneratorProps> = ({
                   Generating Report...
                 </>
               ) : (
-                <>
-                  📊 Generate Report
-                </>
+                <div className="flex items-center gap-2">
+                  <BarChart /> Generate Report
+                </div>
               )}
-            </button>
+            </Button>
           </div>
         </div>
 
         {/* Report Preview */}
         <div>
-          <h4 className="text-md font-medium text-gray-900 dark:text-white mb-4">
-            Report Preview
-          </h4>
-          
-          <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4 space-y-4">
+          <h4 className="text-md font-medium mb-4">Report Preview</h4>
+
+          <div className="bg-accent/10 rounded-lg p-4 space-y-4">
             {/* Report Header */}
-            <div className="border-b border-gray-200 dark:border-gray-600 pb-3">
-              <h5 className="font-semibold text-gray-900 dark:text-white">
-                {reportPreview.title}
-              </h5>
-              <p className="text-sm text-gray-600 dark:text-gray-400">
+            <div className="border-b border-accent/20 pb-3">
+              <h5 className="font-semibold">{reportPreview.title}</h5>
+              <p className="text-sm text-text/50">
                 Generated on {reportPreview.date}
               </p>
             </div>
 
             {/* Key Metrics Preview */}
             <div>
-              <h6 className="font-medium text-gray-900 dark:text-white mb-2">
-                Key Metrics Summary
-              </h6>
+              <h6 className="font-medium  mb-2">Key Metrics Summary</h6>
               <div className="grid grid-cols-2 gap-3 text-sm">
-                <div className="bg-white dark:bg-gray-800 p-2 rounded">
-                  <div className="text-gray-600 dark:text-gray-400">Tests Completed</div>
-                  <div className="font-semibold text-gray-900 dark:text-white">
-                    {overview.totalTests}
-                  </div>
+                <div className="bg-accent/40 p-2 rounded">
+                  <div className="text-text/80">Tests Completed</div>
+                  <div className="font-semibold">{overview.totalTests}</div>
                 </div>
-                <div className="bg-white dark:bg-gray-800 p-2 rounded">
-                  <div className="text-gray-600 dark:text-gray-400">Average WPM</div>
-                  <div className="font-semibold text-blue-600 dark:text-blue-400">
-                    {overview.averageWpm}
-                  </div>
+                <div className="bg-accent/40 p-2 rounded">
+                  <div className="text-text/80">Average WPM</div>
+                  <div className="font-semibold">{overview.averageWpm}</div>
                 </div>
-                <div className="bg-white dark:bg-gray-800 p-2 rounded">
-                  <div className="text-gray-600 dark:text-gray-400">Average Accuracy</div>
-                  <div className="font-semibold text-green-600 dark:text-green-400">
+                <div className="bg-accent/40 p-2 rounded">
+                  <div className="text-text/80">Average Accuracy</div>
+                  <div className="font-semibold">
                     {overview.averageAccuracy}%
                   </div>
                 </div>
-                <div className="bg-white dark:bg-gray-800 p-2 rounded">
-                  <div className="text-gray-600 dark:text-gray-400">Time Practiced</div>
-                  <div className="font-semibold text-purple-600 dark:text-purple-400">
+                <div className="bg-accent/40 p-2 rounded">
+                  <div className="text-text/80">Time Practiced</div>
+                  <div className="font-semibold">
                     {formatTime(overview.totalTimeSpent)}
                   </div>
                 </div>
@@ -321,24 +363,33 @@ export const ReportGenerator: React.FC<ReportGeneratorProps> = ({
         <h4 className="text-md font-medium text-gray-900 dark:text-white mb-4">
           Automated Reports
         </h4>
-        
+
         <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-4">
           <div className="flex items-start space-x-3">
-            <div className="text-blue-500 dark:text-blue-400 text-xl mt-0.5">📧</div>
+            <div className="text-blue-500 dark:text-blue-400 text-xl mt-0.5">
+              📧
+            </div>
             <div>
               <h5 className="font-medium text-blue-900 dark:text-blue-100 mb-1">
                 Email Reports (Coming Soon)
               </h5>
               <p className="text-sm text-blue-700 dark:text-blue-300 mb-3">
-                Get automated weekly or monthly progress reports delivered to your email.
+                Get automated weekly or monthly progress reports delivered to
+                your email.
               </p>
               <div className="flex items-center space-x-4 text-sm">
                 <label className="flex items-center text-blue-700 dark:text-blue-300">
-                  <input type="checkbox" className="rounded border-blue-300 text-blue-600 focus:ring-blue-500 mr-2" />
+                  <input
+                    type="checkbox"
+                    className="rounded border-blue-300 text-blue-600 focus:ring-blue-500 mr-2"
+                  />
                   Weekly Summary
                 </label>
                 <label className="flex items-center text-blue-700 dark:text-blue-300">
-                  <input type="checkbox" className="rounded border-blue-300 text-blue-600 focus:ring-blue-500 mr-2" />
+                  <input
+                    type="checkbox"
+                    className="rounded border-blue-300 text-blue-600 focus:ring-blue-500 mr-2"
+                  />
                   Monthly Report
                 </label>
               </div>

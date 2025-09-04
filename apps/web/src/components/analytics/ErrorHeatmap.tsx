@@ -225,12 +225,10 @@ export const ErrorHeatmap: React.FC<ErrorHeatmapProps> = ({
   const keyboardRows = getAllCharacters();
 
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
+    <div className="bg-accent/10 rounded-lg p-6">
       <div className="mb-6">
-        <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
-          {title}
-        </h3>
-        <p className="text-sm text-gray-600 dark:text-gray-400">
+        <h3 className="text-lg font-semibold mb-2">{title}</h3>
+        <p className="text-sm text-gray-600">
           Hover over characters to see detailed accuracy statistics
         </p>
       </div>
@@ -238,7 +236,7 @@ export const ErrorHeatmap: React.FC<ErrorHeatmapProps> = ({
       <div className="space-y-4 mb-6">
         {/* Uppercase Letters Section */}
         <div>
-          <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 text-center">
+          <h4 className="text-sm font-medium text-text/50 mb-2 text-center">
             Uppercase Letters
           </h4>
           <div className="space-y-2">
@@ -252,7 +250,7 @@ export const ErrorHeatmap: React.FC<ErrorHeatmapProps> = ({
 
         {/* Lowercase Letters Section */}
         <div>
-          <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 text-center">
+          <h4 className="text-sm font-medium text-text/50 mb-2 text-center">
             Lowercase Letters
           </h4>
           <div className="space-y-2">
@@ -266,7 +264,7 @@ export const ErrorHeatmap: React.FC<ErrorHeatmapProps> = ({
 
         {/* Numbers and Symbols Section */}
         <div>
-          <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 text-center">
+          <h4 className="text-sm font-medium text-text/50 mb-2 text-center">
             Numbers & Symbols
           </h4>
           <div className="space-y-2">
@@ -286,7 +284,7 @@ export const ErrorHeatmap: React.FC<ErrorHeatmapProps> = ({
         {/* Extra Characters Section */}
         {keyboardRows.filter((row) => row.row.includes('extra')).length > 0 && (
           <div>
-            <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 text-center">
+            <h4 className="text-sm font-medium text-text/50 mb-2 text-center">
               Additional Characters
             </h4>
             <div className="space-y-2">
@@ -307,32 +305,28 @@ export const ErrorHeatmap: React.FC<ErrorHeatmapProps> = ({
             className="w-4 h-4 rounded"
             style={{ backgroundColor: 'rgba(34, 197, 94, 0.8)' }}
           ></div>
-          <span className="text-gray-600 dark:text-gray-400">
-            95%+ Excellent
-          </span>
+          <span className="text-text/80">95%+ Excellent</span>
         </div>
         <div className="flex items-center space-x-2">
           <div
             className="w-4 h-4 rounded"
             style={{ backgroundColor: 'rgba(251, 191, 36, 0.8)' }}
           ></div>
-          <span className="text-gray-600 dark:text-gray-400">85-94% Good</span>
+          <span className="text-text/80">85-94% Good</span>
         </div>
         <div className="flex items-center space-x-2">
           <div
             className="w-4 h-4 rounded"
             style={{ backgroundColor: 'rgba(249, 115, 22, 0.8)' }}
           ></div>
-          <span className="text-gray-600 dark:text-gray-400">70-84% Fair</span>
+          <span className="text-text/80">70-84% Fair</span>
         </div>
         <div className="flex items-center space-x-2">
           <div
             className="w-4 h-4 rounded"
             style={{ backgroundColor: 'rgba(239, 68, 68, 0.8)' }}
           ></div>
-          <span className="text-gray-600 dark:text-gray-400">
-            &lt;70% Needs Work
-          </span>
+          <span className="text-text/80">&lt;70% Needs Work</span>
         </div>
       </div>
     </div>
