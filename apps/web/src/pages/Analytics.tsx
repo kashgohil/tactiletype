@@ -6,6 +6,7 @@ import {
 } from '@/components/ui/select';
 import type { AnalyticsDashboard, UserRecommendation } from '@tactile/types';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { ChartBar, Sparkle, Target, Timer } from 'lucide-react';
 import React from 'react';
 import { ErrorHeatmap } from '../components/analytics/ErrorHeatmap';
 import { GoalTracker } from '../components/analytics/GoalTracker';
@@ -257,59 +258,52 @@ export const Analytics: React.FC = () => {
 
       {/* Overview Stats */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
+        <div className="bg-accent/10 rounded-lg p-6">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-gray-600 dark:text-gray-400">
-                Total Tests
-              </p>
-              <p className="text-2xl font-bold text-gray-900 dark:text-white">
+              <p className="text-sm font-medium">Total Tests</p>
+              <p className="text-2xl font-bold text-accent">
                 {dashboardData.overview.totalTests}
               </p>
             </div>
-            <div className="text-3xl">📊</div>
+            <ChartBar className="text-accent" />
           </div>
         </div>
 
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
+        <div className="bg-accent/10 rounded-lg p-6">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-gray-600 dark:text-gray-400">
-                Average WPM
-              </p>
-              <p className="text-2xl font-bold text-blue-600 dark:text-blue-400">
+              <p className="text-sm font-medium ">Average WPM</p>
+              <p className="text-2xl font-bold text-accent">
                 {dashboardData.overview.averageWpm}
               </p>
             </div>
-            <div className="text-3xl">⚡</div>
+            <Sparkle className="text-accent" />
           </div>
         </div>
 
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
+        <div className="bg-accent/10 rounded-lg p-6">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-gray-600 dark:text-gray-400">
-                Average Accuracy
-              </p>
-              <p className="text-2xl font-bold text-green-600 dark:text-green-400">
+              <p className="text-sm font-medium ">Average Accuracy</p>
+              <p className="text-2xl font-bold text-accent">
                 {dashboardData.overview.averageAccuracy}%
               </p>
             </div>
-            <div className="text-3xl">🎯</div>
+
+            <Target className="text-accent" />
           </div>
         </div>
 
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
+        <div className="bg-accent/10 rounded-lg p-6">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-gray-600 dark:text-gray-400">
-                Time Spent
-              </p>
-              <p className="text-2xl font-bold text-purple-600 dark:text-purple-400">
+              <p className="text-sm font-medium ">Time Spent</p>
+              <p className="text-2xl font-bold text-accent">
                 {formatTime(dashboardData.overview.totalTimeSpent)}
               </p>
             </div>
-            <div className="text-3xl">⏱️</div>
+            <Timer className="text-accent" />
           </div>
         </div>
       </div>

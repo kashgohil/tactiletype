@@ -3,6 +3,7 @@ import type { Theme } from './themes';
 import { themes } from './themes';
 
 interface ThemeContextType {
+  themeToApply: Theme;
   currentTheme: Theme;
   setTheme: (theme: Theme) => void;
   previewTheme: Theme | null;
@@ -51,6 +52,7 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
   return (
     <ThemeContext.Provider
       value={{
+        themeToApply: previewTheme || currentTheme,
         currentTheme,
         setTheme,
         previewTheme,

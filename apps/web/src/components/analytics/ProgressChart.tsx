@@ -1,3 +1,4 @@
+import { ThemeContext } from '@/contexts/ThemeContext';
 import type { ProgressChart as ProgressChartType } from '@tactile/types';
 import {
   CategoryScale,
@@ -10,8 +11,8 @@ import {
   Title,
   Tooltip,
 } from 'chart.js';
-import { TrendingDown, TrendingUp } from 'lucide-react';
-import React from 'react';
+import { MoveRight, TrendingDown, TrendingUp } from 'lucide-react';
+import React, { useContext } from 'react';
 import { Line } from 'react-chartjs-2';
 
 ChartJS.register(
@@ -34,27 +35,30 @@ export const ProgressChart: React.FC<ProgressChartProps> = ({
   chart,
   height = 300,
 }) => {
+  const context = useContext(ThemeContext);
+  const themeToApply = context?.themeToApply;
+
   const getChartColor = (type: string) => {
     switch (type) {
       case 'wpm':
         return {
-          border: 'rgb(59, 130, 246)', // blue-500
-          background: 'rgba(59, 130, 246, 0.1)',
+          border: themeToApply?.accentColor || 'rgb(59, 130, 246)', // blue-500
+          background: themeToApply?.primaryColor || 'rgba(59, 130, 246, 0.1)',
         };
       case 'accuracy':
         return {
-          border: 'rgb(34, 197, 94)', // green-500
-          background: 'rgba(34, 197, 94, 0.1)',
+          border: themeToApply?.accentColor || 'rgb(34, 197, 94)', // green-500
+          background: themeToApply?.primaryColor || 'rgba(34, 197, 94, 0.1)',
         };
       case 'consistency':
         return {
-          border: 'rgb(168, 85, 247)', // purple-500
-          background: 'rgba(168, 85, 247, 0.1)',
+          border: themeToApply?.accentColor || 'rgb(168, 85, 247)', // purple-500
+          background: themeToApply?.primaryColor || 'rgba(168, 85, 247, 0.1)',
         };
       default:
         return {
-          border: 'rgb(107, 114, 128)', // gray-500
-          background: 'rgba(107, 114, 128, 0.1)',
+          border: themeToApply?.accentColor || 'rgb(107, 114, 128)', // gray-500
+          background: themeToApply?.primaryColor || 'rgba(107, 114, 128, 0.1)',
         };
     }
   };
@@ -189,25 +193,25 @@ export const ProgressChart: React.FC<ProgressChartProps> = ({
       case 'declining':
         return <TrendingDown />;
       default:
-        return '➡️';
+        return <MoveRight />;
     }
   };
 
   const getTrendColor = () => {
     switch (chart.trend) {
       case 'improving':
-        return 'text-green-600 dark:text-green-400';
+        return 'text-green-600';
       case 'declining':
-        return 'text-red-600 dark:text-red-400';
+        return 'text-red-600';
       default:
-        return 'text-gray-600 dark:text-gray-400';
+        return 'text-gray-600';
     }
   };
 
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
+    <div className="bg-accent/10 rounded-lg p-6">
       <div className="flex items-center justify-between mb-4">
-        <h3 className="text-lg font-semibold text-gray-900 dark:text-white capitalize">
+        <h3 className="text-lg font-semibold capitalize">
           {chart.type} Progress
         </h3>
         <div className={`flex items-center space-x-2 ${getTrendColor()}`}>
@@ -223,7 +227,7 @@ export const ProgressChart: React.FC<ProgressChartProps> = ({
         <Line data={data} options={options} />
       </div>
 
-      <div className="mt-4 text-sm text-gray-600 dark:text-gray-400">
+      <div className="mt-4 text-sm text-center text-gray-600">
         <span className="capitalize">{chart.timeframe}</span> trend over the
         last {chart.data.length} data points
       </div>
