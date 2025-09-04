@@ -517,9 +517,41 @@ analytics.get('/accuracy-heatmap', async (c) => {
     const characterStats: Record<string, { errors: number; total: number }> =
       {};
 
+    // First, get all keystroke data to count total keystrokes per character
+    const keystrokeData = await db
+      .select({
+        keystrokeData: completedTests.keystrokeData,
+      })
+      .from(completedTests)
+      .where(
+        and(
+          eq(completedTests.userId, userId),
+          dateFilter ? gte(completedTests.completedAt, dateFilter) : undefined
+        )
+      );
+
+    // Count total keystrokes per character from keystroke data
+    const totalKeystrokes: Record<string, number> = {};
+    keystrokeData.forEach((test) => {
+      if (test.keystrokeData) {
+        try {
+          const keystrokes = JSON.parse(test.keystrokeData);
+          keystrokes.forEach((keystroke: any) => {
+            if (keystroke.expectedChar && keystroke.expectedChar.length === 1) {
+              totalKeystrokes[keystroke.expectedChar] =
+                (totalKeystrokes[keystroke.expectedChar] || 0) + 1;
+            }
+          });
+        } catch (e) {
+          // Skip malformed keystroke data
+          console.warn('Skipping malformed keystroke data');
+        }
+      }
+    });
+
+    // Now process error data
     errorData.forEach((error) => {
       const charErrors = JSON.parse(error.characterErrors);
-      const wordErrors = JSON.parse(error.wordErrors);
 
       // Count character errors
       Object.entries(charErrors).forEach(([char, count]) => {
@@ -528,74 +560,26 @@ analytics.get('/accuracy-heatmap', async (c) => {
         }
         characterStats[char].errors += count as number;
       });
-
-      // Estimate total character attempts from word errors and test data
-      // This is a simplified calculation - in a real implementation you'd want more detailed tracking
-      Object.entries(wordErrors).forEach(([word, count]) => {
-        const wordLength = word.length;
-        const charCount = (count as number) * wordLength;
-        // Distribute across characters in the word
-        word.split('').forEach((char) => {
-          if (!characterStats[char]) {
-            characterStats[char] = { errors: 0, total: 0 };
-          }
-          characterStats[char].total += charCount;
-        });
-      });
     });
 
-    // Get total tests to estimate character frequency
-    const totalTests = await db
-      .select({ count: sql<number>`count(*)` })
-      .from(completedTests)
-      .where(eq(completedTests.userId, userId));
+    // Set total keystrokes for each character
+    Object.keys(totalKeystrokes).forEach((char) => {
+      if (!characterStats[char]) {
+        characterStats[char] = { errors: 0, total: 0 };
+      }
+      characterStats[char].total = totalKeystrokes[char] || 0;
+    });
 
     // Calculate accuracy for each character
     const characters = Object.entries(characterStats).map(
       ([character, stats]) => {
-        // Estimate total attempts if we don't have enough data
-        const estimatedTotal = Math.max(stats.total, stats.errors * 10); // Assume at least 10 attempts per error
         const accuracy =
           stats.total > 0
-            ? Math.max(
-                0,
-                ((estimatedTotal - stats.errors) / estimatedTotal) * 100
-              )
-            : 95; // Default accuracy if no data
+            ? Math.max(0, ((stats.total - stats.errors) / stats.total) * 100)
+            : 100; // If no keystrokes recorded but character exists, assume 100% accuracy
 
-        // Estimate frequency based on common English letter frequency
-        const commonFrequency: Record<string, number> = {
-          e: 120,
-          t: 90,
-          a: 80,
-          o: 75,
-          i: 70,
-          n: 67,
-          s: 63,
-          h: 60,
-          r: 60,
-          d: 43,
-          l: 40,
-          c: 28,
-          u: 28,
-          m: 24,
-          w: 24,
-          f: 22,
-          g: 20,
-          y: 20,
-          p: 19,
-          b: 15,
-          v: 10,
-          k: 8,
-          j: 2,
-          x: 2,
-          q: 1,
-          z: 1,
-          ' ': 200, // Space is very common
-        };
-
-        const frequency =
-          commonFrequency[character] || Math.max(1, Math.floor(accuracy / 10));
+        // Use actual frequency from keystroke data
+        const frequency = stats.total;
 
         // Determine color based on accuracy
         let color = '#22c55e'; // Green for good accuracy
@@ -612,8 +596,13 @@ analytics.get('/accuracy-heatmap', async (c) => {
       }
     );
 
-    // Sort by frequency (most used first)
-    characters.sort((a, b) => b.frequency - a.frequency);
+    // Sort by frequency (most used first), then by accuracy (worst first for same frequency)
+    characters.sort((a, b) => {
+      if (b.frequency !== a.frequency) {
+        return b.frequency - a.frequency;
+      }
+      return a.accuracy - b.accuracy; // Show worse accuracy first for same frequency
+    });
 
     const maxValue = Math.max(...characters.map((c) => c.accuracy));
     const minValue = Math.min(...characters.map((c) => c.accuracy));
