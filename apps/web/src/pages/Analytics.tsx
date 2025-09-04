@@ -1,10 +1,6 @@
-import type {
-  AccuracyHeatmap,
-  AnalyticsDashboard,
-  UserGoal,
-  UserRecommendation,
-} from '@tactile/types';
-import React, { useEffect, useState } from 'react';
+import type { AnalyticsDashboard, UserRecommendation } from '@tactile/types';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import React from 'react';
 import { ErrorHeatmap } from '../components/analytics/ErrorHeatmap';
 import { GoalTracker } from '../components/analytics/GoalTracker';
 import { ProgressChart } from '../components/analytics/ProgressChart';
@@ -13,385 +9,153 @@ import { ReportGenerator } from '../components/analytics/ReportGenerator';
 import { useAuth } from '../contexts';
 import { analyticsApi } from '../services/analyticsApi';
 
-// Mock data for development - will be replaced with API calls
-const mockDashboardData: AnalyticsDashboard = {
-  overview: {
-    totalTests: 127,
-    totalTimeSpent: 18420, // seconds
-    averageWpm: 68.5,
-    averageAccuracy: 94.2,
-    improvementRate: 12.3,
-    consistencyScore: 78.9,
-    currentStreak: 7,
-    longestStreak: 23,
-  },
-  progressCharts: [
-    {
-      type: 'wpm',
-      timeframe: 'weekly',
-      data: [
-        { date: '2024-01-01', value: 62 },
-        { date: '2024-01-02', value: 64 },
-        { date: '2024-01-03', value: 66 },
-        { date: '2024-01-04', value: 68 },
-        { date: '2024-01-05', value: 70 },
-        { date: '2024-01-06', value: 69 },
-        { date: '2024-01-07', value: 72 },
-      ],
-      trend: 'improving',
-      trendPercentage: 16.1,
-    },
-    {
-      type: 'accuracy',
-      timeframe: 'weekly',
-      data: [
-        { date: '2024-01-01', value: 92 },
-        { date: '2024-01-02', value: 93 },
-        { date: '2024-01-03', value: 94 },
-        { date: '2024-01-04', value: 95 },
-        { date: '2024-01-05', value: 94 },
-        { date: '2024-01-06', value: 96 },
-        { date: '2024-01-07', value: 95 },
-      ],
-      trend: 'improving',
-      trendPercentage: 3.3,
-    },
-    {
-      type: 'consistency',
-      timeframe: 'weekly',
-      data: [
-        { date: '2024-01-01', value: 75 },
-        { date: '2024-01-02', value: 77 },
-        { date: '2024-01-03', value: 79 },
-        { date: '2024-01-04', value: 78 },
-        { date: '2024-01-05', value: 80 },
-        { date: '2024-01-06', value: 82 },
-        { date: '2024-01-07', value: 81 },
-      ],
-      trend: 'improving',
-      trendPercentage: 8.0,
-    },
-  ],
-  errorAnalysis: {
-    mostProblematicChars: [
-      {
-        character: 'q',
-        errorCount: 12,
-        errorRate: 8.5,
-        suggestions: ['Practice Q finger placement'],
-      },
-      {
-        character: 'z',
-        errorCount: 8,
-        errorRate: 6.2,
-        suggestions: ['Use pinky finger for Z'],
-      },
-    ],
-    mostProblematicWords: [
-      {
-        word: 'the',
-        errorCount: 5,
-        errorRate: 2.1,
-        commonMistakes: ['teh', 'hte'],
-      },
-    ],
-    commonPatterns: [],
-    improvementAreas: ['Focus on Q and Z keys', 'Practice common words'],
-  },
-  recommendations: [],
-  achievements: [],
-  goals: [],
-};
-
-const mockHeatmapData: AccuracyHeatmap = {
-  characters: [
-    { character: 'a', accuracy: 96.5, frequency: 120, color: '#22c55e' },
-    { character: 's', accuracy: 94.2, frequency: 98, color: '#22c55e' },
-    { character: 'd', accuracy: 92.8, frequency: 87, color: '#22c55e' },
-    { character: 'f', accuracy: 95.1, frequency: 76, color: '#22c55e' },
-    { character: 'g', accuracy: 89.3, frequency: 65, color: '#fbbf24' },
-    { character: 'h', accuracy: 91.7, frequency: 89, color: '#22c55e' },
-    { character: 'j', accuracy: 88.4, frequency: 45, color: '#fbbf24' },
-    { character: 'k', accuracy: 90.2, frequency: 52, color: '#22c55e' },
-    { character: 'l', accuracy: 93.6, frequency: 78, color: '#22c55e' },
-    { character: 'q', accuracy: 67.8, frequency: 23, color: '#ef4444' },
-    { character: 'w', accuracy: 85.9, frequency: 67, color: '#fbbf24' },
-    { character: 'e', accuracy: 97.2, frequency: 145, color: '#22c55e' },
-    { character: 'r', accuracy: 94.8, frequency: 89, color: '#22c55e' },
-    { character: 't', accuracy: 96.1, frequency: 112, color: '#22c55e' },
-    { character: 'y', accuracy: 87.3, frequency: 43, color: '#fbbf24' },
-    { character: 'u', accuracy: 92.4, frequency: 67, color: '#22c55e' },
-    { character: 'i', accuracy: 95.7, frequency: 89, color: '#22c55e' },
-    { character: 'o', accuracy: 94.3, frequency: 98, color: '#22c55e' },
-    { character: 'p', accuracy: 88.9, frequency: 54, color: '#fbbf24' },
-    { character: 'z', accuracy: 72.1, frequency: 18, color: '#f97316' },
-    { character: 'x', accuracy: 79.6, frequency: 25, color: '#f97316' },
-    { character: 'c', accuracy: 91.8, frequency: 67, color: '#22c55e' },
-    { character: 'v', accuracy: 86.4, frequency: 34, color: '#fbbf24' },
-    { character: 'b', accuracy: 89.7, frequency: 45, color: '#fbbf24' },
-    { character: 'n', accuracy: 93.2, frequency: 78, color: '#22c55e' },
-    { character: 'm', accuracy: 95.4, frequency: 67, color: '#22c55e' },
-    { character: ' ', accuracy: 98.9, frequency: 234, color: '#22c55e' },
-  ],
-  maxValue: 98.9,
-  minValue: 67.8,
-};
-
-const mockGoals: UserGoal[] = [
-  {
-    id: '1',
-    userId: 'user1',
-    goalType: 'wpm',
-    targetValue: 80,
-    currentValue: 72,
-    targetDate: '2024-02-15',
-    isActive: true,
-    isAchieved: false,
-    createdAt: '2024-01-15T00:00:00Z',
-    updatedAt: '2024-01-15T00:00:00Z',
-  },
-  {
-    id: '2',
-    userId: 'user1',
-    goalType: 'accuracy',
-    targetValue: 98,
-    currentValue: 95,
-    isActive: true,
-    isAchieved: false,
-    createdAt: '2024-01-10T00:00:00Z',
-    updatedAt: '2024-01-10T00:00:00Z',
-  },
-];
-
-const mockRecommendations: UserRecommendation[] = [
-  {
-    id: '1',
-    userId: 'user1',
-    type: 'practice_focus',
-    title: 'Focus on Q and Z Keys',
-    description:
-      'Your accuracy with Q and Z keys is below average. Practice these characters to improve overall accuracy.',
-    priority: 4,
-    isRead: false,
-    isApplied: false,
-    createdAt: '2024-01-20T00:00:00Z',
-  },
-  {
-    id: '2',
-    userId: 'user1',
-    type: 'goal_suggestion',
-    title: 'Set a Consistency Goal',
-    description:
-      'Your typing rhythm varies significantly. Consider setting a consistency goal to improve your typing flow.',
-    priority: 3,
-    isRead: true,
-    isApplied: false,
-    createdAt: '2024-01-18T00:00:00Z',
-  },
-];
-
 export const Analytics: React.FC = () => {
   const { user } = useAuth();
-  const [dashboardData, setDashboardData] = useState<AnalyticsDashboard | null>(
-    null
-  );
-  const [heatmapData, setHeatmapData] = useState<AccuracyHeatmap | null>(null);
-  const [goals, setGoals] = useState<UserGoal[]>([]);
-  const [recommendations, setRecommendations] = useState<UserRecommendation[]>(
-    []
-  );
-  const [loading, setLoading] = useState(true);
-  const [selectedTimeframe, setSelectedTimeframe] = useState<
+  const queryClient = useQueryClient();
+  const [selectedTimeframe, setSelectedTimeframe] = React.useState<
     'daily' | 'weekly' | 'monthly'
   >('weekly');
 
-  useEffect(() => {
-    const fetchAnalyticsData = async () => {
-      if (!user) return;
+  // Queries for data fetching
+  const overviewQuery = useQuery({
+    queryKey: ['analytics', 'overview'],
+    queryFn: () => analyticsApi.getOverview(),
+    enabled: !!user,
+  });
 
-      try {
-        setLoading(true);
+  const trendsQuery = useQuery({
+    queryKey: ['analytics', 'trends', selectedTimeframe],
+    queryFn: () => analyticsApi.getTrends({ timeframe: selectedTimeframe }),
+    enabled: !!user,
+  });
 
-        // Fetch real analytics data
-        const [
-          overview,
-          trends,
-          errorAnalysis,
-          goals,
-          recommendations,
-          heatmap,
-        ] = await Promise.allSettled([
-          analyticsApi.getOverview(),
-          analyticsApi.getTrends({ timeframe: selectedTimeframe }),
-          analyticsApi.getErrorAnalysis(),
-          analyticsApi.getGoals(),
-          analyticsApi.getRecommendations(),
-          analyticsApi.getAccuracyHeatmap({
-            timeframe:
-              selectedTimeframe === 'daily'
-                ? 'week'
-                : selectedTimeframe === 'weekly'
-                  ? 'month'
-                  : 'all',
-          }),
-        ]);
+  const errorAnalysisQuery = useQuery({
+    queryKey: ['analytics', 'errorAnalysis'],
+    queryFn: () => analyticsApi.getErrorAnalysis(),
+    enabled: !!user,
+  });
 
-        // Handle overview data
-        if (overview.status === 'fulfilled') {
-          const dashboardData: AnalyticsDashboard = {
-            overview: overview.value,
-            progressCharts: trends.status === 'fulfilled' ? trends.value : [],
-            errorAnalysis:
-              errorAnalysis.status === 'fulfilled'
-                ? errorAnalysis.value
-                : {
-                    mostProblematicChars: [],
-                    mostProblematicWords: [],
-                    commonPatterns: [],
-                    improvementAreas: [],
-                  },
-            recommendations:
-              recommendations.status === 'fulfilled'
-                ? recommendations.value
-                : [],
-            achievements: [], // TODO: Implement achievements
-            goals: goals.status === 'fulfilled' ? goals.value : [],
-          };
-          setDashboardData(dashboardData);
-        } else {
-          console.error('Failed to fetch overview:', overview.reason);
-          // Fallback to mock data if API fails
-          setDashboardData(mockDashboardData);
-        }
+  const goalsQuery = useQuery({
+    queryKey: ['analytics', 'goals'],
+    queryFn: () => analyticsApi.getGoals(),
+    enabled: !!user,
+  });
 
-        // Handle other data
-        if (goals.status === 'fulfilled') {
-          setGoals(goals.value);
-        } else {
-          console.error('Failed to fetch goals:', goals.reason);
-          setGoals(mockGoals);
-        }
+  const recommendationsQuery = useQuery({
+    queryKey: ['analytics', 'recommendations'],
+    queryFn: () => analyticsApi.getRecommendations(),
+    enabled: !!user,
+  });
 
-        if (recommendations.status === 'fulfilled') {
-          setRecommendations(recommendations.value);
-        } else {
-          console.error(
-            'Failed to fetch recommendations:',
-            recommendations.reason
-          );
-          setRecommendations(mockRecommendations);
-        }
+  const heatmapQuery = useQuery({
+    queryKey: ['analytics', 'heatmap', selectedTimeframe],
+    queryFn: () =>
+      analyticsApi.getAccuracyHeatmap({
+        timeframe:
+          selectedTimeframe === 'daily'
+            ? 'week'
+            : selectedTimeframe === 'weekly'
+              ? 'month'
+              : 'all',
+      }),
+    enabled: !!user,
+  });
 
-        if (heatmap.status === 'fulfilled') {
-          setHeatmapData(heatmap.value);
-        } else {
-          console.error('Failed to fetch heatmap:', heatmap.reason);
-          setHeatmapData(mockHeatmapData);
-        }
-      } catch (error) {
-        console.error('Failed to fetch analytics data:', error);
-        // Fallback to mock data on error
-        setDashboardData(mockDashboardData);
-        setHeatmapData(mockHeatmapData);
-        setGoals(mockGoals);
-        setRecommendations(mockRecommendations);
-      } finally {
-        setLoading(false);
-      }
+  // Combine data into dashboardData
+  const dashboardData: AnalyticsDashboard | null = React.useMemo(() => {
+    if (!overviewQuery.data || !trendsQuery.data || !errorAnalysisQuery.data) {
+      return null;
+    }
+
+    return {
+      overview: overviewQuery.data,
+      progressCharts: trendsQuery.data,
+      errorAnalysis: errorAnalysisQuery.data,
+      recommendations: recommendationsQuery.data || [],
+      achievements: [],
+      goals: goalsQuery.data || [],
     };
+  }, [
+    overviewQuery.data,
+    trendsQuery.data,
+    errorAnalysisQuery.data,
+    recommendationsQuery.data,
+    goalsQuery.data,
+  ]);
 
-    fetchAnalyticsData();
-  }, [user, selectedTimeframe]);
+  // Mutations
+  const createGoalMutation = useMutation({
+    mutationFn: analyticsApi.createGoal,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['analytics', 'goals'] });
+    },
+  });
 
-  const handleCreateGoal = async (goalData: {
+  const deleteGoalMutation = useMutation({
+    mutationFn: analyticsApi.deleteGoal,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['analytics', 'goals'] });
+    },
+  });
+
+  const markRecommendationAsReadMutation = useMutation({
+    mutationFn: analyticsApi.markRecommendationAsRead,
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: ['analytics', 'recommendations'],
+      });
+    },
+  });
+
+  const markRecommendationAsAppliedMutation = useMutation({
+    mutationFn: analyticsApi.markRecommendationAsApplied,
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: ['analytics', 'recommendations'],
+      });
+    },
+  });
+
+  const exportDataMutation = useMutation({
+    mutationFn: analyticsApi.exportData,
+  });
+
+  const handleCreateGoal = (goalData: {
     goalType: 'wpm' | 'accuracy' | 'consistency' | 'daily_tests';
     targetValue: number;
     targetDate?: string;
   }) => {
-    try {
-      const newGoal = await analyticsApi.createGoal(goalData);
-      setGoals([...goals, newGoal]);
-    } catch (error) {
-      console.error('Failed to create goal:', error);
-      // Fallback to local state update if API fails
-      const fallbackGoal: UserGoal = {
-        id: Date.now().toString(),
-        userId: user!.id,
-        ...goalData,
-        currentValue: 0,
-        isActive: true,
-        isAchieved: false,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-      };
-      setGoals([...goals, fallbackGoal]);
-    }
+    createGoalMutation.mutate(goalData);
   };
 
-  const handleDeleteGoal = async (goalId: string) => {
-    try {
-      await analyticsApi.deleteGoal(goalId);
-      setGoals(goals.filter((goal) => goal.id !== goalId));
-    } catch (error) {
-      console.error('Failed to delete goal:', error);
-      // Still remove from local state even if API call fails
-      setGoals(goals.filter((goal) => goal.id !== goalId));
-    }
+  const handleDeleteGoal = (goalId: string) => {
+    deleteGoalMutation.mutate(goalId);
   };
 
-  const handleMarkRecommendationAsRead = async (recommendationId: string) => {
-    try {
-      await analyticsApi.markRecommendationAsRead(recommendationId);
-      setRecommendations(
-        recommendations.map((rec) =>
-          rec.id === recommendationId ? { ...rec, isRead: true } : rec
-        )
-      );
-    } catch (error) {
-      console.error('Failed to mark recommendation as read:', error);
-      // Still update local state even if API call fails
-      setRecommendations(
-        recommendations.map((rec) =>
-          rec.id === recommendationId ? { ...rec, isRead: true } : rec
-        )
-      );
-    }
+  const handleMarkRecommendationAsRead = (recommendationId: string) => {
+    markRecommendationAsReadMutation.mutate(recommendationId);
   };
 
-  const handleMarkRecommendationAsApplied = async (
-    recommendationId: string
-  ) => {
-    try {
-      await analyticsApi.markRecommendationAsApplied(recommendationId);
-      setRecommendations(
-        recommendations.map((rec) =>
-          rec.id === recommendationId ? { ...rec, isApplied: true } : rec
-        )
-      );
-    } catch (error) {
-      console.error('Failed to mark recommendation as applied:', error);
-      // Still update local state even if API call fails
-      setRecommendations(
-        recommendations.map((rec) =>
-          rec.id === recommendationId ? { ...rec, isApplied: true } : rec
-        )
-      );
-    }
+  const handleMarkRecommendationAsApplied = (recommendationId: string) => {
+    markRecommendationAsAppliedMutation.mutate(recommendationId);
   };
 
   const handleDismissRecommendation = (recommendationId: string) => {
-    setRecommendations(
-      recommendations.filter((rec) => rec.id !== recommendationId)
+    // For dismiss, we need to handle it differently since it's not an API call
+    // We can use queryClient to update the cache directly
+    queryClient.setQueryData(
+      ['analytics', 'recommendations'],
+      (oldData: UserRecommendation[] | undefined) =>
+        oldData?.filter((rec) => rec.id !== recommendationId) || []
     );
   };
 
-  const handleExportData = async (format: 'csv' | 'json') => {
-    try {
-      await analyticsApi.exportData(format);
-      console.log(`Data exported successfully in ${format} format`);
-    } catch (error) {
-      console.error('Failed to export data:', error);
-    }
+  const handleExportData = (format: 'csv' | 'json') => {
+    exportDataMutation.mutate(format, {
+      onSuccess: () => {
+        console.log(`Data exported successfully in ${format} format`);
+      },
+    });
   };
 
   const formatTime = (seconds: number): string => {
@@ -417,7 +181,12 @@ export const Analytics: React.FC = () => {
     );
   }
 
-  if (loading) {
+  const isLoading =
+    overviewQuery.isLoading ||
+    trendsQuery.isLoading ||
+    errorAnalysisQuery.isLoading;
+
+  if (isLoading) {
     return (
       <div className="max-w-7xl mx-auto">
         <div className="animate-pulse">
@@ -549,9 +318,9 @@ export const Analytics: React.FC = () => {
       {/* Error Analysis */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
         {/* Character Accuracy Heatmap */}
-        {heatmapData && (
+        {heatmapQuery.data && (
           <div className="lg:col-span-2">
-            <ErrorHeatmap heatmapData={heatmapData} />
+            <ErrorHeatmap heatmapData={heatmapQuery.data} />
           </div>
         )}
       </div>
@@ -642,13 +411,13 @@ export const Analytics: React.FC = () => {
         {/* Goals and Recommendations */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
           <GoalTracker
-            goals={goals}
+            goals={goalsQuery.data || []}
             onCreateGoal={handleCreateGoal}
             onDeleteGoal={handleDeleteGoal}
           />
 
           <RecommendationsPanel
-            recommendations={recommendations}
+            recommendations={recommendationsQuery.data || []}
             onMarkAsRead={handleMarkRecommendationAsRead}
             onMarkAsApplied={handleMarkRecommendationAsApplied}
             onDismiss={handleDismissRecommendation}
