@@ -1,3 +1,9 @@
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+} from '@/components/ui/select';
 import type { AnalyticsDashboard, UserRecommendation } from '@tactile/types';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import React from 'react';
@@ -233,19 +239,19 @@ export const Analytics: React.FC = () => {
           <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
             Timeframe:
           </label>
-          <select
+          <Select
             value={selectedTimeframe}
-            onChange={(e) =>
-              setSelectedTimeframe(
-                e.target.value as 'daily' | 'weekly' | 'monthly'
-              )
+            onValueChange={(val) =>
+              setSelectedTimeframe(val as 'daily' | 'weekly' | 'monthly')
             }
-            className="px-3 py-1 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
           >
-            <option value="daily">Daily</option>
-            <option value="weekly">Weekly</option>
-            <option value="monthly">Monthly</option>
-          </select>
+            <SelectTrigger>{selectedTimeframe}</SelectTrigger>
+            <SelectContent>
+              <SelectItem value="daily">Daily</SelectItem>
+              <SelectItem value="weekly">Weekly</SelectItem>
+              <SelectItem value="monthly">Monthly</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
       </div>
 
