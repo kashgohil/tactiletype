@@ -10,6 +10,8 @@ const store = new Map<string, Token>();
 export class CSRFProtection {
   private static readonly TOKEN_LENGTH = 32;
   private static readonly TOKEN_EXPIRY = 15 * 60 * 1000; // 15 minutes
+  private static readonly DEVELOPMENT_MODE =
+    process.env.NODE_ENV !== 'production';
 
   /**
    * Generate a new CSRF token
@@ -36,16 +38,34 @@ export class CSRFProtection {
     const storedToken = store.get(token);
 
     if (!storedToken) {
+      console.error(
+        'OAuth state validation failed - token not found in store:',
+        {
+          token: token.substring(0, 8) + '...',
+          storeSize: store.size,
+          allTokens: Array.from(store.keys()).map(
+            (t) => t.substring(0, 8) + '...'
+          ),
+        }
+      );
       return false;
     }
 
     if (storedToken.expiresAt < Date.now()) {
+      console.error('OAuth state validation failed - token expired:', {
+        token: token.substring(0, 8) + '...',
+        expiredAt: new Date(storedToken.expiresAt).toISOString(),
+        now: new Date().toISOString(),
+      });
       store.delete(token);
       return false;
     }
 
+    console.log(
+      'OAuth state validation successful for token:',
+      token.substring(0, 8) + '...'
+    );
     store.delete(token);
-
     return true;
   }
 }

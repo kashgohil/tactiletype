@@ -205,6 +205,14 @@ authRoutes.get('/sso/:provider/callback', async (c) => {
     const code = c.req.query('code');
     const state = c.req.query('state');
 
+    console.log('OAuth callback received:', {
+      provider,
+      hasCode: !!code,
+      hasState: !!state,
+      state: state?.substring(0, 8) + '...',
+      timestamp: new Date().toISOString(),
+    });
+
     if (!code) {
       return c.json({ error: 'Authorization code is required' }, 400);
     }
@@ -220,7 +228,20 @@ authRoutes.get('/sso/:provider/callback', async (c) => {
 
     // Validate state parameter for OAuth protection
     if (!oauthProvider.validateOAuthState(state)) {
-      return c.json({ error: 'Invalid state parameter' }, 403);
+      console.error('OAuth state validation failed:', {
+        provider,
+        state: state?.substring(0, 8) + '...',
+        timestamp: new Date().toISOString(),
+        userAgent: c.req.header('User-Agent'),
+      });
+      return c.json(
+        {
+          error: 'Invalid state parameter',
+          message:
+            'The OAuth state has expired or is invalid. Please try logging in again.',
+        },
+        403
+      );
     }
 
     // Handle OAuth callback

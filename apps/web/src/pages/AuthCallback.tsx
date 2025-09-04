@@ -29,7 +29,20 @@ export const AuthCallback: React.FC = () => {
         }
       } catch (err) {
         console.error('OAuth callback error:', err);
-        setError(err instanceof Error ? err.message : 'Authentication failed');
+
+        // Check if it's a state parameter error and provide helpful message
+        const errorMessage =
+          err instanceof Error ? err.message : 'Authentication failed';
+        if (
+          errorMessage.includes('state parameter') ||
+          errorMessage.includes('Invalid state')
+        ) {
+          setError(
+            'Authentication session expired. Please try logging in again.'
+          );
+        } else {
+          setError(errorMessage);
+        }
       }
     };
 
