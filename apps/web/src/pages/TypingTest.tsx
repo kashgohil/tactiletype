@@ -259,10 +259,10 @@ export const TypingTest: React.FC = () => {
         className += 'text-rose-500';
         break;
       case 'current':
-        className += 'text-gray-400';
+        className += 'text-text/50';
         break;
       default:
-        className += 'text-gray-400';
+        className += 'text-text/50';
     }
 
     return (
@@ -309,7 +309,7 @@ export const TypingTest: React.FC = () => {
             exit={{ opacity: 0, y: -60 }}
             transition={{ duration: 0.3, ease: 'easeInOut' }}
           >
-            <div className="flex items-center justify-between p-8 rounded-lg text-zinc-700 gap-2 w-full">
+            <div className="flex items-center justify-between p-8 rounded-lg gap-2 w-full">
               {isTestActive ? (
                 <div className="h-9 text-xl flex items-center justify-center w-full gap-2">
                   {currentMode === 'timer' && (
