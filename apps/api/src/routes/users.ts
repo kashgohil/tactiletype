@@ -1,9 +1,9 @@
-import { Hono } from 'hono';
 import { zValidator } from '@hono/zod-validator';
+import { completedTests, db, userProfiles, users } from '@tactile/database';
+import { desc, eq, sql } from 'drizzle-orm';
+import { Hono } from 'hono';
 import { verify } from 'hono/jwt';
 import { z } from 'zod';
-import { db, users, userProfiles, testResults } from '@tactile/database';
-import { eq, desc, sql } from 'drizzle-orm';
 
 type Variables = {
   user: {
@@ -21,14 +21,14 @@ const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key';
 const authMiddleware = async (c: any, next: any) => {
   try {
     const authHeader = c.req.header('Authorization');
-    
+
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
       return c.json({ error: 'No token provided' }, 401);
     }
 
     const token = authHeader.substring(7);
     const payload = await verify(token, JWT_SECRET);
-    
+
     c.set('user', payload);
     await next();
   } catch (error) {
@@ -50,7 +50,7 @@ const updateProfileSchema = z.object({
 userRoutes.get('/profile', authMiddleware, async (c) => {
   try {
     const user = c.get('user') as any;
-    
+
     const userWithProfile = await db.query.users.findFirst({
       where: eq(users.id, user.userId),
       with: {
@@ -71,7 +71,6 @@ userRoutes.get('/profile', authMiddleware, async (c) => {
         createdAt: userWithProfile.createdAt,
       },
     });
-
   } catch (error) {
     console.error('Get profile error:', error);
     return c.json({ error: 'Failed to get profile' }, 500);
@@ -79,49 +78,53 @@ userRoutes.get('/profile', authMiddleware, async (c) => {
 });
 
 // Update user profile
-userRoutes.put('/profile', authMiddleware, zValidator('json', updateProfileSchema), async (c) => {
-  try {
-    const user = c.get('user') as any;
-    const profileData = c.req.valid('json');
+userRoutes.put(
+  '/profile',
+  authMiddleware,
+  zValidator('json', updateProfileSchema),
+  async (c) => {
+    try {
+      const user = c.get('user') as any;
+      const profileData = c.req.valid('json');
 
-    // Check if profile exists
-    const existingProfile = await db.query.userProfiles.findFirst({
-      where: eq(userProfiles.userId, user.userId),
-    });
-
-    if (existingProfile) {
-      // Update existing profile
-      const [updatedProfile] = await db
-        .update(userProfiles)
-        .set(profileData)
-        .where(eq(userProfiles.userId, user.userId))
-        .returning();
-
-      return c.json({
-        message: 'Profile updated successfully',
-        profile: updatedProfile,
+      // Check if profile exists
+      const existingProfile = await db.query.userProfiles.findFirst({
+        where: eq(userProfiles.userId, user.userId),
       });
-    } else {
-      // Create new profile
-      const [newProfile] = await db
-        .insert(userProfiles)
-        .values({
-          userId: user.userId,
-          ...profileData,
-        })
-        .returning();
 
-      return c.json({
-        message: 'Profile created successfully',
-        profile: newProfile,
-      });
+      if (existingProfile) {
+        // Update existing profile
+        const [updatedProfile] = await db
+          .update(userProfiles)
+          .set(profileData)
+          .where(eq(userProfiles.userId, user.userId))
+          .returning();
+
+        return c.json({
+          message: 'Profile updated successfully',
+          profile: updatedProfile,
+        });
+      } else {
+        // Create new profile
+        const [newProfile] = await db
+          .insert(userProfiles)
+          .values({
+            userId: user.userId,
+            ...profileData,
+          })
+          .returning();
+
+        return c.json({
+          message: 'Profile created successfully',
+          profile: newProfile,
+        });
+      }
+    } catch (error) {
+      console.error('Update profile error:', error);
+      return c.json({ error: 'Failed to update profile' }, 500);
     }
-
-  } catch (error) {
-    console.error('Update profile error:', error);
-    return c.json({ error: 'Failed to update profile' }, 500);
   }
-});
+);
 
 // Get user statistics
 userRoutes.get('/stats', authMiddleware, async (c) => {
@@ -131,24 +134,19 @@ userRoutes.get('/stats', authMiddleware, async (c) => {
     const stats = await db
       .select({
         totalTests: sql<number>`count(*)`,
-        avgWpm: sql<number>`avg(${testResults.wpm})`,
-        bestWpm: sql<number>`max(${testResults.wpm})`,
-        avgAccuracy: sql<number>`avg(${testResults.accuracy})`,
-        bestAccuracy: sql<number>`max(${testResults.accuracy})`,
-        totalErrors: sql<number>`sum(${testResults.errors})`,
+        avgWpm: sql<number>`avg(${completedTests.wpm})`,
+        bestWpm: sql<number>`max(${completedTests.wpm})`,
+        avgAccuracy: sql<number>`avg(${completedTests.accuracy})`,
+        bestAccuracy: sql<number>`max(${completedTests.accuracy})`,
+        totalErrors: sql<number>`sum(${completedTests.errors})`,
       })
-      .from(testResults)
-      .where(eq(testResults.userId, user.userId));
+      .from(completedTests)
+      .where(eq(completedTests.userId, user.userId));
 
-    const recentResults = await db.query.testResults.findMany({
-      where: eq(testResults.userId, user.userId),
-      orderBy: desc(testResults.completedAt),
+    const recentResults = await db.query.completedTests.findMany({
+      where: eq(completedTests.userId, user.userId),
+      orderBy: desc(completedTests.completedAt),
       limit: 10,
-      with: {
-        testText: {
-          columns: { title: true, language: true },
-        },
-      },
     });
 
     return c.json({
@@ -162,7 +160,6 @@ userRoutes.get('/stats', authMiddleware, async (c) => {
       },
       recentResults,
     });
-
   } catch (error) {
     console.error('Get stats error:', error);
     return c.json({ error: 'Failed to get statistics' }, 500);
@@ -194,12 +191,12 @@ userRoutes.get('/:username', async (c) => {
     const stats = await db
       .select({
         totalTests: sql<number>`count(*)`,
-        avgWpm: sql<number>`avg(${testResults.wpm})`,
-        bestWpm: sql<number>`max(${testResults.wpm})`,
-        avgAccuracy: sql<number>`avg(${testResults.accuracy})`,
+        avgWpm: sql<number>`avg(${completedTests.wpm})`,
+        bestWpm: sql<number>`max(${completedTests.wpm})`,
+        avgAccuracy: sql<number>`avg(${completedTests.accuracy})`,
       })
-      .from(testResults)
-      .where(eq(testResults.userId, user.id));
+      .from(completedTests)
+      .where(eq(completedTests.userId, user.id));
 
     return c.json({
       user: {
@@ -215,7 +212,6 @@ userRoutes.get('/:username', async (c) => {
         avgAccuracy: 0,
       },
     });
-
   } catch (error) {
     console.error('Get public profile error:', error);
     return c.json({ error: 'Failed to get user profile' }, 500);

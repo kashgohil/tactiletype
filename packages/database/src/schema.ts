@@ -59,7 +59,7 @@ export const userProfiles = pgTable('user_profiles', {
   isPublic: boolean('is_public').default(true),
 });
 
-// Test Content and Configuration
+// Test Content and Configuration (kept for multiplayer)
 export const testTexts = pgTable(
   'test_texts',
   {
@@ -78,17 +78,21 @@ export const testTexts = pgTable(
   ]
 );
 
-// Test Results and Statistics
-export const testResults = pgTable(
-  'test_results',
+// Completed Tests - Merged table containing test text and results
+export const completedTests = pgTable(
+  'completed_tests',
   {
     id: uuid('id').defaultRandom().primaryKey(),
     userId: uuid('user_id')
       .references(() => users.id, { onDelete: 'cascade' })
       .notNull(),
-    testTextId: uuid('test_text_id')
-      .references(() => testTexts.id)
-      .notNull(),
+    // Test text data
+    title: varchar('title', { length: 200 }).notNull(),
+    content: text('content').notNull(),
+    language: varchar('language', { length: 10 }).default('en'),
+    difficulty: varchar('difficulty', { length: 20 }).default('medium'),
+    wordCount: integer('word_count').notNull(),
+    // Test results data
     wpm: decimal('wpm', { precision: 5, scale: 2 }).notNull(),
     accuracy: decimal('accuracy', { precision: 5, scale: 2 }).notNull(),
     errors: integer('errors').default(0),
@@ -97,11 +101,12 @@ export const testResults = pgTable(
     completedAt: timestamp('completed_at').defaultNow().notNull(),
   },
   (table) => [
-    index('test_results_user_completed_idx').on(
+    index('completed_tests_user_completed_idx').on(
       table.userId,
       table.completedAt
     ),
-    index('test_results_wpm_idx').on(table.wpm),
+    index('completed_tests_wpm_idx').on(table.wpm),
+    index('completed_tests_lang_diff_idx').on(table.language, table.difficulty),
   ]
 );
 
@@ -150,7 +155,7 @@ export const roomParticipants = pgTable(
 export const usersRelations = relations(users, ({ many, one }) => ({
   oauthAccounts: many(oauthAccounts),
   profile: one(userProfiles),
-  testResults: many(testResults),
+  completedTests: many(completedTests),
   createdTexts: many(testTexts),
   hostedRooms: many(multiplayerRooms),
   roomParticipations: many(roomParticipants),
@@ -182,18 +187,23 @@ export const testTextsRelations = relations(testTexts, ({ one, many }) => ({
     fields: [testTexts.createdBy],
     references: [users.id],
   }),
-  testResults: many(testResults),
   multiplayerRooms: many(multiplayerRooms),
 }));
 
-export const testResultsRelations = relations(testResults, ({ one, many }) => ({
-  user: one(users, { fields: [testResults.userId], references: [users.id] }),
-  testText: one(testTexts, {
-    fields: [testResults.testTextId],
-    references: [testTexts.id],
+// Completed Tests Relations
+export const completedTestsRelations = relations(completedTests, ({ one }) => ({
+  user: one(users, {
+    fields: [completedTests.userId],
+    references: [users.id],
   }),
-  keystrokeAnalytics: one(keystrokeAnalytics),
-  errorAnalytics: one(errorAnalytics),
+  keystrokeAnalytics: one(keystrokeAnalytics, {
+    fields: [completedTests.id],
+    references: [keystrokeAnalytics.completedTestId],
+  }),
+  errorAnalytics: one(errorAnalytics, {
+    fields: [completedTests.id],
+    references: [errorAnalytics.completedTestId],
+  }),
 }));
 
 export const multiplayerRoomsRelations = relations(
@@ -218,8 +228,8 @@ export const keystrokeAnalytics = pgTable(
   'keystroke_analytics',
   {
     id: uuid('id').defaultRandom().primaryKey(),
-    testResultId: uuid('test_result_id')
-      .references(() => testResults.id, { onDelete: 'cascade' })
+    completedTestId: uuid('completed_test_id')
+      .references(() => completedTests.id, { onDelete: 'cascade' })
       .notNull(),
     userId: uuid('user_id')
       .references(() => users.id, { onDelete: 'cascade' })
@@ -238,7 +248,7 @@ export const keystrokeAnalytics = pgTable(
   },
   (table) => [
     index('keystroke_analytics_user_idx').on(table.userId),
-    index('keystroke_analytics_test_result_idx').on(table.testResultId),
+    index('keystroke_analytics_completed_test_idx').on(table.completedTestId),
   ]
 );
 
@@ -247,8 +257,8 @@ export const errorAnalytics = pgTable(
   'error_analytics',
   {
     id: uuid('id').defaultRandom().primaryKey(),
-    testResultId: uuid('test_result_id')
-      .references(() => testResults.id, { onDelete: 'cascade' })
+    completedTestId: uuid('completed_test_id')
+      .references(() => completedTests.id, { onDelete: 'cascade' })
       .notNull(),
     userId: uuid('user_id')
       .references(() => users.id, { onDelete: 'cascade' })
@@ -261,7 +271,7 @@ export const errorAnalytics = pgTable(
   },
   (table) => [
     index('error_analytics_user_idx').on(table.userId),
-    index('error_analytics_test_result_idx').on(table.testResultId),
+    index('error_analytics_completed_test_idx').on(table.completedTestId),
   ]
 );
 
@@ -412,9 +422,9 @@ export const practiceSessions = pgTable(
 export const keystrokeAnalyticsRelations = relations(
   keystrokeAnalytics,
   ({ one }) => ({
-    testResult: one(testResults, {
-      fields: [keystrokeAnalytics.testResultId],
-      references: [testResults.id],
+    completedTest: one(completedTests, {
+      fields: [keystrokeAnalytics.completedTestId],
+      references: [completedTests.id],
     }),
     user: one(users, {
       fields: [keystrokeAnalytics.userId],
@@ -424,9 +434,9 @@ export const keystrokeAnalyticsRelations = relations(
 );
 
 export const errorAnalyticsRelations = relations(errorAnalytics, ({ one }) => ({
-  testResult: one(testResults, {
-    fields: [errorAnalytics.testResultId],
-    references: [testResults.id],
+  completedTest: one(completedTests, {
+    fields: [errorAnalytics.completedTestId],
+    references: [completedTests.id],
   }),
   user: one(users, {
     fields: [errorAnalytics.userId],

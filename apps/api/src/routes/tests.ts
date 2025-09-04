@@ -1,5 +1,5 @@
 import { zValidator } from '@hono/zod-validator';
-import { db, testResults, testTexts, users } from '@tactile/database';
+import { completedTests, db, testTexts, users } from '@tactile/database';
 import { and, desc, eq, gte, sql } from 'drizzle-orm';
 import { Hono } from 'hono';
 import { z } from 'zod';
@@ -16,9 +16,24 @@ type Variables = {
 
 const testRoutes = new Hono<{ Variables: Variables }>();
 
+// Test text creation schema
+const createTestTextSchema = z.object({
+  title: z.string().min(1).max(200),
+  content: z.string().min(1),
+  language: z.string().min(1).max(10),
+  difficulty: z.enum(['easy', 'medium', 'hard']),
+  wordCount: z.number().min(1),
+});
+
 // Test result submission schema
 const submitResultSchema = z.object({
-  testTextId: z.string().uuid(),
+  // Test text data
+  title: z.string().min(1).max(200),
+  content: z.string().min(1),
+  language: z.string().min(1).max(10),
+  difficulty: z.enum(['easy', 'medium', 'hard']),
+  wordCount: z.number().min(1),
+  // Test results data
   wpm: z.number().min(0).max(500),
   accuracy: z.number().min(0).max(100),
   errors: z.number().min(0),
@@ -94,6 +109,52 @@ testRoutes.get('/texts/:id', optionalAuthMiddleware, async (c) => {
   }
 });
 
+// Create new test text
+testRoutes.post(
+  '/texts',
+  authMiddleware,
+  zValidator('json', createTestTextSchema),
+  async (c) => {
+    try {
+      const user = c.get('user') as any;
+      const testTextData = c.req.valid('json');
+
+      // Insert new test text
+      const [newTestText] = await db
+        .insert(testTexts)
+        .values({
+          title: testTextData.title,
+          content: testTextData.content,
+          language: testTextData.language,
+          difficulty: testTextData.difficulty,
+          wordCount: testTextData.wordCount,
+          isActive: true,
+        })
+        .returning();
+
+      if (!newTestText) {
+        return c.json({ error: 'Failed to create test text' }, 500);
+      }
+
+      return c.json({
+        message: 'Test text created successfully',
+        text: {
+          id: newTestText.id,
+          title: newTestText.title,
+          content: newTestText.content,
+          language: newTestText.language,
+          difficulty: newTestText.difficulty,
+          wordCount: newTestText.wordCount,
+          createdAt: newTestText.createdAt,
+        },
+      });
+    } catch (error) {
+      console.error('Create test text error:', error);
+      return c.json({ error: 'Failed to create test text' }, 500);
+    }
+  }
+);
+
 // Submit test result
 testRoutes.post(
   '/results',
@@ -104,21 +165,18 @@ testRoutes.post(
       const user = c.get('user') as any;
       const resultData = c.req.valid('json');
 
-      // Verify test text exists
-      const testText = await db.query.testTexts.findFirst({
-        where: eq(testTexts.id, resultData.testTextId),
-      });
-
-      if (!testText) {
-        return c.json({ error: 'Test text not found' }, 404);
-      }
-
-      // Insert test result
+      // Insert completed test with embedded test text data
       const [result] = await db
-        .insert(testResults)
+        .insert(completedTests)
         .values({
           userId: user.userId,
-          testTextId: resultData.testTextId,
+          // Test text data
+          title: resultData.title,
+          content: resultData.content,
+          language: resultData.language,
+          difficulty: resultData.difficulty,
+          wordCount: resultData.wordCount,
+          // Test results data
           wpm: resultData.wpm.toString(),
           accuracy: resultData.accuracy.toString(),
           errors: resultData.errors,
@@ -159,19 +217,19 @@ testRoutes.get('/leaderboard', async (c) => {
     switch (timeframe) {
       case 'daily':
         timeFilter = gte(
-          testResults.completedAt,
+          completedTests.completedAt,
           sql`now() - interval '1 day'`
         );
         break;
       case 'weekly':
         timeFilter = gte(
-          testResults.completedAt,
+          completedTests.completedAt,
           sql`now() - interval '1 week'`
         );
         break;
       case 'monthly':
         timeFilter = gte(
-          testResults.completedAt,
+          completedTests.completedAt,
           sql`now() - interval '1 month'`
         );
         break;
@@ -181,18 +239,18 @@ testRoutes.get('/leaderboard', async (c) => {
 
     const leaderboard = await db
       .select({
-        userId: testResults.userId,
+        userId: completedTests.userId,
         username: users.username,
-        bestWpm: sql<number>`max(${testResults.wpm})`,
-        avgWpm: sql<number>`avg(${testResults.wpm})`,
-        avgAccuracy: sql<number>`avg(${testResults.accuracy})`,
+        bestWpm: sql<number>`max(${completedTests.wpm})`,
+        avgWpm: sql<number>`avg(${completedTests.wpm})`,
+        avgAccuracy: sql<number>`avg(${completedTests.accuracy})`,
         testCount: sql<number>`count(*)`,
       })
-      .from(testResults)
-      .innerJoin(users, eq(testResults.userId, users.id))
+      .from(completedTests)
+      .innerJoin(users, eq(completedTests.userId, users.id))
       .where(timeFilter)
-      .groupBy(testResults.userId, users.username)
-      .orderBy(desc(sql`max(${testResults.wpm})`))
+      .groupBy(completedTests.userId, users.username)
+      .orderBy(desc(sql`max(${completedTests.wpm})`))
       .limit(limit);
 
     return c.json({ leaderboard });
@@ -209,16 +267,11 @@ testRoutes.get('/results', authMiddleware, async (c) => {
     const limit = parseInt(c.req.query('limit') || '50');
     const offset = parseInt(c.req.query('offset') || '0');
 
-    const results = await db.query.testResults.findMany({
-      where: eq(testResults.userId, user.userId),
-      orderBy: desc(testResults.completedAt),
+    const results = await db.query.completedTests.findMany({
+      where: eq(completedTests.userId, user.userId),
+      orderBy: desc(completedTests.completedAt),
       limit,
       offset,
-      with: {
-        testText: {
-          columns: { title: true, language: true, difficulty: true },
-        },
-      },
     });
 
     const formattedResults = results.map((result) => ({
@@ -228,7 +281,11 @@ testRoutes.get('/results', authMiddleware, async (c) => {
       errors: result.errors,
       timeTaken: result.timeTaken,
       completedAt: result.completedAt,
-      testText: result.testText,
+      testText: {
+        title: result.title,
+        language: result.language,
+        difficulty: result.difficulty,
+      },
     }));
 
     return c.json({ results: formattedResults });

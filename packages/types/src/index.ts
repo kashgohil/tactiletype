@@ -58,10 +58,17 @@ export interface TestText {
   createdAt: string;
 }
 
-export interface TestResult {
+// Completed test - merged test text and results
+export interface CompletedTest {
   id: string;
   userId: string;
-  testTextId: string;
+  // Test text data
+  title: string;
+  content: string;
+  language: string;
+  difficulty: 'easy' | 'medium' | 'hard';
+  wordCount: number;
+  // Test results data
   wpm: number;
   accuracy: number;
   errors: number;
@@ -70,12 +77,19 @@ export interface TestResult {
   completedAt: string;
 }
 
-export interface TestResultWithText extends TestResult {
-  testText: Pick<TestText, 'title' | 'language' | 'difficulty'>;
+// Legacy type for backward compatibility
+export interface TestResult extends CompletedTest {
+  testTextId?: string; // Optional for migration
 }
 
 export interface SubmitResultRequest {
-  testTextId: string;
+  // Test text data
+  title: string;
+  content: string;
+  language: string;
+  difficulty: 'easy' | 'medium' | 'hard';
+  wordCount: number;
+  // Test results data
   wpm: number;
   accuracy: number;
   errors: number;

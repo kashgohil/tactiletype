@@ -28,6 +28,7 @@ import {
 import { AnimatePresence, motion } from 'motion/react';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useAuth } from '../contexts';
+import { analyticsApi } from '../services/analyticsApi';
 import type { TestText } from '../services/api';
 import { testResultsApi } from '../services/api';
 import type { TypingState, TypingStats } from '../utils/typingEngine';
@@ -74,7 +75,7 @@ export const TypingTest: React.FC = () => {
   const [currentType, setCurrentType] = useState<TestType>('text');
   const [focused, setFocused] = useState(true);
   const [testText, setTestText] = useState('');
-  const [currentTestText] = useState<TestText | null>(null);
+  const [currentTestText, setCurrentTestText] = useState<TestText | null>(null);
   const [difficulty, setDifficulty] = useState<Difficulty>('medium');
   const [engine, setEngine] = useState<TypingEngine | null>(null);
   const [stats, setStats] = useState<TypingStats>({
@@ -99,7 +100,7 @@ export const TypingTest: React.FC = () => {
 
   const inputRef = useRef<HTMLInputElement | null>(null);
 
-  // Initialize test with API text or fallback
+  // Initialize test with generated text
   const initializeTest = useCallback(() => {
     const selectedText = initializeText(
       currentType,
@@ -110,6 +111,20 @@ export const TypingTest: React.FC = () => {
     );
 
     setTestText(selectedText);
+
+    // Create a temporary test text object for the UI
+    // This will be replaced with the actual saved test text when submitted
+    const tempTestText: TestText = {
+      id: 'temp-' + Date.now(), // Temporary ID until saved
+      title: `${currentType} test - ${difficulty}`,
+      content: selectedText,
+      language: 'en',
+      difficulty: difficulty,
+      wordCount: selectedText.split(' ').length,
+      createdAt: new Date().toISOString(),
+    };
+
+    setCurrentTestText(tempTestText);
 
     const newEngine = new TypingEngine(
       selectedText,
@@ -132,15 +147,36 @@ export const TypingTest: React.FC = () => {
         const keystrokeEvents = engine.getKeystrokeEvents();
         const keystrokeData = JSON.stringify(keystrokeEvents);
 
-        await testResultsApi.submit({
-          testTextId: currentTestText.id,
+        // Submit test result with embedded test text data
+        const response = await testResultsApi.submit({
+          // Test text data
+          title: currentTestText.title,
+          content: currentTestText.content,
+          language: currentTestText.language,
+          difficulty: currentTestText.difficulty,
+          wordCount: currentTestText.wordCount,
+          // Test results data
           wpm: finalStats.wpm,
           accuracy: finalStats.accuracy,
           errors: finalStats.incorrectChars,
           timeTaken: finalStats.timeElapsed,
           keystrokeData, // Include detailed keystroke data
         });
-        console.log('Test result submitted successfully with analytics data');
+
+        console.log(
+          'Test result submitted successfully with embedded test text data'
+        );
+
+        // Process analytics data if submission was successful
+        if (response.result?.id) {
+          try {
+            await analyticsApi.processTestResult(response.result.id);
+            console.log('Analytics processing initiated successfully');
+          } catch (analyticsError) {
+            console.error('Failed to process analytics:', analyticsError);
+            // Don't fail the entire submission if analytics processing fails
+          }
+        }
       } catch (error) {
         console.error('Failed to submit test result:', error);
       }

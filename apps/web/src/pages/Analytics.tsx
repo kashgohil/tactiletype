@@ -11,6 +11,7 @@ import { ProgressChart } from '../components/analytics/ProgressChart';
 import { RecommendationsPanel } from '../components/analytics/RecommendationsPanel';
 import { ReportGenerator } from '../components/analytics/ReportGenerator';
 import { useAuth } from '../contexts';
+import { analyticsApi } from '../services/analyticsApi';
 
 // Mock data for development - will be replaced with API calls
 const mockDashboardData: AnalyticsDashboard = {
@@ -210,18 +211,90 @@ export const Analytics: React.FC = () => {
 
       try {
         setLoading(true);
-        // TODO: Replace with actual API calls
-        // const overview = await analyticsApi.getOverview();
-        // const trends = await analyticsApi.getTrends(selectedTimeframe);
-        // const errorAnalysis = await analyticsApi.getErrorAnalysis();
 
-        // For now, use mock data
+        // Fetch real analytics data
+        const [
+          overview,
+          trends,
+          errorAnalysis,
+          goals,
+          recommendations,
+          heatmap,
+        ] = await Promise.allSettled([
+          analyticsApi.getOverview(),
+          analyticsApi.getTrends({ timeframe: selectedTimeframe }),
+          analyticsApi.getErrorAnalysis(),
+          analyticsApi.getGoals(),
+          analyticsApi.getRecommendations(),
+          analyticsApi.getAccuracyHeatmap({
+            timeframe:
+              selectedTimeframe === 'daily'
+                ? 'week'
+                : selectedTimeframe === 'weekly'
+                  ? 'month'
+                  : 'all',
+          }),
+        ]);
+
+        // Handle overview data
+        if (overview.status === 'fulfilled') {
+          const dashboardData: AnalyticsDashboard = {
+            overview: overview.value,
+            progressCharts: trends.status === 'fulfilled' ? trends.value : [],
+            errorAnalysis:
+              errorAnalysis.status === 'fulfilled'
+                ? errorAnalysis.value
+                : {
+                    mostProblematicChars: [],
+                    mostProblematicWords: [],
+                    commonPatterns: [],
+                    improvementAreas: [],
+                  },
+            recommendations:
+              recommendations.status === 'fulfilled'
+                ? recommendations.value
+                : [],
+            achievements: [], // TODO: Implement achievements
+            goals: goals.status === 'fulfilled' ? goals.value : [],
+          };
+          setDashboardData(dashboardData);
+        } else {
+          console.error('Failed to fetch overview:', overview.reason);
+          // Fallback to mock data if API fails
+          setDashboardData(mockDashboardData);
+        }
+
+        // Handle other data
+        if (goals.status === 'fulfilled') {
+          setGoals(goals.value);
+        } else {
+          console.error('Failed to fetch goals:', goals.reason);
+          setGoals(mockGoals);
+        }
+
+        if (recommendations.status === 'fulfilled') {
+          setRecommendations(recommendations.value);
+        } else {
+          console.error(
+            'Failed to fetch recommendations:',
+            recommendations.reason
+          );
+          setRecommendations(mockRecommendations);
+        }
+
+        if (heatmap.status === 'fulfilled') {
+          setHeatmapData(heatmap.value);
+        } else {
+          console.error('Failed to fetch heatmap:', heatmap.reason);
+          setHeatmapData(mockHeatmapData);
+        }
+      } catch (error) {
+        console.error('Failed to fetch analytics data:', error);
+        // Fallback to mock data on error
         setDashboardData(mockDashboardData);
         setHeatmapData(mockHeatmapData);
         setGoals(mockGoals);
         setRecommendations(mockRecommendations);
-      } catch (error) {
-        console.error('Failed to fetch analytics data:', error);
       } finally {
         setLoading(false);
       }
@@ -236,9 +309,12 @@ export const Analytics: React.FC = () => {
     targetDate?: string;
   }) => {
     try {
-      // TODO: Replace with actual API call
-      // const newGoal = await analyticsApi.createGoal(goalData);
-      const newGoal: UserGoal = {
+      const newGoal = await analyticsApi.createGoal(goalData);
+      setGoals([...goals, newGoal]);
+    } catch (error) {
+      console.error('Failed to create goal:', error);
+      // Fallback to local state update if API fails
+      const fallbackGoal: UserGoal = {
         id: Date.now().toString(),
         userId: user!.id,
         ...goalData,
@@ -248,26 +324,24 @@ export const Analytics: React.FC = () => {
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
       };
-      setGoals([...goals, newGoal]);
-    } catch (error) {
-      console.error('Failed to create goal:', error);
+      setGoals([...goals, fallbackGoal]);
     }
   };
 
   const handleDeleteGoal = async (goalId: string) => {
     try {
-      // TODO: Replace with actual API call
-      // await analyticsApi.deleteGoal(goalId);
+      await analyticsApi.deleteGoal(goalId);
       setGoals(goals.filter((goal) => goal.id !== goalId));
     } catch (error) {
       console.error('Failed to delete goal:', error);
+      // Still remove from local state even if API call fails
+      setGoals(goals.filter((goal) => goal.id !== goalId));
     }
   };
 
   const handleMarkRecommendationAsRead = async (recommendationId: string) => {
     try {
-      // TODO: Replace with actual API call
-      // await analyticsApi.markRecommendationAsRead(recommendationId);
+      await analyticsApi.markRecommendationAsRead(recommendationId);
       setRecommendations(
         recommendations.map((rec) =>
           rec.id === recommendationId ? { ...rec, isRead: true } : rec
@@ -275,6 +349,12 @@ export const Analytics: React.FC = () => {
       );
     } catch (error) {
       console.error('Failed to mark recommendation as read:', error);
+      // Still update local state even if API call fails
+      setRecommendations(
+        recommendations.map((rec) =>
+          rec.id === recommendationId ? { ...rec, isRead: true } : rec
+        )
+      );
     }
   };
 
@@ -282,8 +362,7 @@ export const Analytics: React.FC = () => {
     recommendationId: string
   ) => {
     try {
-      // TODO: Replace with actual API call
-      // await analyticsApi.markRecommendationAsApplied(recommendationId);
+      await analyticsApi.markRecommendationAsApplied(recommendationId);
       setRecommendations(
         recommendations.map((rec) =>
           rec.id === recommendationId ? { ...rec, isApplied: true } : rec
@@ -291,6 +370,12 @@ export const Analytics: React.FC = () => {
       );
     } catch (error) {
       console.error('Failed to mark recommendation as applied:', error);
+      // Still update local state even if API call fails
+      setRecommendations(
+        recommendations.map((rec) =>
+          rec.id === recommendationId ? { ...rec, isApplied: true } : rec
+        )
+      );
     }
   };
 
@@ -302,9 +387,8 @@ export const Analytics: React.FC = () => {
 
   const handleExportData = async (format: 'csv' | 'json') => {
     try {
-      // TODO: Replace with actual API call
-      // await analyticsApi.exportData(format);
-      console.log(`Exporting data in ${format} format`);
+      await analyticsApi.exportData(format);
+      console.log(`Data exported successfully in ${format} format`);
     } catch (error) {
       console.error('Failed to export data:', error);
     }

@@ -10,6 +10,7 @@ import {
   Title,
   Tooltip,
 } from 'chart.js';
+import { TrendingDown, TrendingUp } from 'lucide-react';
 import React from 'react';
 import { Line } from 'react-chartjs-2';
 
@@ -184,9 +185,9 @@ export const ProgressChart: React.FC<ProgressChartProps> = ({
   const getTrendIcon = () => {
     switch (chart.trend) {
       case 'improving':
-        return '📈';
+        return <TrendingUp />;
       case 'declining':
-        return '📉';
+        return <TrendingDown />;
       default:
         return '➡️';
     }
@@ -213,7 +214,7 @@ export const ProgressChart: React.FC<ProgressChartProps> = ({
           <span className="text-lg">{getTrendIcon()}</span>
           <span className="text-sm font-medium">
             {chart.trendPercentage > 0 ? '+' : ''}
-            {chart.trendPercentage.toFixed(1)}%
+            {(chart.trendPercentage || 0).toFixed(1)}%
           </span>
         </div>
       </div>

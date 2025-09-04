@@ -1,5 +1,6 @@
 import { VITE_API_URL } from '@/constants';
 import { getCsrfTokenFromCookie } from '@/utils/csrf';
+import type { Difficulty } from '@tactile/types';
 import axios from 'axios';
 
 const api = axios.create({
@@ -24,7 +25,7 @@ export interface TestText {
   title: string;
   content: string;
   language: string;
-  difficulty: string;
+  difficulty: Difficulty;
   wordCount: number;
   createdAt: string;
 }
@@ -36,7 +37,7 @@ export interface TestResult {
   errors: number;
   timeTaken: number;
   completedAt: string;
-  testText?: {
+  testText: {
     title: string;
     language: string;
     difficulty: string;
@@ -53,30 +54,19 @@ export interface LeaderboardEntry {
 }
 
 export interface SubmitResultData {
-  testTextId: string;
+  // Test text data
+  title: string;
+  content: string;
+  language: string;
+  difficulty: 'easy' | 'medium' | 'hard';
+  wordCount: number;
+  // Test results data
   wpm: number;
   accuracy: number;
   errors: number;
   timeTaken: number;
   keystrokeData?: string;
 }
-
-// Test Texts API
-export const testTextsApi = {
-  getAll: async (params?: {
-    language?: string;
-    difficulty?: string;
-    limit?: number;
-  }) => {
-    const response = await api.get('/api/tests/texts', { params });
-    return response.data.texts as TestText[];
-  },
-
-  getById: async (id: string) => {
-    const response = await api.get(`/api/tests/texts/${id}`);
-    return response.data.text as TestText;
-  },
-};
 
 // Test Results API
 export const testResultsApi = {

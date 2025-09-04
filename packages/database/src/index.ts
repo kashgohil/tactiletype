@@ -1,9 +1,9 @@
+import { DATABASE_URL } from '@/apps/api/src/constants';
 import { drizzle } from 'drizzle-orm/postgres-js';
 import postgres from 'postgres';
 import * as schema from './schema';
 
-const connectionString = process.env.DATABASE_URL || 'postgresql://localhost:5432/tactile';
-const client = postgres(connectionString, { max: 1 });
+const client = postgres(DATABASE_URL, { max: 1 });
 
 export const db = drizzle(client, { schema });
 export * from './schema';
