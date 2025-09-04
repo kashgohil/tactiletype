@@ -102,17 +102,101 @@ analytics.get('/trends', async (c) => {
     const timeframe = c.req.query('timeframe') || 'weekly';
     const limit = parseInt(c.req.query('limit') || '30');
 
-    const insights = await db
-      .select()
-      .from(performanceInsights)
-      .where(
-        and(
-          eq(performanceInsights.userId, userId),
-          eq(performanceInsights.timeframe, timeframe)
+    let insights;
+
+    if (timeframe === 'daily') {
+      // Query existing daily insights
+      insights = await db
+        .select()
+        .from(performanceInsights)
+        .where(
+          and(
+            eq(performanceInsights.userId, userId),
+            eq(performanceInsights.timeframe, 'daily')
+          )
         )
-      )
-      .orderBy(desc(performanceInsights.date))
-      .limit(limit);
+        .orderBy(desc(performanceInsights.date))
+        .limit(limit);
+    } else {
+      // First, get the raw daily data
+      const dailyData = await db
+        .select()
+        .from(performanceInsights)
+        .where(
+          and(
+            eq(performanceInsights.userId, userId),
+            eq(performanceInsights.timeframe, 'daily')
+          )
+        )
+        .orderBy(desc(performanceInsights.date))
+        .limit(limit * 7); // Get more data to aggregate
+
+      // Aggregate in JavaScript to avoid PostgreSQL grouping issues
+      const aggregatedData: Record<string, any> = {};
+
+      dailyData.forEach((record) => {
+        const date = new Date(record.date);
+        const periodKey =
+          timeframe === 'weekly'
+            ? `${date.getFullYear()}-W${Math.ceil((date.getDate() - date.getDay() + 1) / 7)}`
+            : `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+
+        if (!aggregatedData[periodKey]) {
+          aggregatedData[periodKey] = {
+            date: record.date,
+            avgWpm: [],
+            avgAccuracy: [],
+            consistencyScore: [],
+            testCount: 0,
+            totalTimeSpent: 0,
+            count: 0,
+          };
+        }
+
+        if (record.avgWpm !== null)
+          aggregatedData[periodKey].avgWpm.push(Number(record.avgWpm));
+        if (record.avgAccuracy !== null)
+          aggregatedData[periodKey].avgAccuracy.push(
+            Number(record.avgAccuracy)
+          );
+        if (record.consistencyScore !== null)
+          aggregatedData[periodKey].consistencyScore.push(
+            Number(record.consistencyScore)
+          );
+        aggregatedData[periodKey].testCount += Number(record.testCount || 0);
+        aggregatedData[periodKey].totalTimeSpent += Number(
+          record.totalTimeSpent || 0
+        );
+        aggregatedData[periodKey].count += 1;
+      });
+
+      // Convert to final format
+      insights = Object.values(aggregatedData)
+        .map((group: any) => ({
+          date: group.date,
+          avgWpm:
+            group.avgWpm.length > 0
+              ? group.avgWpm.reduce((a: number, b: number) => a + b, 0) /
+                group.avgWpm.length
+              : 0,
+          avgAccuracy:
+            group.avgAccuracy.length > 0
+              ? group.avgAccuracy.reduce((a: number, b: number) => a + b, 0) /
+                group.avgAccuracy.length
+              : 0,
+          consistencyScore:
+            group.consistencyScore.length > 0
+              ? group.consistencyScore.reduce(
+                  (a: number, b: number) => a + b,
+                  0
+                ) / group.consistencyScore.length
+              : 0,
+          testCount: group.testCount,
+          totalTimeSpent: group.totalTimeSpent,
+        }))
+        .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+        .slice(0, limit);
+    }
 
     // Transform data for charts
     const wpmData = insights
