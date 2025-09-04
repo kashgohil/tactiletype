@@ -8,7 +8,7 @@ import {
   userRecommendations,
 } from '@tactile/database/src/schema';
 import type { JWTPayload } from '@tactile/types';
-import { and, desc, eq, sql } from 'drizzle-orm';
+import { and, desc, eq, gte, sql } from 'drizzle-orm';
 import { Hono } from 'hono';
 import { jwt } from 'hono/jwt';
 import { JWT_SECRET } from '../constants';
@@ -391,6 +391,162 @@ analytics.get('/recommendations', async (c) => {
   }
 });
 
+// Get accuracy heatmap data
+analytics.get('/accuracy-heatmap', async (c) => {
+  try {
+    const payload = c.get('jwtPayload') as JWTPayload;
+    const userId = payload.userId;
+    const timeframe = c.req.query('timeframe') || 'all';
+
+    // Calculate date filter based on timeframe
+    let dateFilter;
+    const now = new Date();
+
+    switch (timeframe) {
+      case 'week':
+        dateFilter = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000); // 7 days ago
+        break;
+      case 'month':
+        dateFilter = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000); // 30 days ago
+        break;
+      case 'all':
+      default:
+        dateFilter = null; // No date filter
+        break;
+    }
+
+    // Build where conditions
+    const whereConditions = [eq(errorAnalytics.userId, userId)];
+    if (dateFilter) {
+      whereConditions.push(gte(errorAnalytics.createdAt, dateFilter));
+    }
+
+    // Get character error data from errorAnalytics table
+    const errorData = await db
+      .select()
+      .from(errorAnalytics)
+      .where(and(...whereConditions))
+      .orderBy(desc(errorAnalytics.createdAt))
+      .limit(timeframe === 'all' ? 100 : 50); // Get more data for 'all' timeframe
+
+    // Aggregate character errors and calculate accuracy
+    const characterStats: Record<string, { errors: number; total: number }> =
+      {};
+
+    errorData.forEach((error) => {
+      const charErrors = JSON.parse(error.characterErrors);
+      const wordErrors = JSON.parse(error.wordErrors);
+
+      // Count character errors
+      Object.entries(charErrors).forEach(([char, count]) => {
+        if (!characterStats[char]) {
+          characterStats[char] = { errors: 0, total: 0 };
+        }
+        characterStats[char].errors += count as number;
+      });
+
+      // Estimate total character attempts from word errors and test data
+      // This is a simplified calculation - in a real implementation you'd want more detailed tracking
+      Object.entries(wordErrors).forEach(([word, count]) => {
+        const wordLength = word.length;
+        const charCount = (count as number) * wordLength;
+        // Distribute across characters in the word
+        word.split('').forEach((char) => {
+          if (!characterStats[char]) {
+            characterStats[char] = { errors: 0, total: 0 };
+          }
+          characterStats[char].total += charCount;
+        });
+      });
+    });
+
+    // Get total tests to estimate character frequency
+    const totalTests = await db
+      .select({ count: sql<number>`count(*)` })
+      .from(completedTests)
+      .where(eq(completedTests.userId, userId));
+
+    // Calculate accuracy for each character
+    const characters = Object.entries(characterStats).map(
+      ([character, stats]) => {
+        // Estimate total attempts if we don't have enough data
+        const estimatedTotal = Math.max(stats.total, stats.errors * 10); // Assume at least 10 attempts per error
+        const accuracy =
+          stats.total > 0
+            ? Math.max(
+                0,
+                ((estimatedTotal - stats.errors) / estimatedTotal) * 100
+              )
+            : 95; // Default accuracy if no data
+
+        // Estimate frequency based on common English letter frequency
+        const commonFrequency: Record<string, number> = {
+          e: 120,
+          t: 90,
+          a: 80,
+          o: 75,
+          i: 70,
+          n: 67,
+          s: 63,
+          h: 60,
+          r: 60,
+          d: 43,
+          l: 40,
+          c: 28,
+          u: 28,
+          m: 24,
+          w: 24,
+          f: 22,
+          g: 20,
+          y: 20,
+          p: 19,
+          b: 15,
+          v: 10,
+          k: 8,
+          j: 2,
+          x: 2,
+          q: 1,
+          z: 1,
+          ' ': 200, // Space is very common
+        };
+
+        const frequency =
+          commonFrequency[character] || Math.max(1, Math.floor(accuracy / 10));
+
+        // Determine color based on accuracy
+        let color = '#22c55e'; // Green for good accuracy
+        if (accuracy < 85) color = '#fbbf24'; // Yellow for medium
+        if (accuracy < 70) color = '#f97316'; // Orange for poor
+        if (accuracy < 50) color = '#ef4444'; // Red for very poor
+
+        return {
+          character,
+          accuracy: Math.round(accuracy * 10) / 10,
+          frequency,
+          color,
+        };
+      }
+    );
+
+    // Sort by frequency (most used first)
+    characters.sort((a, b) => b.frequency - a.frequency);
+
+    const maxValue = Math.max(...characters.map((c) => c.accuracy));
+    const minValue = Math.min(...characters.map((c) => c.accuracy));
+
+    return c.json({
+      heatmap: {
+        characters,
+        maxValue,
+        minValue,
+      },
+    });
+  } catch (error) {
+    console.error('Error fetching accuracy heatmap:', error);
+    return c.json({ error: 'Failed to fetch accuracy heatmap' }, 500);
+  }
+});
+
 // Process test result for analytics (called after test submission)
 analytics.post('/process-result/:testResultId', async (c) => {
   try {
@@ -553,6 +709,129 @@ analytics.post('/process-result/:testResultId', async (c) => {
   } catch (error) {
     console.error('Error processing analytics:', error);
     return c.json({ error: 'Failed to process analytics' }, 500);
+  }
+});
+
+// Mark recommendation as read
+analytics.patch('/recommendations/:recommendationId/read', async (c) => {
+  try {
+    const payload = c.get('jwtPayload') as JWTPayload;
+    const userId = payload.userId;
+    const recommendationId = c.req.param('recommendationId');
+
+    await db
+      .update(userRecommendations)
+      .set({ isRead: true })
+      .where(
+        and(
+          eq(userRecommendations.id, recommendationId),
+          eq(userRecommendations.userId, userId)
+        )
+      );
+
+    return c.json({ message: 'Recommendation marked as read' });
+  } catch (error) {
+    console.error('Error marking recommendation as read:', error);
+    return c.json({ error: 'Failed to mark recommendation as read' }, 500);
+  }
+});
+
+// Mark recommendation as applied
+analytics.patch('/recommendations/:recommendationId/applied', async (c) => {
+  try {
+    const payload = c.get('jwtPayload') as JWTPayload;
+    const userId = payload.userId;
+    const recommendationId = c.req.param('recommendationId');
+
+    await db
+      .update(userRecommendations)
+      .set({ isApplied: true })
+      .where(
+        and(
+          eq(userRecommendations.id, recommendationId),
+          eq(userRecommendations.userId, userId)
+        )
+      );
+
+    return c.json({ message: 'Recommendation marked as applied' });
+  } catch (error) {
+    console.error('Error marking recommendation as applied:', error);
+    return c.json({ error: 'Failed to mark recommendation as applied' }, 500);
+  }
+});
+
+// Delete goal
+analytics.delete('/goals/:goalId', async (c) => {
+  try {
+    const payload = c.get('jwtPayload') as JWTPayload;
+    const userId = payload.userId;
+    const goalId = c.req.param('goalId');
+
+    await db
+      .delete(userGoals)
+      .where(and(eq(userGoals.id, goalId), eq(userGoals.userId, userId)));
+
+    return c.json({ message: 'Goal deleted successfully' });
+  } catch (error) {
+    console.error('Error deleting goal:', error);
+    return c.json({ error: 'Failed to delete goal' }, 500);
+  }
+});
+
+// Export analytics data
+analytics.get('/export', async (c) => {
+  try {
+    const payload = c.get('jwtPayload') as JWTPayload;
+    const userId = payload.userId;
+    const format = c.req.query('format') || 'json';
+
+    // Get user's test data
+    const testData = await db
+      .select()
+      .from(completedTests)
+      .where(eq(completedTests.userId, userId))
+      .orderBy(desc(completedTests.completedAt));
+
+    if (format === 'csv') {
+      // Create CSV content
+      const csvHeaders = 'Date,WPM,Accuracy,Errors,Time Taken,Difficulty\n';
+      const csvRows = testData
+        .map(
+          (test) =>
+            `${test.completedAt.toISOString().split('T')[0]},${test.wpm},${test.accuracy},${test.errors},${test.timeTaken},${test.difficulty}`
+        )
+        .join('\n');
+
+      const csvContent = csvHeaders + csvRows;
+
+      c.header('Content-Type', 'text/csv');
+      c.header(
+        'Content-Disposition',
+        'attachment; filename="typing-analytics.csv"'
+      );
+      return c.body(csvContent);
+    } else {
+      // Return JSON
+      const jsonData = testData.map((test) => ({
+        date: test.completedAt.toISOString().split('T')[0],
+        wpm: parseFloat(test.wpm),
+        accuracy: parseFloat(test.accuracy),
+        errors: test.errors,
+        timeTaken: test.timeTaken,
+        difficulty: test.difficulty,
+        title: test.title,
+      }));
+
+      c.header('Content-Type', 'application/json');
+      c.header(
+        'Content-Disposition',
+        'attachment; filename="typing-analytics.json"'
+      );
+      return c.json({ analytics: jsonData });
+    }
+  } catch (error) {
+    console.error('Error exporting analytics data:', error);
+    return c.json({ error: 'Failed to export analytics data' }, 500);
   }
 });
 
