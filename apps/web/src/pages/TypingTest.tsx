@@ -97,6 +97,7 @@ export const TypingTest: React.FC = () => {
     keystrokeEvents: [],
   });
   const [isTestActive, setIsTestActive] = useState(false);
+  const [resultSubmitted, setResultSubmitted] = useState(false);
 
   const inputRef = useRef<HTMLInputElement | null>(null);
 
@@ -125,6 +126,7 @@ export const TypingTest: React.FC = () => {
     };
 
     setCurrentTestText(tempTestText);
+    setResultSubmitted(false); // Reset submission flag for new test
 
     const newEngine = new TypingEngine(
       selectedText,
@@ -138,9 +140,11 @@ export const TypingTest: React.FC = () => {
   // Submit test result
   const submitResult = useCallback(
     async (finalStats: TypingStats) => {
-      if (!user || !currentTestText || !engine) {
-        return; // Can't submit without user, test text, or engine
+      if (!user || !currentTestText || !engine || resultSubmitted) {
+        return; // Can't submit without user, test text, or engine, or if already submitted
       }
+
+      setResultSubmitted(true);
 
       try {
         // Get detailed keystroke data for analytics
@@ -179,9 +183,11 @@ export const TypingTest: React.FC = () => {
         }
       } catch (error) {
         console.error('Failed to submit test result:', error);
+        // Reset the flag if submission failed so user can retry
+        setResultSubmitted(false);
       }
     },
-    [user, currentTestText, engine]
+    [user, currentTestText, engine, resultSubmitted]
   );
 
   // Timer end handler
@@ -199,6 +205,7 @@ export const TypingTest: React.FC = () => {
   const resetTest = useCallback(() => {
     engine?.reset();
     setIsTestActive(false);
+    setResultSubmitted(false);
     inputRef.current?.focus();
   }, [engine]);
 
@@ -215,14 +222,14 @@ export const TypingTest: React.FC = () => {
       engine.handleKeyPress(e.key);
 
       // Check if test is complete
-      if (engine.getState().isComplete) {
+      if (engine.getState().isComplete && currentMode === 'words') {
         setIsTestActive(false);
         // Submit result if user is logged in
         const finalStats = engine.calculateStats();
         submitResult(finalStats);
       }
     },
-    [engine, isTestActive, submitResult]
+    [engine, isTestActive, currentMode, submitResult]
   );
 
   // Initialize test on component mount
