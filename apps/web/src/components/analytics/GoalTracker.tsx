@@ -1,5 +1,14 @@
 import type { UserGoal } from '@tactile/types';
-import { Target } from 'lucide-react';
+import {
+  BarChart,
+  Calendar,
+  PartyPopper,
+  Sparkle,
+  Target,
+  Timer,
+  Trash,
+  Trophy,
+} from 'lucide-react';
 import React, { useState } from 'react';
 import { Button } from '../ui/button';
 import { DatePicker } from '../ui/date-picker';
@@ -55,15 +64,15 @@ export const GoalTracker: React.FC<GoalTrackerProps> = ({
   const getGoalIcon = (goalType: string) => {
     switch (goalType) {
       case 'wpm':
-        return '⚡';
+        return <Sparkle className="text-accent" />;
       case 'accuracy':
-        return '🎯';
+        return <Target className="text-accent" />;
       case 'consistency':
-        return '📊';
+        return <BarChart className="text-accent" />;
       case 'daily_tests':
-        return '📅';
+        return <Calendar className="text-accent" />;
       default:
-        return '🎯';
+        return <Target className="text-accent" />;
     }
   };
 
@@ -223,17 +232,17 @@ export const GoalTracker: React.FC<GoalTrackerProps> = ({
                     ? 'border-green-200 bg-green-50 dark:border-green-800 dark:bg-green-900/20'
                     : isExpired
                       ? 'border-red-200 bg-red-50 dark:border-red-800 dark:bg-red-900/20'
-                      : 'border-gray-200 bg-gray-50 dark:border-gray-600 dark:bg-gray-700'
+                      : 'border-primary bg-primary'
                 }`}
               >
                 <div className="flex items-center justify-between mb-3">
                   <div className="flex items-center space-x-3">
                     <div className="text-2xl">{getGoalIcon(goal.goalType)}</div>
                     <div>
-                      <h4 className="font-semibold text-gray-900 dark:text-white capitalize">
+                      <h4 className="font-semibold capitalize">
                         {goal.goalType.replace('_', ' ')} Goal
                       </h4>
-                      <p className="text-sm text-gray-600 dark:text-gray-400">
+                      <p className="text-sm text-text/50">
                         Target: {Number(goal.targetValue)}
                         {getGoalUnit(goal.goalType)}
                       </p>
@@ -243,29 +252,30 @@ export const GoalTracker: React.FC<GoalTrackerProps> = ({
                   <div className="flex items-center space-x-2">
                     {isAchieved && (
                       <div className="text-green-600 dark:text-green-400 text-xl">
-                        🏆
+                        <Trophy className="text-accent" />
                       </div>
                     )}
-                    <button
+                    <Button
                       onClick={() => onDeleteGoal(goal.id)}
-                      className="text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 p-1"
+                      size="sm"
+                      variant="ghost"
                       title="Delete goal"
                     >
-                      🗑️
-                    </button>
+                      <Trash />
+                    </Button>
                   </div>
                 </div>
 
                 {/* Progress Bar */}
                 <div className="mb-3">
-                  <div className="flex justify-between text-sm text-gray-600 dark:text-gray-400 mb-1">
+                  <div className="flex justify-between text-sm text-text/50 mb-1">
                     <span>
                       Current: {Number(goal.currentValue)}
                       {getGoalUnit(goal.goalType)}
                     </span>
                     <span>{progress.toFixed(1)}%</span>
                   </div>
-                  <div className="w-full bg-gray-200 dark:bg-gray-600 rounded-full h-2">
+                  <div className="w-full bg-accent/20 rounded-full h-2">
                     <div
                       className={`h-2 rounded-full transition-all duration-300 ${getProgressColor(progress)}`}
                       style={{ width: `${progress}%` }}
@@ -277,15 +287,15 @@ export const GoalTracker: React.FC<GoalTrackerProps> = ({
                 <div className="flex items-center justify-between text-sm">
                   <div>
                     {isAchieved ? (
-                      <span className="text-green-600 dark:text-green-400 font-medium">
-                        🎉 Goal Achieved!
+                      <span className="text-green-600 dark:text-green-400 font-medium flex items-center">
+                        <PartyPopper /> Goal Achieved!
                       </span>
                     ) : isExpired ? (
-                      <span className="text-red-600 dark:text-red-400 font-medium">
-                        ⏰ Goal Expired
+                      <span className="text-red-600 dark:text-red-400 font-medium flex items-center">
+                        <Timer /> Goal Expired
                       </span>
                     ) : goal.targetDate ? (
-                      <span className="text-gray-600 dark:text-gray-400">
+                      <span className="text-text/50">
                         {daysRemaining !== null && daysRemaining > 0
                           ? `${daysRemaining} days remaining`
                           : daysRemaining === 0
@@ -293,14 +303,12 @@ export const GoalTracker: React.FC<GoalTrackerProps> = ({
                             : 'Overdue'}
                       </span>
                     ) : (
-                      <span className="text-gray-600 dark:text-gray-400">
-                        No deadline
-                      </span>
+                      <span className="text-text/50">No deadline</span>
                     )}
                   </div>
 
                   {goal.targetDate && (
-                    <span className="text-gray-500 dark:text-gray-400">
+                    <span className="text-text/50">
                       Due: {new Date(goal.targetDate).toLocaleDateString()}
                     </span>
                   )}

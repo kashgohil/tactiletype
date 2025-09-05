@@ -149,61 +149,63 @@ export const ReportGenerator: React.FC<ReportGeneratorProps> = ({
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="flex flex-col gap-4">
         {/* Report Configuration */}
         <div>
           <h4 className="text-md font-medium mb-4">Report Configuration</h4>
 
           <div className="space-y-4">
-            {/* Time Period */}
-            <div>
-              <label className="block text-sm font-medium text-text/50 mb-2">
-                Time Period
-              </label>
-              <Select
-                value={reportData.period}
-                onValueChange={(value) =>
-                  setReportData({
-                    ...reportData,
-                    period: value as 'week' | 'month' | 'quarter' | 'year',
-                  })
-                }
-              >
-                <SelectTrigger className="w-full">
-                  <SelectValue placeholder="Select time period" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="week">Last Week</SelectItem>
-                  <SelectItem value="month">Last Month</SelectItem>
-                  <SelectItem value="quarter">Last Quarter</SelectItem>
-                  <SelectItem value="year">Last Year</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
+            <div className="flex flex-col md:flex-row gap-4 w-full">
+              {/* Time Period */}
+              <div className="flex-1">
+                <label className="block text-sm font-medium text-text/50 mb-2">
+                  Time Period
+                </label>
+                <Select
+                  value={reportData.period}
+                  onValueChange={(value) =>
+                    setReportData({
+                      ...reportData,
+                      period: value as 'week' | 'month' | 'quarter' | 'year',
+                    })
+                  }
+                >
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Select time period" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="week">Last Week</SelectItem>
+                    <SelectItem value="month">Last Month</SelectItem>
+                    <SelectItem value="quarter">Last Quarter</SelectItem>
+                    <SelectItem value="year">Last Year</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
 
-            {/* Report Format */}
-            <div>
-              <label className="block text-sm font-medium text-text/50 mb-2">
-                Format
-              </label>
-              <Select
-                value={reportData.format}
-                onValueChange={(value) =>
-                  setReportData({
-                    ...reportData,
-                    format: value as 'pdf' | 'html' | 'json',
-                  })
-                }
-              >
-                <SelectTrigger className="w-full">
-                  <SelectValue placeholder="Select report format" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="pdf">PDF Report</SelectItem>
-                  <SelectItem value="html">HTML Report</SelectItem>
-                  <SelectItem value="json">JSON Data</SelectItem>
-                </SelectContent>
-              </Select>
+              {/* Report Format */}
+              <div className="flex-1">
+                <label className="block text-sm font-medium text-text/50 mb-2">
+                  Format
+                </label>
+                <Select
+                  value={reportData.format}
+                  onValueChange={(value) =>
+                    setReportData({
+                      ...reportData,
+                      format: value as 'pdf' | 'html' | 'json',
+                    })
+                  }
+                >
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Select report format" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="pdf">PDF Report</SelectItem>
+                    <SelectItem value="html">HTML Report</SelectItem>
+                    <SelectItem value="json">JSON Data</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
 
             {/* Include Options */}
@@ -289,7 +291,7 @@ export const ReportGenerator: React.FC<ReportGeneratorProps> = ({
         <div>
           <h4 className="text-md font-medium mb-4">Report Preview</h4>
 
-          <div className="bg-accent/10 rounded-lg p-4 space-y-4">
+          <div className="bg-primary rounded-lg p-4 space-y-4">
             {/* Report Header */}
             <div className="border-b border-accent/20 pb-3">
               <h5 className="font-semibold">{reportPreview.title}</h5>
@@ -302,21 +304,21 @@ export const ReportGenerator: React.FC<ReportGeneratorProps> = ({
             <div>
               <h6 className="font-medium  mb-2">Key Metrics Summary</h6>
               <div className="grid grid-cols-2 gap-3 text-sm">
-                <div className="bg-accent/40 p-2 rounded">
+                <div className="bg-accent/20 p-2 rounded">
                   <div className="text-text/80">Tests Completed</div>
                   <div className="font-semibold">{overview.totalTests}</div>
                 </div>
-                <div className="bg-accent/40 p-2 rounded">
+                <div className="bg-accent/20 p-2 rounded">
                   <div className="text-text/80">Average WPM</div>
                   <div className="font-semibold">{overview.averageWpm}</div>
                 </div>
-                <div className="bg-accent/40 p-2 rounded">
+                <div className="bg-accent/20 p-2 rounded">
                   <div className="text-text/80">Average Accuracy</div>
                   <div className="font-semibold">
                     {overview.averageAccuracy}%
                   </div>
                 </div>
-                <div className="bg-accent/40 p-2 rounded">
+                <div className="bg-accent/20 p-2 rounded">
                   <div className="text-text/80">Time Practiced</div>
                   <div className="font-semibold">
                     {formatTime(overview.totalTimeSpent)}
@@ -362,7 +364,7 @@ export const ReportGenerator: React.FC<ReportGeneratorProps> = ({
       <div className="mt-8 pt-6 border-t border-accent/20">
         <h4 className="text-md font-medium mb-4">Automated Reports</h4>
 
-        <div className="bg-accent/20 rounded-lg p-4">
+        <div className="bg-primary rounded-lg p-4">
           <div className="flex items-start space-x-3">
             <Mail className="text-accent" />
             <div>
