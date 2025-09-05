@@ -1,3 +1,4 @@
+import { TimelineChart } from '@/components/analytics/TimelineChart';
 import { Stopwatch } from '@/components/stopwatch';
 import { Button } from '@/components/ui/button';
 import {
@@ -472,32 +473,40 @@ export const TypingTest: React.FC = () => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: '-20%' }}
             exit={{ opacity: 0, y: 20 }}
-            className="bg-accent/30 border border-accent rounded-lg p-6 text-center"
+            className="flex flex-col gap-4 items-center w-full"
             transition={{ duration: 0.3, ease: 'easeInOut' }}
           >
-            <h2 className="text-2xl font-bold mb-4">Test Complete!</h2>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              <div>
-                <div className="text-xl font-semibold">{stats.wpm}</div>
-                <div className="text-sm">Words per minute</div>
-              </div>
-              <div>
-                <div className="text-xl font-semibold">{stats.accuracy}%</div>
-                <div className="text-sm">Accuracy</div>
-              </div>
-              <div>
-                <div className="text-xl font-semibold">
-                  {stats.correctChars}
+            <TimelineChart
+              keystrokeEvents={state.keystrokeEvents}
+              height={300}
+            />
+            <div className="bg-accent/30 rounded-lg p-6 text-center">
+              <h2 className="text-2xl font-bold mb-4">Test Complete!</h2>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div>
+                  <div className="text-xl font-semibold">{stats.wpm}</div>
+                  <div className="text-sm">Words per minute</div>
                 </div>
-                <div className="text-sm">Correct characters</div>
-              </div>
-              <div>
-                <div className="text-xl font-semibold">
-                  {formatTime(stats.timeElapsed)}
+                <div>
+                  <div className="text-xl font-semibold">{stats.accuracy}%</div>
+                  <div className="text-sm">Accuracy</div>
                 </div>
-                <div className="text-sm">Time taken</div>
+                <div>
+                  <div className="text-xl font-semibold">
+                    {stats.correctChars}
+                  </div>
+                  <div className="text-sm">Correct characters</div>
+                </div>
+                <div>
+                  <div className="text-xl font-semibold">
+                    {formatTime(stats.timeElapsed)}
+                  </div>
+                  <div className="text-sm">Time taken</div>
+                </div>
               </div>
             </div>
+
+            <Button onClick={resetTest}>Reset</Button>
           </motion.div>
         )}
       </AnimatePresence>
