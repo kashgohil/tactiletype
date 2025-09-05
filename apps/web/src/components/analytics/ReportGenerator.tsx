@@ -1,5 +1,5 @@
 import type { AnalyticsOverview, ProgressChart } from '@tactile/types';
-import { BarChart } from 'lucide-react';
+import { BarChart, Check, Mail } from 'lucide-react';
 import React, { useState } from 'react';
 import { Button } from '../ui/button';
 import {
@@ -333,7 +333,7 @@ export const ReportGenerator: React.FC<ReportGeneratorProps> = ({
               <ul className="space-y-1 text-sm text-gray-600 dark:text-gray-400">
                 {reportPreview.sections.map((section, index) => (
                   <li key={index} className="flex items-center">
-                    <span className="w-1.5 h-1.5 bg-blue-500 rounded-full mr-2"></span>
+                    <span className="w-1.5 h-1.5 bg-accent rounded-full mr-2"></span>
                     {section}
                   </li>
                 ))}
@@ -347,8 +347,8 @@ export const ReportGenerator: React.FC<ReportGeneratorProps> = ({
               </h6>
               <ul className="space-y-1 text-sm text-gray-600 dark:text-gray-400">
                 {getImprovementInsight().map((insight, index) => (
-                  <li key={index} className="flex items-start">
-                    <span className="text-green-500 mr-2 mt-0.5">✓</span>
+                  <li key={index} className="flex items-center">
+                    <Check className="text-accent mr-2" size={16} />
                     {insight}
                   </li>
                 ))}
@@ -359,37 +359,25 @@ export const ReportGenerator: React.FC<ReportGeneratorProps> = ({
       </div>
 
       {/* Automated Reports Section */}
-      <div className="mt-8 pt-6 border-t border-gray-200 dark:border-gray-600">
-        <h4 className="text-md font-medium text-gray-900 dark:text-white mb-4">
-          Automated Reports
-        </h4>
+      <div className="mt-8 pt-6 border-t border-accent/20">
+        <h4 className="text-md font-medium mb-4">Automated Reports</h4>
 
-        <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-4">
+        <div className="bg-accent/20 rounded-lg p-4">
           <div className="flex items-start space-x-3">
-            <div className="text-blue-500 dark:text-blue-400 text-xl mt-0.5">
-              📧
-            </div>
+            <Mail className="text-accent" />
             <div>
-              <h5 className="font-medium text-blue-900 dark:text-blue-100 mb-1">
-                Email Reports (Coming Soon)
-              </h5>
-              <p className="text-sm text-blue-700 dark:text-blue-300 mb-3">
+              <h5 className="font-medium mb-1">Email Reports (Coming Soon)</h5>
+              <p className="text-sm text-text/50 mb-3">
                 Get automated weekly or monthly progress reports delivered to
                 your email.
               </p>
               <div className="flex items-center space-x-4 text-sm">
-                <label className="flex items-center text-blue-700 dark:text-blue-300">
-                  <input
-                    type="checkbox"
-                    className="rounded border-blue-300 text-blue-600 focus:ring-blue-500 mr-2"
-                  />
+                <label className="flex items-center">
+                  <input type="checkbox" className="rounded  mr-2" />
                   Weekly Summary
                 </label>
-                <label className="flex items-center text-blue-700 dark:text-blue-300">
-                  <input
-                    type="checkbox"
-                    className="rounded border-blue-300 text-blue-600 focus:ring-blue-500 mr-2"
-                  />
+                <label className="flex items-center">
+                  <input type="checkbox" className="rounded mr-2" />
                   Monthly Report
                 </label>
               </div>
