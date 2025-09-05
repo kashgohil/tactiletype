@@ -2,6 +2,15 @@ import type { UserGoal } from '@tactile/types';
 import { Target } from 'lucide-react';
 import React, { useState } from 'react';
 import { Button } from '../ui/button';
+import { DatePicker } from '../ui/date-picker';
+import { Input } from '../ui/input';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '../ui/select';
 
 interface GoalTrackerProps {
   goals: UserGoal[];
@@ -22,7 +31,7 @@ export const GoalTracker: React.FC<GoalTrackerProps> = ({
   const [newGoal, setNewGoal] = useState({
     goalType: 'wpm' as 'wpm' | 'accuracy' | 'consistency' | 'daily_tests',
     targetValue: 0,
-    targetDate: '',
+    targetDate: undefined as Date | undefined,
   });
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -30,12 +39,14 @@ export const GoalTracker: React.FC<GoalTrackerProps> = ({
     if (newGoal.targetValue > 0) {
       onCreateGoal({
         ...newGoal,
-        targetDate: newGoal.targetDate || undefined,
+        targetDate: newGoal.targetDate
+          ? newGoal.targetDate.toISOString().split('T')[0]
+          : undefined,
       });
       setNewGoal({
         goalType: 'wpm',
         targetValue: 0,
-        targetDate: '',
+        targetDate: undefined,
       });
       setShowCreateForm(false);
     }
@@ -114,39 +125,46 @@ export const GoalTracker: React.FC<GoalTrackerProps> = ({
       {showCreateForm && (
         <form
           onSubmit={handleSubmit}
-          className="mb-6 p-4 bg-gray-50 dark:bg-gray-700 rounded-lg"
+          className="mb-6 p-4 bg-accent/20 rounded-lg"
         >
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                 Goal Type
               </label>
-              <select
+              <Select
                 value={newGoal.goalType}
-                onChange={(e) =>
+                onValueChange={(value) =>
                   setNewGoal({
                     ...newGoal,
-                    goalType: e.target.value as
+                    goalType: value as
                       | 'wpm'
                       | 'accuracy'
                       | 'consistency'
                       | 'daily_tests',
                   })
                 }
-                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               >
-                <option value="wpm">Words Per Minute</option>
-                <option value="accuracy">Accuracy</option>
-                <option value="consistency">Consistency</option>
-                <option value="daily_tests">Daily Tests</option>
-              </select>
+                <SelectTrigger className="w-full">
+                  <SelectValue
+                    className="capitalize"
+                    placeholder="Select a goal type"
+                  />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="wpm">Words Per Minute</SelectItem>
+                  <SelectItem value="accuracy">Accuracy</SelectItem>
+                  <SelectItem value="consistency">Consistency</SelectItem>
+                  <SelectItem value="daily_tests">Daily Tests</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
 
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                 Target Value
               </label>
-              <input
+              <Input
                 type="number"
                 value={newGoal.targetValue || ''}
                 onChange={(e) =>
@@ -156,7 +174,6 @@ export const GoalTracker: React.FC<GoalTrackerProps> = ({
                   })
                 }
                 placeholder={`Enter target ${getGoalUnit(newGoal.goalType).trim()}`}
-                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 required
               />
             </div>
@@ -165,24 +182,18 @@ export const GoalTracker: React.FC<GoalTrackerProps> = ({
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                 Target Date (Optional)
               </label>
-              <input
-                type="date"
-                value={newGoal.targetDate}
-                onChange={(e) =>
-                  setNewGoal({ ...newGoal, targetDate: e.target.value })
+              <DatePicker
+                date={newGoal.targetDate}
+                onDateChange={(date: Date | undefined) =>
+                  setNewGoal({ ...newGoal, targetDate: date })
                 }
-                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                placeholder="Select target date"
               />
             </div>
           </div>
 
           <div className="flex justify-end mt-4">
-            <button
-              type="submit"
-              className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg transition-colors"
-            >
-              Create Goal
-            </button>
+            <Button type="submit">Create Goal</Button>
           </div>
         </form>
       )}
