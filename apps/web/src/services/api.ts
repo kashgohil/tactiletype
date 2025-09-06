@@ -93,6 +93,17 @@ export const testResultsApi = {
       totalCount: response.data.totalCount as number,
     };
   },
+
+  getUserResultsPage: async (page: number, pageSize: number = 10) => {
+    const offset = (page - 1) * pageSize;
+    const response = await api.get('/api/tests/results', {
+      params: { limit: pageSize, offset },
+    });
+    return {
+      results: response.data.results as TestResult[],
+      totalCount: response.data.totalCount as number,
+    };
+  },
 };
 
 // Users API

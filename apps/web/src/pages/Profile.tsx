@@ -1,5 +1,5 @@
 import { Button } from '@/components/ui/button';
-import { useInfiniteQuery, useQuery } from '@tanstack/react-query';
+import { useQuery } from '@tanstack/react-query';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import React, { useState } from 'react';
 import { useAuth } from '../contexts';
@@ -15,30 +15,13 @@ export const Profile: React.FC = () => {
   // Query for test results
   const {
     data: testResultsData,
-    fetchNextPage,
-    hasNextPage,
     isFetching: isFetchingResults,
     isLoading: isLoadingResults,
     isError: isErrorResults,
-  } = useInfiniteQuery({
-    queryKey: ['userTestResults', user?.id],
-    queryFn: ({ pageParam = 0 }: { pageParam?: number }) =>
-      testResultsApi.getUserResults({
-        limit: pageSize,
-        offset: pageParam,
-      }),
-    initialPageParam: 0,
-    getNextPageParam: (
-      lastPage: { results: TestResult[]; totalCount: number },
-      allPages: { results: TestResult[]; totalCount: number }[]
-    ) => {
-      // If we got a full page, there might be more data
-      if (lastPage.results.length === pageSize) {
-        return allPages.length * pageSize;
-      }
-      return undefined;
-    },
-    enabled: !!user,
+  } = useQuery({
+    queryKey: ['userTestResults', user?.id, currentPage],
+    queryFn: () => testResultsApi.getUserResultsPage(currentPage, pageSize),
+    enabled: !!user && !!user.id,
     staleTime: 5 * 60 * 1000, // 5 minutes
   });
 
@@ -54,31 +37,15 @@ export const Profile: React.FC = () => {
     staleTime: 5 * 60 * 1000, // 5 minutes
   });
 
-  // Flatten all pages into a single array
-  const testResults =
-    testResultsData?.pages.flatMap((page) => page.results) || [];
-  const totalCount = testResultsData?.pages[0]?.totalCount || 0;
+  // Get test results and total count
+  const testResults = testResultsData?.results || [];
+  const totalCount = testResultsData?.totalCount || 0;
   const stats = statsData || null;
 
   // Combined loading and error states
   const isLoading = isLoadingResults || isLoadingStats;
   const isError = isErrorResults || isErrorStats;
   const isFetching = isFetchingResults;
-
-  // Load more pages if needed when currentPage changes
-  React.useEffect(() => {
-    const totalPages = Math.ceil(totalCount / pageSize);
-    if (currentPage > totalPages && hasNextPage && !isFetching) {
-      fetchNextPage();
-    }
-  }, [
-    currentPage,
-    totalCount,
-    hasNextPage,
-    isFetching,
-    fetchNextPage,
-    pageSize,
-  ]);
 
   if (!user) {
     return (
@@ -233,12 +200,17 @@ export const Profile: React.FC = () => {
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-accent/20">
-                      {testResults
-                        .slice(
-                          (currentPage - 1) * pageSize,
-                          currentPage * pageSize
-                        )
-                        .map((result: TestResult, index: number) =>
+                      {testResults.length === 0 && !isFetching ? (
+                        <tr>
+                          <td
+                            colSpan={5}
+                            className="px-6 py-8 text-center text-text/50"
+                          >
+                            No test results found for this page
+                          </td>
+                        </tr>
+                      ) : (
+                        testResults.map((result: TestResult, index: number) =>
                           result.id ? (
                             <tr key={result.id} className="hover:bg-accent/5">
                               <td className="px-6 py-4 whitespace-nowrap text-sm">
@@ -281,18 +253,19 @@ export const Profile: React.FC = () => {
                               </td>
                             </tr>
                           )
-                        )}
+                        )
+                      )}
                     </tbody>
                   </table>
                 </div>
 
                 {/* Pagination */}
-                {testResults.length > 0 && (
+                {totalCount > 0 && (
                   <div className="px-6 py-4 border-t border-accent/20">
                     <div className="flex items-center justify-between">
                       <div className="text-sm text-text/50">
                         Showing {(currentPage - 1) * pageSize + 1} to{' '}
-                        {Math.min(currentPage * pageSize, totalCount)} of{' '}
+                        {(currentPage - 1) * pageSize + testResults.length} of{' '}
                         {totalCount} results
                         {isFetching && (
                           <span className="ml-2">(Loading...)</span>
@@ -334,13 +307,14 @@ export const Profile: React.FC = () => {
                             const maxPage = Math.ceil(totalCount / pageSize);
                             if (nextPage <= maxPage) {
                               setCurrentPage(nextPage);
-                            } else if (hasNextPage) {
-                              fetchNextPage();
                             }
                           }}
                           size="icon"
                           variant="ghost"
-                          disabled={isFetching}
+                          disabled={
+                            currentPage >= Math.ceil(totalCount / pageSize) ||
+                            isFetching
+                          }
                         >
                           <ChevronRight />
                         </Button>
