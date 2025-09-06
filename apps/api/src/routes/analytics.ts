@@ -8,7 +8,7 @@ import {
   userRecommendations,
 } from '@tactile/database/src/schema';
 import type { JWTPayload } from '@tactile/types';
-import { and, desc, eq, gte, sql } from 'drizzle-orm';
+import { and, desc, eq, gte, lt, sql } from 'drizzle-orm';
 import { Hono } from 'hono';
 import { jwt } from 'hono/jwt';
 import { JWT_SECRET } from '../constants';
@@ -453,7 +453,83 @@ analytics.get('/goals', async (c) => {
       .where(eq(userGoals.userId, userId))
       .orderBy(desc(userGoals.createdAt));
 
-    return c.json({ goals });
+    // Calculate current values for each goal based on user's actual performance
+    const updatedGoals = await Promise.all(
+      goals.map(async (goal) => {
+        let currentValue = 0;
+
+        switch (goal.goalType) {
+          case 'wpm':
+            // Get user's best WPM
+            const bestWpmResult = await db
+              .select({ bestWpm: sql<number>`max(${completedTests.wpm})` })
+              .from(completedTests)
+              .where(eq(completedTests.userId, userId));
+            currentValue = Number(bestWpmResult[0]?.bestWpm || 0);
+            break;
+
+          case 'accuracy':
+            // Get user's best accuracy
+            const bestAccuracyResult = await db
+              .select({
+                bestAccuracy: sql<number>`max(${completedTests.accuracy})`,
+              })
+              .from(completedTests)
+              .where(eq(completedTests.userId, userId));
+            currentValue = Number(bestAccuracyResult[0]?.bestAccuracy || 0);
+            break;
+
+          case 'consistency':
+            // Get user's latest consistency score from performance insights
+            const consistencyResult = await db
+              .select({
+                consistencyScore: performanceInsights.consistencyScore,
+              })
+              .from(performanceInsights)
+              .where(eq(performanceInsights.userId, userId))
+              .orderBy(desc(performanceInsights.date))
+              .limit(1);
+            currentValue = Number(consistencyResult[0]?.consistencyScore || 0);
+            break;
+
+          case 'daily_tests':
+            // Count tests completed today
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            const tomorrow = new Date(today);
+            tomorrow.setDate(tomorrow.getDate() + 1);
+
+            const dailyTestsResult = await db
+              .select({ count: sql<number>`count(*)` })
+              .from(completedTests)
+              .where(
+                and(
+                  eq(completedTests.userId, userId),
+                  gte(completedTests.completedAt, today),
+                  lt(completedTests.completedAt, tomorrow)
+                )
+              );
+            currentValue = Number(dailyTestsResult[0]?.count || 0);
+            break;
+        }
+
+        // Update the goal's current value in the database
+        await db
+          .update(userGoals)
+          .set({
+            currentValue: currentValue.toString(),
+            updatedAt: new Date(),
+          })
+          .where(eq(userGoals.id, goal.id));
+
+        return {
+          ...goal,
+          currentValue: currentValue.toString(),
+        };
+      })
+    );
+
+    return c.json({ goals: updatedGoals });
   } catch (error) {
     console.error('Error fetching user goals:', error);
     return c.json({ error: 'Failed to fetch user goals' }, 500);

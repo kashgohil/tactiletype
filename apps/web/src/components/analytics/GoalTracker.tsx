@@ -13,6 +13,7 @@ import React, { useState } from 'react';
 import { Button } from '../ui/button';
 import { DatePicker } from '../ui/date-picker';
 import { Input } from '../ui/input';
+import { Progress } from '../ui/progress';
 import {
   Select,
   SelectContent,
@@ -94,13 +95,6 @@ export const GoalTracker: React.FC<GoalTrackerProps> = ({
     const current = Number(goal.currentValue);
     const target = Number(goal.targetValue);
     return Math.min((current / target) * 100, 100);
-  };
-
-  const getProgressColor = (progress: number) => {
-    if (progress >= 100) return 'bg-green-500';
-    if (progress >= 75) return 'bg-blue-500';
-    if (progress >= 50) return 'bg-yellow-500';
-    return 'bg-gray-400';
   };
 
   const isGoalExpired = (goal: UserGoal) => {
@@ -275,12 +269,7 @@ export const GoalTracker: React.FC<GoalTrackerProps> = ({
                     </span>
                     <span>{progress.toFixed(1)}%</span>
                   </div>
-                  <div className="w-full bg-accent/20 rounded-full h-2">
-                    <div
-                      className={`h-2 rounded-full transition-all duration-300 ${getProgressColor(progress)}`}
-                      style={{ width: `${progress}%` }}
-                    ></div>
-                  </div>
+                  <Progress value={progress} className="w-full h-2" />
                 </div>
 
                 {/* Goal Status */}
