@@ -4,6 +4,7 @@ import {
   SelectItem,
   SelectTrigger,
 } from '@/components/ui/select';
+import { Skeleton } from '@/components/ui/skeleton';
 import type { AnalyticsDashboard, UserRecommendation } from '@tactile/types';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
@@ -202,24 +203,123 @@ export const Analytics: React.FC = () => {
 
   if (isLoading) {
     return (
-      <div className="max-w-7xl mx-auto">
-        <div className="animate-pulse">
-          <div className="h-8 bg-gray-200 dark:bg-gray-700 rounded w-1/4 mb-8"></div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-            {[...Array(4)].map((_, i) => (
-              <div
-                key={i}
-                className="h-24 bg-gray-200 dark:bg-gray-700 rounded-lg"
-              ></div>
-            ))}
+      <div className="pt-4 pb-8">
+        {/* Timeframe Selector Skeleton */}
+        <div className="flex items-center justify-end mb-8">
+          <div className="flex items-center space-x-4">
+            <Skeleton className="h-4 w-20" />
+            <Skeleton className="h-10 w-32" />
           </div>
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-            {[...Array(2)].map((_, i) => (
-              <div
-                key={i}
-                className="h-80 bg-gray-200 dark:bg-gray-700 rounded-lg"
-              ></div>
-            ))}
+        </div>
+
+        {/* Overview Stats Skeleton */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+          {[...Array(4)].map((_, i) => (
+            <div key={i} className="bg-accent/10 rounded-lg p-6">
+              <div className="flex items-center justify-between">
+                <div className="space-y-2">
+                  <Skeleton className="h-4 w-20" />
+                  <Skeleton className="h-8 w-12" />
+                </div>
+                <Skeleton className="h-6 w-6" />
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* Progress Charts Skeleton */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6 mb-8">
+          {[...Array(3)].map((_, i) => (
+            <div key={i} className="bg-accent/10 rounded-lg p-6">
+              <Skeleton className="h-64 w-full" />
+            </div>
+          ))}
+        </div>
+
+        {/* Error Heatmap Skeleton */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+          <div className="lg:col-span-2 bg-accent/10 rounded-lg p-6">
+            <Skeleton className="h-80 w-full" />
+          </div>
+        </div>
+
+        {/* Improvement Areas Skeleton */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* Characters to Improve Skeleton */}
+          <div className="bg-accent/10 rounded-lg p-6">
+            <Skeleton className="h-6 w-48 mb-4" />
+            <div className="space-y-3">
+              {[...Array(5)].map((_, i) => (
+                <div
+                  key={i}
+                  className="flex items-center justify-between p-3 bg-accent/10 rounded-lg"
+                >
+                  <div className="flex items-center space-x-3">
+                    <Skeleton className="h-8 w-8 rounded-lg" />
+                    <div className="space-y-1">
+                      <Skeleton className="h-4 w-16" />
+                      <Skeleton className="h-3 w-20" />
+                    </div>
+                  </div>
+                  <Skeleton className="h-4 w-24" />
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Improvement Areas Skeleton */}
+          <div className="bg-accent/10 rounded-lg p-6">
+            <Skeleton className="h-6 w-32 mb-4" />
+            <div className="space-y-3">
+              {[...Array(3)].map((_, i) => (
+                <div
+                  key={i}
+                  className="flex items-start space-x-3 p-3 bg-accent/10 rounded-lg"
+                >
+                  <Skeleton className="h-5 w-5 mt-0.5" />
+                  <div className="space-y-1 flex-1">
+                    <Skeleton className="h-4 w-full" />
+                    <Skeleton className="h-4 w-3/4" />
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Goals and Recommendations Skeleton */}
+          <div className="grid grid-rows-2 gap-6 mb-8">
+            <div className="bg-accent/10 rounded-lg p-6">
+              <Skeleton className="h-6 w-24 mb-4" />
+              <div className="space-y-3">
+                {[...Array(2)].map((_, i) => (
+                  <div key={i} className="space-y-2">
+                    <Skeleton className="h-4 w-full" />
+                    <Skeleton className="h-3 w-3/4" />
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="bg-accent/10 rounded-lg p-6">
+              <Skeleton className="h-6 w-40 mb-4" />
+              <div className="space-y-3">
+                {[...Array(2)].map((_, i) => (
+                  <div key={i} className="space-y-2">
+                    <Skeleton className="h-4 w-full" />
+                    <Skeleton className="h-3 w-2/3" />
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* Report Generator Skeleton */}
+          <div className="mb-8 bg-accent/10 rounded-lg p-6">
+            <Skeleton className="h-6 w-32 mb-4" />
+            <div className="space-y-3">
+              <Skeleton className="h-4 w-full" />
+              <Skeleton className="h-10 w-32" />
+            </div>
           </div>
         </div>
       </div>
