@@ -103,40 +103,45 @@ export const TypingTest: React.FC = () => {
   const inputRef = useRef<HTMLInputElement | null>(null);
 
   // Initialize test with generated text
-  const initializeTest = useCallback(() => {
-    const selectedText = initializeText(
-      currentType,
-      currentMode,
-      timerDuration,
-      wordsCount,
-      difficulty
-    );
+  const initializeTest = useCallback(
+    (callback?: (engine: TypingEngine) => void) => {
+      const selectedText = initializeText(
+        currentType,
+        currentMode,
+        timerDuration,
+        wordsCount,
+        difficulty
+      );
 
-    setTestText(selectedText);
+      setTestText(selectedText);
 
-    // Create a temporary test text object for the UI
-    // This will be replaced with the actual saved test text when submitted
-    const tempTestText: TestText = {
-      id: 'temp-' + Date.now(), // Temporary ID until saved
-      title: `${currentType} test - ${difficulty}`,
-      content: selectedText,
-      language: 'en',
-      difficulty: difficulty,
-      wordCount: selectedText.split(' ').length,
-      createdAt: new Date().toISOString(),
-    };
+      // Create a temporary test text object for the UI
+      // This will be replaced with the actual saved test text when submitted
+      const tempTestText: TestText = {
+        id: 'temp-' + Date.now(), // Temporary ID until saved
+        title: `${currentType} test - ${difficulty}`,
+        content: selectedText,
+        language: 'en',
+        difficulty: difficulty,
+        wordCount: selectedText.split(' ').length,
+        createdAt: new Date().toISOString(),
+      };
 
-    setCurrentTestText(tempTestText);
-    setResultSubmitted(false); // Reset submission flag for new test
+      setCurrentTestText(tempTestText);
+      setResultSubmitted(false); // Reset submission flag for new test
 
-    const newEngine = new TypingEngine(
-      selectedText,
-      (newStats) => setStats(newStats),
-      (newState) => setState(newState)
-    );
+      const newEngine = new TypingEngine(
+        selectedText,
+        (newStats) => setStats(newStats),
+        (newState) => setState(newState)
+      );
 
-    setEngine(newEngine);
-  }, [currentType, currentMode, wordsCount, timerDuration, difficulty]);
+      callback?.(newEngine);
+
+      setEngine(newEngine);
+    },
+    [currentType, currentMode, wordsCount, timerDuration, difficulty]
+  );
 
   // Submit test result
   const submitResult = useCallback(
@@ -204,7 +209,7 @@ export const TypingTest: React.FC = () => {
 
   // Reset test
   const resetTest = useCallback(() => {
-    initializeTest();
+    initializeTest((engine) => engine.reset());
     setIsTestActive(false);
     inputRef.current?.focus();
   }, [initializeTest]);
