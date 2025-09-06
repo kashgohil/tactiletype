@@ -269,7 +269,7 @@ export const GoalTracker: React.FC<GoalTrackerProps> = ({
                     </span>
                     <span>{progress.toFixed(1)}%</span>
                   </div>
-                  <Progress value={progress} className="w-full h-2" />
+                  <Progress value={progress} className="h-2" />
                 </div>
 
                 {/* Goal Status */}
