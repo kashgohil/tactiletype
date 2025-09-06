@@ -312,10 +312,11 @@ export const TypingTest: React.FC = () => {
             <div className="flex items-center justify-between p-8 rounded-lg gap-2 w-full">
               {isTestActive ? (
                 <div className="h-9 text-xl flex items-center justify-center w-full gap-2">
-                  {currentMode === 'timer' && (
+                  {currentMode === 'timer' && state.startTime && (
                     <Stopwatch
                       duration={timerDuration}
                       onEnd={handleTimerEnd}
+                      startTime={state.startTime}
                     />
                   )}
                   {currentMode === 'words' && (

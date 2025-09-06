@@ -3,11 +3,16 @@ import { useEffect, useMemo, useState } from 'react';
 export function Stopwatch({
   duration,
   onEnd,
+  startTime,
 }: {
   duration: number;
   onEnd: () => void;
+  startTime: number;
 }) {
-  const [timeLeft, setTimeLeft] = useState(duration);
+  const [timeLeft, setTimeLeft] = useState(() => {
+    const elapsed = (Date.now() - startTime) / 1000;
+    return Math.max(0, Math.ceil(duration - elapsed));
+  });
 
   const { hours, minutes, seconds } = useMemo(() => {
     const hours = Math.floor(timeLeft / 3600);
@@ -22,18 +27,19 @@ export function Stopwatch({
 
   useEffect(() => {
     const intervalId = setInterval(() => {
-      setTimeLeft((timeLeft) => {
-        if (!timeLeft) {
-          clearInterval(intervalId);
-          onEnd();
-          return 0;
-        }
-        return timeLeft - 1;
-      });
-    }, 1000);
+      const elapsed = (Date.now() - startTime) / 1000;
+      if (elapsed >= duration) {
+        setTimeLeft(0);
+        onEnd();
+        clearInterval(intervalId);
+        return;
+      }
+      const remaining = duration - elapsed;
+      setTimeLeft(Math.max(0, Math.ceil(remaining)));
+    }, 100);
 
     return () => clearInterval(intervalId);
-  }, [onEnd]);
+  }, [duration, onEnd, startTime]);
 
   return (
     <span className="flex items-center">{`${hours}:${minutes}:${seconds}`}</span>
