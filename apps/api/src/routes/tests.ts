@@ -317,14 +317,21 @@ testRoutes.get('/stats', authMiddleware, async (c) => {
         ? {
             totalTests: allUserTests.length,
             bestWpm: Math.max(...allUserTests.map((r) => parseFloat(r.wpm))),
-            avgWpm: Math.round(
-              allUserTests.reduce((sum, r) => sum + parseFloat(r.wpm), 0) /
-                allUserTests.length
-            ),
-            avgAccuracy: Math.round(
-              allUserTests.reduce((sum, r) => sum + parseFloat(r.accuracy), 0) /
-                allUserTests.length
-            ),
+            avgWpm:
+              Math.round(
+                (allUserTests.reduce((sum, r) => sum + parseFloat(r.wpm), 0) /
+                  allUserTests.length) *
+                  100
+              ) / 100,
+            avgAccuracy:
+              Math.round(
+                (allUserTests.reduce(
+                  (sum, r) => sum + parseFloat(r.accuracy),
+                  0
+                ) /
+                  allUserTests.length) *
+                  100
+              ) / 100,
             totalTime: allUserTests.reduce((sum, r) => sum + r.timeTaken, 0),
           }
         : null;
