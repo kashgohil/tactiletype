@@ -313,19 +313,51 @@ analytics.get('/errors', async (c) => {
       allPatterns.push(...patterns);
     });
 
+    // Get keystroke data to calculate total character counts
+    const keystrokeData = await db
+      .select({
+        keystrokeData: completedTests.keystrokeData,
+      })
+      .from(completedTests)
+      .where(eq(completedTests.userId, userId));
+
+    // Count total keystrokes per character from keystroke data
+    const totalKeystrokes: Record<string, number> = {};
+    keystrokeData.forEach((test) => {
+      if (test.keystrokeData) {
+        try {
+          const keystrokes = JSON.parse(test.keystrokeData);
+          keystrokes.forEach((keystroke: any) => {
+            if (keystroke.expectedChar && keystroke.expectedChar.length === 1) {
+              totalKeystrokes[keystroke.expectedChar] =
+                (totalKeystrokes[keystroke.expectedChar] || 0) + 1;
+            }
+          });
+        } catch (e) {
+          // Skip malformed keystroke data
+          console.warn('Skipping malformed keystroke data');
+        }
+      }
+    });
+
     // Get most problematic characters and words
     const mostProblematicChars = Object.entries(characterErrors)
       .sort(([, a], [, b]) => b - a)
       .slice(0, 10)
-      .map(([character, errorCount]) => ({
-        character,
-        errorCount,
-        errorRate: 0, // Would need total character count to calculate
-        suggestions: [
-          `Practice typing "${character}" slowly`,
-          'Focus on finger placement',
-        ],
-      }));
+      .map(([character, errorCount]) => {
+        const total = totalKeystrokes[character] || 0;
+        const errorRate = total > 0 ? (errorCount / total) * 100 : 0;
+
+        return {
+          character,
+          errorCount,
+          errorRate: Math.round(errorRate * 100) / 100, // Round to 2 decimal places
+          suggestions: [
+            `Practice typing "${character}" slowly`,
+            'Focus on finger placement',
+          ],
+        };
+      });
 
     const mostProblematicWords = Object.entries(wordErrors)
       .sort(([, a], [, b]) => b - a)
