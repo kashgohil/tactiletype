@@ -155,23 +155,31 @@ export const Profile: React.FC = () => {
               {/* Stats Cards */}
               <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-7 gap-4 mb-8">
                 <div className="bg-accent/10 rounded-lg p-4 text-center">
-                  <div className="text-2xl font-bold">{stats.bestWpm}</div>
+                  <div className="text-2xl font-bold text-accent">
+                    {stats.bestWpm}
+                  </div>
                   <div className="text-sm text-text/50">Best WPM</div>
                 </div>
                 <div className="bg-accent/10 rounded-lg p-4 text-center">
-                  <div className="text-2xl font-bold">{stats.avgWpm}</div>
+                  <div className="text-2xl font-bold text-accent">
+                    {stats.avgWpm}
+                  </div>
                   <div className="text-sm text-text/50">Avg WPM</div>
                 </div>
                 <div className="bg-accent/10 rounded-lg p-4 text-center">
-                  <div className="text-2xl font-bold">{stats.avgAccuracy}%</div>
+                  <div className="text-2xl font-bold text-accent">
+                    {stats.avgAccuracy}%
+                  </div>
                   <div className="text-sm text-text/50">Avg Accuracy</div>
                 </div>
                 <div className="bg-accent/10 rounded-lg p-4 text-center">
-                  <div className="text-2xl font-bold">{stats.totalTests}</div>
+                  <div className="text-2xl font-bold text-accent">
+                    {stats.totalTests}
+                  </div>
                   <div className="text-sm text-text/50">Tests Taken</div>
                 </div>
                 <div className="bg-accent/10 rounded-lg p-4 text-center">
-                  <div className="text-xl font-bold">
+                  <div className="text-xl font-bold text-accent">
                     {formatTime(stats.totalTime)}
                   </div>
                   <div className="text-sm text-text/50">
@@ -179,13 +187,13 @@ export const Profile: React.FC = () => {
                   </div>
                 </div>
                 <div className="bg-accent/10 rounded-lg p-4 text-center">
-                  <div className="text-2xl font-bold">
+                  <div className="text-2xl font-bold text-accent">
                     {stats.currentStreak}
                   </div>
                   <div className="text-sm text-text/50">Current Streak</div>
                 </div>
                 <div className="bg-accent/10 rounded-lg p-4 text-center">
-                  <div className="text-2xl font-bold">
+                  <div className="text-2xl font-bold text-accent">
                     {stats.longestStreak}
                   </div>
                   <div className="text-sm text-text/50">Longest Streak</div>
