@@ -199,8 +199,8 @@ export const Profile: React.FC = () => {
                           <td className="px-6 py-4 whitespace-nowrap text-sm">
                             {formatTime(result.timeTaken)}
                           </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-text/50">
-                            {result.testText?.title || 'Custom Text'}
+                          <td className="px-6 py-4 text-sm text-text/50 max-w-xs truncate">
+                            {result.testText?.content || 'Custom Text'}
                           </td>
                         </tr>
                       ))}

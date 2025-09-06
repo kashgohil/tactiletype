@@ -39,6 +39,7 @@ export interface TestResult {
   completedAt: string;
   testText: {
     title: string;
+    content: string;
     language: string;
     difficulty: string;
   };

@@ -283,6 +283,7 @@ testRoutes.get('/results', authMiddleware, async (c) => {
       completedAt: result.completedAt,
       testText: {
         title: result.title,
+        content: result.content,
         language: result.language,
         difficulty: result.difficulty,
       },
