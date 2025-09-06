@@ -222,4 +222,99 @@ export class AnalyticsEngine {
 
     return suggestions;
   }
+
+  /**
+   * Calculate user statistics and streaks from completed tests
+   */
+  static calculateUserStats(
+    tests: Array<{
+      wpm: string;
+      accuracy: string;
+      timeTaken: number;
+      completedAt: Date;
+    }>
+  ) {
+    if (tests.length === 0) {
+      return {
+        totalTests: 0,
+        bestWpm: 0,
+        bestAccuracy: 0,
+        avgWpm: 0,
+        avgAccuracy: 0,
+        totalTime: 0,
+        currentStreak: 0,
+        longestStreak: 0,
+      };
+    }
+
+    // Calculate basic statistics
+    const totalTests = tests.length;
+    const bestWpm = Math.max(...tests.map((r) => parseFloat(r.wpm)));
+    const bestAccuracy = Math.max(...tests.map((r) => parseFloat(r.accuracy)));
+    const avgWpm =
+      Math.round(
+        (tests.reduce((sum, r) => sum + parseFloat(r.wpm), 0) / tests.length) *
+          100
+      ) / 100;
+    const avgAccuracy =
+      Math.round(
+        (tests.reduce((sum, r) => sum + parseFloat(r.accuracy), 0) /
+          tests.length) *
+          100
+      ) / 100;
+    const totalTime = tests.reduce((sum, r) => sum + r.timeTaken, 0);
+
+    // Calculate streaks
+    const testDates = tests.map(
+      (test) => test.completedAt.toISOString().split('T')[0]
+    );
+    const uniqueDates = [...new Set(testDates)].sort();
+
+    // Calculate current streak
+    let currentStreak = 0;
+    const today = new Date().toISOString().split('T')[0] || '';
+    let checkDate: string = today;
+
+    while (checkDate && uniqueDates.includes(checkDate)) {
+      currentStreak++;
+      const date = new Date(checkDate);
+      date.setDate(date.getDate() - 1);
+      checkDate = date.toISOString().split('T')[0] || '';
+    }
+
+    // Calculate longest streak
+    let longestStreak = 0;
+    let tempStreak = 1;
+
+    for (let i = 1; i < uniqueDates.length; i++) {
+      const prevDateStr = uniqueDates[i - 1];
+      const currDateStr = uniqueDates[i];
+
+      if (prevDateStr && currDateStr) {
+        const prevDate = new Date(prevDateStr);
+        const currDate = new Date(currDateStr);
+        const diffTime = Math.abs(currDate.getTime() - prevDate.getTime());
+        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+        if (diffDays === 1) {
+          tempStreak++;
+        } else {
+          longestStreak = Math.max(longestStreak, tempStreak);
+          tempStreak = 1;
+        }
+      }
+    }
+    longestStreak = Math.max(longestStreak, tempStreak);
+
+    return {
+      totalTests,
+      bestWpm,
+      bestAccuracy,
+      avgWpm,
+      avgAccuracy,
+      totalTime,
+      currentStreak,
+      longestStreak,
+    };
+  }
 }

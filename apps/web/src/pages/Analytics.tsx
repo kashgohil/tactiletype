@@ -213,8 +213,8 @@ export const Analytics: React.FC = () => {
         </div>
 
         {/* Overview Stats Skeleton */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          {[...Array(4)].map((_, i) => (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-6 mb-8">
+          {[...Array(6)].map((_, i) => (
             <div key={i} className="bg-accent/10 rounded-lg p-6">
               <div className="flex items-center justify-between">
                 <div className="space-y-2">
@@ -364,7 +364,7 @@ export const Analytics: React.FC = () => {
       </div>
 
       {/* Overview Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-6 mb-8">
         <div className="bg-accent/10 rounded-lg p-6">
           <div className="flex items-center justify-between">
             <div>
@@ -408,6 +408,30 @@ export const Analytics: React.FC = () => {
               <p className="text-sm font-medium">Time Spent</p>
               <p className="text-2xl font-bold text-accent">
                 {formatTime(dashboardData.overview.totalTimeSpent)}
+              </p>
+            </div>
+            <Timer className="text-accent" />
+          </div>
+        </div>
+
+        <div className="bg-accent/10 rounded-lg p-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium">Current Streak</p>
+              <p className="text-2xl font-bold text-accent">
+                {dashboardData.overview.currentStreak}
+              </p>
+            </div>
+            <LineChart className="text-accent" />
+          </div>
+        </div>
+
+        <div className="bg-accent/10 rounded-lg p-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium">Longest Streak</p>
+              <p className="text-2xl font-bold text-accent">
+                {dashboardData.overview.longestStreak}
               </p>
             </div>
             <Timer className="text-accent" />

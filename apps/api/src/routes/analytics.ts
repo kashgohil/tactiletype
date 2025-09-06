@@ -12,6 +12,7 @@ import { and, desc, eq, gte, lt, sql } from 'drizzle-orm';
 import { Hono } from 'hono';
 import { jwt } from 'hono/jwt';
 import { JWT_SECRET } from '../constants';
+import { AnalyticsEngine } from '../utils/analyticsEngine';
 
 const analytics = new Hono();
 
@@ -29,20 +30,21 @@ analytics.get('/overview', async (c) => {
     const payload = c.get('jwtPayload') as JWTPayload;
     const userId = payload.userId;
 
-    // Get basic stats
-    const userResults = await db
-      .select({
-        totalTests: sql<number>`count(*)`,
-        avgWpm: sql<number>`avg(${completedTests.wpm})`,
-        bestWpm: sql<number>`max(${completedTests.wpm})`,
-        avgAccuracy: sql<number>`avg(${completedTests.accuracy})`,
-        bestAccuracy: sql<number>`max(${completedTests.accuracy})`,
-        totalTimeSpent: sql<number>`sum(${completedTests.timeTaken})`,
-      })
-      .from(completedTests)
-      .where(eq(completedTests.userId, userId));
+    // Get all user's tests for stats calculation
+    const allUserTests = await db.query.completedTests.findMany({
+      where: eq(completedTests.userId, userId),
+      columns: {
+        wpm: true,
+        accuracy: true,
+        timeTaken: true,
+        completedAt: true,
+      },
+    });
 
-    // Get recent performance insights
+    // Calculate basic stats using utility function
+    const basicStats = AnalyticsEngine.calculateUserStats(allUserTests);
+
+    // Get recent performance insights for improvement rate and consistency
     const recentInsights = await db
       .select()
       .from(performanceInsights)
@@ -73,18 +75,16 @@ analytics.get('/overview', async (c) => {
     }
 
     const overview = {
-      totalTests: Number(userResults[0]?.totalTests || 0),
-      totalTimeSpent: Number(userResults[0]?.totalTimeSpent || 0),
-      averageWpm: Math.round(Number(userResults[0]?.avgWpm || 0) * 100) / 100,
-      bestWpm: Math.round(Number(userResults[0]?.bestWpm || 0) * 100) / 100,
-      averageAccuracy:
-        Math.round(Number(userResults[0]?.avgAccuracy || 0) * 100) / 100,
-      bestAccuracy:
-        Math.round(Number(userResults[0]?.bestAccuracy || 0) * 100) / 100,
+      totalTests: basicStats.totalTests,
+      totalTimeSpent: basicStats.totalTime,
+      averageWpm: basicStats.avgWpm,
+      bestWpm: basicStats.bestWpm,
+      averageAccuracy: basicStats.avgAccuracy,
+      bestAccuracy: basicStats.bestAccuracy,
       improvementRate: Math.round(improvementRate * 100) / 100,
       consistencyScore: Math.round(consistencyScore * 100) / 100,
-      currentStreak: 0, // TODO: Calculate streak
-      longestStreak: 0, // TODO: Calculate streak
+      currentStreak: basicStats.currentStreak,
+      longestStreak: basicStats.longestStreak,
     };
 
     return c.json({ overview });

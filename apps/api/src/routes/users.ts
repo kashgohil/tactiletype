@@ -1,9 +1,10 @@
 import { zValidator } from '@hono/zod-validator';
 import { completedTests, db, userProfiles, users } from '@tactile/database';
-import { desc, eq, sql } from 'drizzle-orm';
+import { eq, sql } from 'drizzle-orm';
 import { Hono } from 'hono';
 import { verify } from 'hono/jwt';
 import { z } from 'zod';
+import { AnalyticsEngine } from '../utils/analyticsEngine';
 
 type Variables = {
   user: {
@@ -131,38 +132,23 @@ userRoutes.get('/stats', authMiddleware, async (c) => {
   try {
     const user = c.get('user') as any;
 
-    const stats = await db
-      .select({
-        totalTests: sql<number>`count(*)`,
-        avgWpm: sql<number>`avg(${completedTests.wpm})`,
-        bestWpm: sql<number>`max(${completedTests.wpm})`,
-        avgAccuracy: sql<number>`avg(${completedTests.accuracy})`,
-        bestAccuracy: sql<number>`max(${completedTests.accuracy})`,
-        totalErrors: sql<number>`sum(${completedTests.errors})`,
-      })
-      .from(completedTests)
-      .where(eq(completedTests.userId, user.userId));
-
-    const recentResults = await db.query.completedTests.findMany({
+    // Calculate statistics from all user's tests
+    const allUserTests = await db.query.completedTests.findMany({
       where: eq(completedTests.userId, user.userId),
-      orderBy: desc(completedTests.completedAt),
-      limit: 10,
+      columns: {
+        wpm: true,
+        accuracy: true,
+        timeTaken: true,
+        completedAt: true,
+      },
     });
 
-    return c.json({
-      stats: stats[0] || {
-        totalTests: 0,
-        avgWpm: 0,
-        bestWpm: 0,
-        avgAccuracy: 0,
-        bestAccuracy: 0,
-        totalErrors: 0,
-      },
-      recentResults,
-    });
+    const stats = AnalyticsEngine.calculateUserStats(allUserTests);
+
+    return c.json({ stats });
   } catch (error) {
     console.error('Get stats error:', error);
-    return c.json({ error: 'Failed to get statistics' }, 500);
+    return c.json({ error: 'Failed to get user statistics' }, 500);
   }
 });
 

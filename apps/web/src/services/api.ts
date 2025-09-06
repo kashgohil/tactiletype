@@ -75,6 +75,8 @@ export interface UserStats {
   avgWpm: number;
   avgAccuracy: number;
   totalTime: number;
+  currentStreak: number;
+  longestStreak: number;
 }
 
 // Test Results API
@@ -88,9 +90,12 @@ export const testResultsApi = {
     const response = await api.get('/api/tests/results', { params });
     return response.data.results as TestResult[];
   },
+};
 
+// Users API
+export const usersApi = {
   getUserStats: async () => {
-    const response = await api.get('/api/tests/stats');
+    const response = await api.get('/api/users/stats');
     return response.data.stats as UserStats | null;
   },
 };

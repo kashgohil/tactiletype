@@ -3,7 +3,7 @@ import { useInfiniteQuery, useQuery } from '@tanstack/react-query';
 import React, { useState } from 'react';
 import { useAuth } from '../contexts';
 import type { TestResult } from '../services/api';
-import { testResultsApi } from '../services/api';
+import { testResultsApi, usersApi } from '../services/api';
 import { formatTime } from '../utils/typingEngine';
 
 export const Profile: React.FC = () => {
@@ -45,7 +45,7 @@ export const Profile: React.FC = () => {
     isError: isErrorStats,
   } = useQuery({
     queryKey: ['userStats', user?.id],
-    queryFn: () => testResultsApi.getUserStats(),
+    queryFn: () => usersApi.getUserStats(),
     enabled: !!user,
     staleTime: 5 * 60 * 1000, // 5 minutes
   });
@@ -153,7 +153,7 @@ export const Profile: React.FC = () => {
           {!isLoading && !isError && stats && (
             <>
               {/* Stats Cards */}
-              <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4 mb-8">
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-7 gap-4 mb-8">
                 <div className="bg-accent/10 rounded-lg p-4 text-center">
                   <div className="text-2xl font-bold">{stats.bestWpm}</div>
                   <div className="text-sm text-text/50">Best WPM</div>
@@ -177,6 +177,18 @@ export const Profile: React.FC = () => {
                   <div className="text-sm text-text/50">
                     Total Time Practiced
                   </div>
+                </div>
+                <div className="bg-accent/10 rounded-lg p-4 text-center">
+                  <div className="text-2xl font-bold">
+                    {stats.currentStreak}
+                  </div>
+                  <div className="text-sm text-text/50">Current Streak</div>
+                </div>
+                <div className="bg-accent/10 rounded-lg p-4 text-center">
+                  <div className="text-2xl font-bold">
+                    {stats.longestStreak}
+                  </div>
+                  <div className="text-sm text-text/50">Longest Streak</div>
                 </div>
               </div>
 
