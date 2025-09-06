@@ -1,5 +1,6 @@
 import { Button } from '@/components/ui/button';
 import { useInfiniteQuery, useQuery } from '@tanstack/react-query';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 import React, { useState } from 'react';
 import { useAuth } from '../contexts';
 import type { TestResult } from '../services/api';
@@ -27,9 +28,12 @@ export const Profile: React.FC = () => {
         offset: pageParam,
       }),
     initialPageParam: 0,
-    getNextPageParam: (lastPage: TestResult[], allPages: TestResult[][]) => {
+    getNextPageParam: (
+      lastPage: { results: TestResult[]; totalCount: number },
+      allPages: { results: TestResult[]; totalCount: number }[]
+    ) => {
       // If we got a full page, there might be more data
-      if (lastPage.length === pageSize) {
+      if (lastPage.results.length === pageSize) {
         return allPages.length * pageSize;
       }
       return undefined;
@@ -51,7 +55,9 @@ export const Profile: React.FC = () => {
   });
 
   // Flatten all pages into a single array
-  const testResults = testResultsData?.pages.flat() || [];
+  const testResults =
+    testResultsData?.pages.flatMap((page) => page.results) || [];
+  const totalCount = testResultsData?.pages[0]?.totalCount || 0;
   const stats = statsData || null;
 
   // Combined loading and error states
@@ -61,13 +67,13 @@ export const Profile: React.FC = () => {
 
   // Load more pages if needed when currentPage changes
   React.useEffect(() => {
-    const totalPages = Math.ceil(testResults.length / pageSize);
+    const totalPages = Math.ceil(totalCount / pageSize);
     if (currentPage > totalPages && hasNextPage && !isFetching) {
       fetchNextPage();
     }
   }, [
     currentPage,
-    testResults.length,
+    totalCount,
     hasNextPage,
     isFetching,
     fetchNextPage,
@@ -286,59 +292,58 @@ export const Profile: React.FC = () => {
                     <div className="flex items-center justify-between">
                       <div className="text-sm text-text/50">
                         Showing {(currentPage - 1) * pageSize + 1} to{' '}
-                        {Math.min(currentPage * pageSize, testResults.length)}{' '}
-                        results
+                        {Math.min(currentPage * pageSize, totalCount)} of{' '}
+                        {totalCount} results
                         {isFetching && (
                           <span className="ml-2">(Loading...)</span>
                         )}
                       </div>
                       <div className="flex items-center space-x-2">
-                        <button
+                        <Button
                           onClick={() =>
                             setCurrentPage(Math.max(1, currentPage - 1))
                           }
+                          size="icon"
+                          variant="ghost"
                           disabled={currentPage === 1 || isFetching}
-                          className="px-3 py-1 text-sm border border-accent/20 rounded-md hover:bg-accent/10 disabled:opacity-50 disabled:cursor-not-allowed"
                         >
-                          Previous
-                        </button>
+                          <ChevronLeft />
+                        </Button>
 
-                        {/* Show available pages based on loaded data */}
+                        {/* Show all available pages based on total count */}
                         {Array.from(
-                          { length: Math.ceil(testResults.length / pageSize) },
+                          { length: Math.ceil(totalCount / pageSize) },
                           (_, i: number) => i + 1
                         ).map((page: number) => (
-                          <button
+                          <Button
                             key={page}
+                            size="sm"
                             onClick={() => setCurrentPage(page)}
                             disabled={isFetching}
-                            className={`px-3 py-1 text-sm border rounded-md ${
-                              currentPage === page
-                                ? 'bg-accent text-white border-accent'
-                                : 'border-accent/20 hover:bg-accent/10'
-                            }`}
+                            variant={
+                              currentPage === page ? 'default' : 'secondary'
+                            }
                           >
                             {page}
-                          </button>
+                          </Button>
                         ))}
 
-                        <button
+                        <Button
                           onClick={() => {
                             const nextPage = currentPage + 1;
-                            const maxPage = Math.ceil(
-                              testResults.length / pageSize
-                            );
+                            const maxPage = Math.ceil(totalCount / pageSize);
                             if (nextPage <= maxPage) {
                               setCurrentPage(nextPage);
                             } else if (hasNextPage) {
                               fetchNextPage();
                             }
                           }}
+                          size="icon"
+                          variant="ghost"
                           disabled={isFetching}
-                          className="px-3 py-1 text-sm border border-accent/20 rounded-md hover:bg-accent/10 disabled:opacity-50 disabled:cursor-not-allowed"
                         >
-                          {isFetching ? 'Loading...' : 'Next'}
-                        </button>
+                          <ChevronRight />
+                        </Button>
                       </div>
                     </div>
                   </div>

@@ -88,7 +88,10 @@ export const testResultsApi = {
 
   getUserResults: async (params?: { limit?: number; offset?: number }) => {
     const response = await api.get('/api/tests/results', { params });
-    return response.data.results as TestResult[];
+    return {
+      results: response.data.results as TestResult[],
+      totalCount: response.data.totalCount as number,
+    };
   },
 };
 

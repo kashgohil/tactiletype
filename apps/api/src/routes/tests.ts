@@ -267,6 +267,14 @@ testRoutes.get('/results', authMiddleware, async (c) => {
     const limit = parseInt(c.req.query('limit') || '50');
     const offset = parseInt(c.req.query('offset') || '0');
 
+    // Get total count of user's test results
+    const totalCountResult = await db
+      .select({ count: sql<number>`count(*)` })
+      .from(completedTests)
+      .where(eq(completedTests.userId, user.userId));
+
+    const totalCount = totalCountResult[0]?.count || 0;
+
     const results = await db.query.completedTests.findMany({
       where: eq(completedTests.userId, user.userId),
       orderBy: desc(completedTests.completedAt),
@@ -289,7 +297,7 @@ testRoutes.get('/results', authMiddleware, async (c) => {
       },
     }));
 
-    return c.json({ results: formattedResults });
+    return c.json({ results: formattedResults, totalCount });
   } catch (error) {
     console.error('Get results error:', error);
     return c.json({ error: 'Failed to get test results' }, 500);
