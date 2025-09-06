@@ -29,7 +29,7 @@ export const Analytics: React.FC = () => {
   const queryClient = useQueryClient();
   const [selectedTimeframe, setSelectedTimeframe] = React.useState<
     'daily' | 'weekly' | 'monthly'
-  >('weekly');
+  >('daily');
 
   // Queries for data fetching
   const overviewQuery = useQuery({
