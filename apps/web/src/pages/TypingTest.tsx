@@ -211,7 +211,6 @@ export const TypingTest: React.FC = () => {
   const resetTest = useCallback(() => {
     initializeTest((engine) => engine.reset());
     setIsTestActive(false);
-    inputRef.current?.focus();
   }, [initializeTest]);
 
   // Handle key press
@@ -313,6 +312,11 @@ export const TypingTest: React.FC = () => {
             animate={{ opacity: 1, y: -50 }}
             exit={{ opacity: 0, y: -60 }}
             transition={{ duration: 0.3, ease: 'easeInOut' }}
+            onAnimationComplete={() => {
+              if (!state.isComplete && !isTestActive) {
+                inputRef.current?.focus();
+              }
+            }}
           >
             <div className="flex items-center justify-between p-8 rounded-lg gap-2 w-full">
               {isTestActive ? (
