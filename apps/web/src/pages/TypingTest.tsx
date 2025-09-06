@@ -204,11 +204,10 @@ export const TypingTest: React.FC = () => {
 
   // Reset test
   const resetTest = useCallback(() => {
-    engine?.reset();
+    initializeTest();
     setIsTestActive(false);
-    setResultSubmitted(false);
     inputRef.current?.focus();
-  }, [engine]);
+  }, [initializeTest]);
 
   // Handle key press
   const handleKeyDown = useCallback(
