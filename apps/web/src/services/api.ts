@@ -69,6 +69,14 @@ export interface SubmitResultData {
   keystrokeData?: string;
 }
 
+export interface UserStats {
+  totalTests: number;
+  bestWpm: number;
+  avgWpm: number;
+  avgAccuracy: number;
+  totalTime: number;
+}
+
 // Test Results API
 export const testResultsApi = {
   submit: async (data: SubmitResultData) => {
@@ -79,6 +87,11 @@ export const testResultsApi = {
   getUserResults: async (params?: { limit?: number; offset?: number }) => {
     const response = await api.get('/api/tests/results', { params });
     return response.data.results as TestResult[];
+  },
+
+  getUserStats: async () => {
+    const response = await api.get('/api/tests/stats');
+    return response.data.stats as UserStats | null;
   },
 };
 
