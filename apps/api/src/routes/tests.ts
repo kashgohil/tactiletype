@@ -5,6 +5,7 @@ import { Hono } from 'hono';
 import { z } from 'zod';
 import { authMiddleware } from '../middleware/auth';
 import { optionalAuthMiddleware } from '../middleware/optionalAuth';
+import { AnalyticsEngine } from '../utils/analyticsEngine';
 
 type Variables = {
   user: {
@@ -237,21 +238,55 @@ testRoutes.get('/leaderboard', async (c) => {
         timeFilter = undefined;
     }
 
-    const leaderboard = await db
+    // Get raw test data for each user
+    const userTestData = await db
       .select({
         userId: completedTests.userId,
         username: users.username,
-        bestWpm: sql<number>`max(${completedTests.wpm})`,
-        avgWpm: sql<number>`avg(${completedTests.wpm})`,
-        avgAccuracy: sql<number>`avg(${completedTests.accuracy})`,
-        testCount: sql<number>`count(*)`,
+        wpm: completedTests.wpm,
+        accuracy: completedTests.accuracy,
+        timeTaken: completedTests.timeTaken,
+        completedAt: completedTests.completedAt,
       })
       .from(completedTests)
       .innerJoin(users, eq(completedTests.userId, users.id))
       .where(timeFilter)
-      .groupBy(completedTests.userId, users.username)
-      .orderBy(desc(sql`max(${completedTests.wpm})`))
-      .limit(limit);
+      .orderBy(desc(completedTests.completedAt));
+
+    // Group by user and calculate stats using AnalyticsEngine
+    const userStats = new Map();
+
+    userTestData.forEach((test) => {
+      if (!userStats.has(test.userId)) {
+        userStats.set(test.userId, {
+          userId: test.userId,
+          username: test.username,
+          tests: [],
+        });
+      }
+      userStats.get(test.userId).tests.push({
+        wpm: test.wpm,
+        accuracy: test.accuracy,
+        timeTaken: test.timeTaken,
+        completedAt: test.completedAt,
+      });
+    });
+
+    // Calculate stats for each user using AnalyticsEngine
+    const leaderboard = Array.from(userStats.values())
+      .map((userData) => {
+        const stats = AnalyticsEngine.calculateUserStats(userData.tests);
+        return {
+          userId: userData.userId,
+          username: userData.username,
+          bestWpm: stats.bestWpm,
+          avgWpm: stats.avgWpm,
+          avgAccuracy: stats.avgAccuracy,
+          testCount: stats.totalTests,
+        };
+      })
+      .sort((a, b) => b.bestWpm - a.bestWpm)
+      .slice(0, limit);
 
     return c.json({ leaderboard });
   } catch (error) {

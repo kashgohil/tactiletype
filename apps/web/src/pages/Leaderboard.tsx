@@ -196,18 +196,14 @@ export const Leaderboard: React.FC = () => {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="text-sm font-bold text-accent">
-                        {Math.round(entry.bestWpm)} WPM
+                        {entry.bestWpm} WPM
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm">
-                        {Math.round(entry.avgWpm)} WPM
-                      </div>
+                      <div className="text-sm">{entry.avgWpm} WPM</div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm">
-                        {Math.round(entry.avgAccuracy)}%
-                      </div>
+                      <div className="text-sm">{entry.avgAccuracy}%</div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="text-sm text-text/50">
@@ -227,7 +223,7 @@ export const Leaderboard: React.FC = () => {
         <div className="mt-8 grid grid-cols-1 md:grid-cols-3 gap-6">
           <div className="bg-accent/10 rounded-lg p-6 text-center">
             <div className="text-2xl font-bold text-accent">
-              {Math.round(leaderboard[0]?.bestWpm || 0)}
+              {leaderboard[0]?.bestWpm || 0}
             </div>
             <div className="text-sm text-text/50">
               Highest WPM ({getTimeframeLabel(timeframe)})
@@ -235,10 +231,10 @@ export const Leaderboard: React.FC = () => {
           </div>
           <div className="bg-accent/10 rounded-lg p-6 text-center">
             <div className="text-2xl font-bold text-accent">
-              {Math.round(
+              {(
                 leaderboard.reduce((sum, entry) => sum + entry.avgWpm, 0) /
                   leaderboard.length || 0
-              )}
+              ).toFixed(2)}
             </div>
             <div className="text-sm text-text/50">Average WPM</div>
           </div>

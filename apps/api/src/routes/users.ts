@@ -1,6 +1,6 @@
 import { zValidator } from '@hono/zod-validator';
 import { completedTests, db, userProfiles, users } from '@tactile/database';
-import { eq, sql } from 'drizzle-orm';
+import { eq } from 'drizzle-orm';
 import { Hono } from 'hono';
 import { verify } from 'hono/jwt';
 import { z } from 'zod';
@@ -173,16 +173,19 @@ userRoutes.get('/:username', async (c) => {
       return c.json({ error: 'Profile is private' }, 403);
     }
 
-    // Get public stats
-    const stats = await db
-      .select({
-        totalTests: sql<number>`count(*)`,
-        avgWpm: sql<number>`avg(${completedTests.wpm})`,
-        bestWpm: sql<number>`max(${completedTests.wpm})`,
-        avgAccuracy: sql<number>`avg(${completedTests.accuracy})`,
-      })
-      .from(completedTests)
-      .where(eq(completedTests.userId, user.id));
+    // Get user's test data for stats calculation
+    const userTests = await db.query.completedTests.findMany({
+      where: eq(completedTests.userId, user.id),
+      columns: {
+        wpm: true,
+        accuracy: true,
+        timeTaken: true,
+        completedAt: true,
+      },
+    });
+
+    // Calculate stats using AnalyticsEngine for consistency
+    const stats = AnalyticsEngine.calculateUserStats(userTests);
 
     return c.json({
       user: {
@@ -191,11 +194,11 @@ userRoutes.get('/:username', async (c) => {
         profile: user.profile,
         createdAt: user.createdAt,
       },
-      stats: stats[0] || {
-        totalTests: 0,
-        avgWpm: 0,
-        bestWpm: 0,
-        avgAccuracy: 0,
+      stats: {
+        totalTests: stats.totalTests,
+        avgWpm: stats.avgWpm,
+        bestWpm: stats.bestWpm,
+        avgAccuracy: stats.avgAccuracy,
       },
     });
   } catch (error) {

@@ -460,23 +460,37 @@ analytics.get('/goals', async (c) => {
 
         switch (goal.goalType) {
           case 'wpm':
-            // Get user's best WPM
-            const bestWpmResult = await db
-              .select({ bestWpm: sql<number>`max(${completedTests.wpm})` })
-              .from(completedTests)
-              .where(eq(completedTests.userId, userId));
-            currentValue = Number(bestWpmResult[0]?.bestWpm || 0);
+            // Get user's best WPM using AnalyticsEngine
+            const userTestsForWpm = await db.query.completedTests.findMany({
+              where: eq(completedTests.userId, userId),
+              columns: {
+                wpm: true,
+                accuracy: true,
+                timeTaken: true,
+                completedAt: true,
+              },
+            });
+            const wpmStats =
+              AnalyticsEngine.calculateUserStats(userTestsForWpm);
+            currentValue = wpmStats.bestWpm;
             break;
 
           case 'accuracy':
-            // Get user's best accuracy
-            const bestAccuracyResult = await db
-              .select({
-                bestAccuracy: sql<number>`max(${completedTests.accuracy})`,
-              })
-              .from(completedTests)
-              .where(eq(completedTests.userId, userId));
-            currentValue = Number(bestAccuracyResult[0]?.bestAccuracy || 0);
+            // Get user's best accuracy using AnalyticsEngine
+            const userTestsForAccuracy = await db.query.completedTests.findMany(
+              {
+                where: eq(completedTests.userId, userId),
+                columns: {
+                  wpm: true,
+                  accuracy: true,
+                  timeTaken: true,
+                  completedAt: true,
+                },
+              }
+            );
+            const accuracyStats =
+              AnalyticsEngine.calculateUserStats(userTestsForAccuracy);
+            currentValue = accuracyStats.bestAccuracy;
             break;
 
           case 'consistency':
