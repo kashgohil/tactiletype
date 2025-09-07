@@ -123,6 +123,18 @@ export const leaderboardApi = {
     const response = await api.get('/api/tests/leaderboard', { params });
     return response.data.leaderboard as LeaderboardEntry[];
   },
+
+  getPage: async (params?: {
+    timeframe?: 'daily' | 'weekly' | 'monthly' | 'all';
+    limit?: number;
+    offset?: number;
+  }) => {
+    const response = await api.get('/api/tests/leaderboard', { params });
+    return {
+      leaderboard: response.data.leaderboard as LeaderboardEntry[],
+      totalCount: response.data.totalCount as number,
+    };
+  },
 };
 
 export default api;

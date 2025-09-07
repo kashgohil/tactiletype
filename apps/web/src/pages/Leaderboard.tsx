@@ -1,6 +1,7 @@
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useQuery } from '@tanstack/react-query';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 import React, { useState } from 'react';
 import { leaderboardApi } from '../services/api';
 
@@ -8,16 +9,26 @@ export const Leaderboard: React.FC = () => {
   const [timeframe, setTimeframe] = useState<
     'daily' | 'weekly' | 'monthly' | 'all'
   >('all');
+  const [currentPage, setCurrentPage] = useState(1);
+  const pageSize = 20;
 
   const {
-    data: leaderboard = [],
+    data: leaderboardData,
     isLoading,
     error,
     refetch,
   } = useQuery({
-    queryKey: ['leaderboard', timeframe],
-    queryFn: () => leaderboardApi.get({ timeframe, limit: 50 }),
+    queryKey: ['leaderboard', timeframe, currentPage],
+    queryFn: () =>
+      leaderboardApi.getPage({
+        timeframe,
+        limit: pageSize,
+        offset: (currentPage - 1) * pageSize,
+      }),
   });
+
+  const leaderboard = leaderboardData?.leaderboard || [];
+  const totalCount = leaderboardData?.totalCount || 0;
 
   const getRankIcon = (rank: number) => {
     switch (rank) {
@@ -58,7 +69,10 @@ export const Leaderboard: React.FC = () => {
             <Button
               key={tf}
               variant={timeframe === tf ? 'default' : 'outline'}
-              onClick={() => setTimeframe(tf)}
+              onClick={() => {
+                setTimeframe(tf);
+                setCurrentPage(1);
+              }}
             >
               {getTimeframeLabel(tf)}
             </Button>
@@ -239,10 +253,61 @@ export const Leaderboard: React.FC = () => {
             <div className="text-sm text-text/50">Average WPM</div>
           </div>
           <div className="bg-accent/10 rounded-lg p-6 text-center">
-            <div className="text-2xl font-bold text-accent">
-              {leaderboard.length}
-            </div>
+            <div className="text-2xl font-bold text-accent">{totalCount}</div>
             <div className="text-sm text-text/50">Active Players</div>
+          </div>
+        </div>
+      )}
+
+      {/* Pagination */}
+      {!isLoading && !error && totalCount > pageSize && (
+        <div className="mt-8 px-6 py-4 border-t border-accent/20">
+          <div className="flex items-center justify-between">
+            <div className="text-sm text-text/50">
+              Showing {(currentPage - 1) * pageSize + 1} to{' '}
+              {Math.min(currentPage * pageSize, totalCount)} of {totalCount}{' '}
+              players
+            </div>
+            <div className="flex items-center space-x-2">
+              <Button
+                onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
+                size="icon"
+                variant="ghost"
+                disabled={currentPage === 1}
+              >
+                <ChevronLeft />
+              </Button>
+
+              {/* Show all available pages based on total count */}
+              {Array.from(
+                { length: Math.ceil(totalCount / pageSize) },
+                (_, i: number) => i + 1
+              ).map((page: number) => (
+                <Button
+                  key={page}
+                  size="sm"
+                  onClick={() => setCurrentPage(page)}
+                  variant={currentPage === page ? 'default' : 'secondary'}
+                >
+                  {page}
+                </Button>
+              ))}
+
+              <Button
+                onClick={() => {
+                  const nextPage = currentPage + 1;
+                  const maxPage = Math.ceil(totalCount / pageSize);
+                  if (nextPage <= maxPage) {
+                    setCurrentPage(nextPage);
+                  }
+                }}
+                size="icon"
+                variant="ghost"
+                disabled={currentPage >= Math.ceil(totalCount / pageSize)}
+              >
+                <ChevronRight />
+              </Button>
+            </div>
           </div>
         </div>
       )}

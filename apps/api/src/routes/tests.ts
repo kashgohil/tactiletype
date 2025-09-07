@@ -212,7 +212,8 @@ testRoutes.post(
 testRoutes.get('/leaderboard', async (c) => {
   try {
     const timeframe = c.req.query('timeframe') || 'all'; // daily, weekly, monthly, all
-    const limit = parseInt(c.req.query('limit') || '100');
+    const limit = parseInt(c.req.query('limit') || '50');
+    const offset = parseInt(c.req.query('offset') || '0');
 
     let timeFilter;
     switch (timeframe) {
@@ -273,7 +274,7 @@ testRoutes.get('/leaderboard', async (c) => {
     });
 
     // Calculate stats for each user using AnalyticsEngine
-    const leaderboard = Array.from(userStats.values())
+    const allLeaderboard = Array.from(userStats.values())
       .map((userData) => {
         const stats = AnalyticsEngine.calculateUserStats(userData.tests);
         return {
@@ -285,10 +286,12 @@ testRoutes.get('/leaderboard', async (c) => {
           testCount: stats.totalTests,
         };
       })
-      .sort((a, b) => b.bestWpm - a.bestWpm)
-      .slice(0, limit);
+      .sort((a, b) => b.bestWpm - a.bestWpm);
 
-    return c.json({ leaderboard });
+    const totalCount = allLeaderboard.length;
+    const leaderboard = allLeaderboard.slice(offset, offset + limit);
+
+    return c.json({ leaderboard, totalCount });
   } catch (error) {
     console.error('Get leaderboard error:', error);
     return c.json({ error: 'Failed to get leaderboard' }, 500);
