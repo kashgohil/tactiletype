@@ -171,7 +171,7 @@ analytics.get('/trends', async (c) => {
       });
 
       // Convert to final format
-      insights = Object.values(aggregatedData)
+      const aggregatedResults = Object.values(aggregatedData)
         .map((group: any) => ({
           date: group.date,
           avgWpm:
@@ -194,8 +194,38 @@ analytics.get('/trends', async (c) => {
           testCount: group.testCount,
           totalTimeSpent: group.totalTimeSpent,
         }))
-        .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
-        .slice(0, limit);
+        .sort(
+          (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
+        );
+
+      // Ensure current month is included even if no data
+      const now = new Date();
+      const currentPeriodKey =
+        timeframe === 'weekly'
+          ? `${now.getFullYear()}-W${Math.ceil((now.getDate() - now.getDay() + 1) / 7)}`
+          : `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+
+      const hasCurrentPeriod = aggregatedResults.some((result) => {
+        const resultDate = new Date(result.date);
+        const resultPeriodKey =
+          timeframe === 'weekly'
+            ? `${resultDate.getFullYear()}-W${Math.ceil((resultDate.getDate() - resultDate.getDay() + 1) / 7)}`
+            : `${resultDate.getFullYear()}-${String(resultDate.getMonth() + 1).padStart(2, '0')}`;
+        return resultPeriodKey === currentPeriodKey;
+      });
+
+      if (!hasCurrentPeriod) {
+        aggregatedResults.unshift({
+          date: now,
+          avgWpm: 0,
+          avgAccuracy: 0,
+          consistencyScore: 0,
+          testCount: 0,
+          totalTimeSpent: 0,
+        });
+      }
+
+      insights = aggregatedResults.slice(0, limit);
     }
 
     // Transform data for charts
@@ -610,10 +640,14 @@ analytics.get('/accuracy-heatmap', async (c) => {
 
     switch (timeframe) {
       case 'week':
-        dateFilter = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000); // 7 days ago
+        // Start of current week (Sunday)
+        dateFilter = new Date(now);
+        dateFilter.setDate(now.getDate() - now.getDay());
+        dateFilter.setHours(0, 0, 0, 0);
         break;
       case 'month':
-        dateFilter = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000); // 30 days ago
+        // Start of current month
+        dateFilter = new Date(now.getFullYear(), now.getMonth(), 1);
         break;
       case 'all':
       default:
@@ -621,75 +655,74 @@ analytics.get('/accuracy-heatmap', async (c) => {
         break;
     }
 
-    // Build where conditions
-    const whereConditions = [eq(errorAnalytics.userId, userId)];
+    // Build where conditions - use completedAt for consistency
+    const whereConditions = [eq(completedTests.userId, userId)];
     if (dateFilter) {
-      whereConditions.push(gte(errorAnalytics.createdAt, dateFilter));
+      whereConditions.push(gte(completedTests.completedAt, dateFilter));
     }
 
-    // Get character error data from errorAnalytics table
-    const errorData = await db
-      .select()
-      .from(errorAnalytics)
+    // Get test data with both error analytics and keystroke data
+    const testData = await db
+      .select({
+        completedTestId: completedTests.id,
+        keystrokeData: completedTests.keystrokeData,
+        completedAt: completedTests.completedAt,
+        errorData: errorAnalytics.characterErrors,
+      })
+      .from(completedTests)
+      .leftJoin(
+        errorAnalytics,
+        and(
+          eq(errorAnalytics.completedTestId, completedTests.id),
+          eq(errorAnalytics.userId, userId)
+        )
+      )
       .where(and(...whereConditions))
-      .orderBy(desc(errorAnalytics.createdAt))
-      .limit(timeframe === 'all' ? 100 : 50); // Get more data for 'all' timeframe
+      .orderBy(desc(completedTests.completedAt))
+      .limit(timeframe === 'all' ? 200 : 100); // Get more data for calculations
 
     // Aggregate character errors and calculate accuracy
     const characterStats: Record<string, { errors: number; total: number }> =
       {};
 
-    // First, get all keystroke data to count total keystrokes per character
-    const keystrokeData = await db
-      .select({
-        keystrokeData: completedTests.keystrokeData,
-      })
-      .from(completedTests)
-      .where(
-        and(
-          eq(completedTests.userId, userId),
-          dateFilter ? gte(completedTests.completedAt, dateFilter) : undefined
-        )
-      );
-
-    // Count total keystrokes per character from keystroke data
-    const totalKeystrokes: Record<string, number> = {};
-    keystrokeData.forEach((test) => {
+    // Process each test's data
+    testData.forEach((test) => {
+      // Count total keystrokes per character from keystroke data
       if (test.keystrokeData) {
         try {
           const keystrokes = JSON.parse(test.keystrokeData);
           keystrokes.forEach((keystroke: any) => {
             if (keystroke.expectedChar && keystroke.expectedChar.length === 1) {
-              totalKeystrokes[keystroke.expectedChar] =
-                (totalKeystrokes[keystroke.expectedChar] || 0) + 1;
+              if (!characterStats[keystroke.expectedChar]) {
+                characterStats[keystroke.expectedChar] = {
+                  errors: 0,
+                  total: 0,
+                };
+              }
+              characterStats[keystroke.expectedChar]!.total += 1;
             }
           });
         } catch (e) {
           // Skip malformed keystroke data
-          console.warn('Skipping malformed keystroke data');
+          console.warn('Skipping malformed keystroke data in heatmap');
         }
       }
-    });
 
-    // Now process error data
-    errorData.forEach((error) => {
-      const charErrors = JSON.parse(error.characterErrors);
-
-      // Count character errors
-      Object.entries(charErrors).forEach(([char, count]) => {
-        if (!characterStats[char]) {
-          characterStats[char] = { errors: 0, total: 0 };
+      // Count character errors from error analytics
+      if (test.errorData) {
+        try {
+          const charErrors = JSON.parse(test.errorData);
+          Object.entries(charErrors).forEach(([char, count]) => {
+            if (!characterStats[char]) {
+              characterStats[char] = { errors: 0, total: 0 };
+            }
+            characterStats[char].errors += count as number;
+          });
+        } catch (e) {
+          // Skip malformed error data
+          console.warn('Skipping malformed error data in heatmap');
         }
-        characterStats[char].errors += count as number;
-      });
-    });
-
-    // Set total keystrokes for each character
-    Object.keys(totalKeystrokes).forEach((char) => {
-      if (!characterStats[char]) {
-        characterStats[char] = { errors: 0, total: 0 };
       }
-      characterStats[char].total = totalKeystrokes[char] || 0;
     });
 
     // Calculate accuracy for each character
