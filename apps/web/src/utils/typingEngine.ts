@@ -361,40 +361,53 @@ export function generatePunctuationText(
   wordCount: number = 50,
   difficulty: Difficulty = 'medium'
 ): string {
-  const words: string[] = [];
-  const punctuation = ['.', ',', '!', '?', ';', ':', '-', '(', ')'];
   const wordList = getWordListForDifficulty(difficulty);
+  const sentences: string[] = [];
+  let remainingWords = wordCount;
 
-  for (let i = 0; i < wordCount; i++) {
-    const randomIndex = Math.floor(Math.random() * wordList.length);
-    let word = wordList[randomIndex];
+  while (remainingWords > 0) {
+    // Determine sentence length (3-15 words for natural variation)
+    const sentenceLength = Math.min(
+      Math.floor(Math.random() * 13) + 3,
+      remainingWords
+    );
+    remainingWords -= sentenceLength;
 
-    // Add punctuation randomly (about 30% chance)
-    if (Math.random() < 0.3) {
-      const punctIndex = Math.floor(Math.random() * punctuation.length);
-      const punct = punctuation[punctIndex];
+    const sentenceWords: string[] = [];
 
-      // Place punctuation at different positions
-      const position = Math.random();
-      if (position < 0.3) {
-        word = punct + word; // Before word
-      } else if (position < 0.6) {
-        word = word + punct; // After word
-      } else {
-        // Insert in middle if word is long enough
-        if (word.length > 3) {
-          const insertPos = Math.floor(word.length / 2);
-          word = word.slice(0, insertPos) + punct + word.slice(insertPos);
-        } else {
-          word = word + punct;
-        }
+    // Generate words for this sentence
+    for (let i = 0; i < sentenceLength; i++) {
+      const randomIndex = Math.floor(Math.random() * wordList.length);
+      let word = wordList[randomIndex];
+
+      // Capitalize first word of sentence
+      if (i === 0) {
+        word = word.charAt(0).toUpperCase() + word.slice(1);
       }
+
+      // Add commas appropriately (not on first or last word)
+      if (i > 0 && i < sentenceLength - 1 && Math.random() < 0.15) {
+        word += ',';
+      }
+
+      sentenceWords.push(word);
     }
 
-    words.push(word);
+    // Add sentence-ending punctuation
+    const lastWordIndex = sentenceWords.length - 1;
+    let endingPunct = '.';
+    const rand = Math.random();
+    if (rand < 0.1) {
+      endingPunct = '!';
+    } else if (rand < 0.2) {
+      endingPunct = '?';
+    }
+
+    sentenceWords[lastWordIndex] += endingPunct;
+    sentences.push(sentenceWords.join(' '));
   }
 
-  return words.join(' ');
+  return sentences.join(' ');
 }
 
 // Generate text with numbers scattered throughout
@@ -402,26 +415,95 @@ export function generateNumbersText(
   wordCount: number = 50,
   difficulty: Difficulty = 'medium'
 ): string {
-  const words: string[] = [];
   const wordList = getWordListForDifficulty(difficulty);
+  const sentences: string[] = [];
+  let remainingWords = wordCount;
 
-  for (let i = 0; i < wordCount; i++) {
-    // 40% chance to add a number instead of a word
-    if (Math.random() < 0.4) {
-      // Generate random number (1-4 digits)
-      const numDigits = Math.floor(Math.random() * 4) + 1;
-      let number = '';
-      for (let j = 0; j < numDigits; j++) {
-        number += Math.floor(Math.random() * 10).toString();
+  while (remainingWords > 0) {
+    // Determine sentence length (3-15 words for natural variation)
+    const sentenceLength = Math.min(
+      Math.floor(Math.random() * 13) + 3,
+      remainingWords
+    );
+    remainingWords -= sentenceLength;
+
+    const sentenceWords: string[] = [];
+
+    // Generate words for this sentence
+    for (let i = 0; i < sentenceLength; i++) {
+      let word: string;
+
+      // Decide whether to use a number (25% chance, but only in appropriate positions)
+      if (i > 0 && i < sentenceLength - 1 && Math.random() < 0.25) {
+        // Generate different types of numbers based on context
+        const numberType = Math.random();
+
+        if (numberType < 0.3) {
+          // Small numbers (1-99)
+          word = Math.floor(Math.random() * 99) + 1 + '';
+        } else if (numberType < 0.5) {
+          // Years (1900-2024)
+          word = Math.floor(Math.random() * 125) + 1900 + '';
+        } else if (numberType < 0.7) {
+          // Prices ($1.00-$999.99)
+          const dollars = Math.floor(Math.random() * 999) + 1;
+          const cents = Math.floor(Math.random() * 100);
+          word = '$' + dollars + '.' + cents.toString().padStart(2, '0');
+        } else if (numberType < 0.85) {
+          // Phone numbers (simple format)
+          const area = Math.floor(Math.random() * 900) + 100;
+          const exchange = Math.floor(Math.random() * 900) + 100;
+          const number = Math.floor(Math.random() * 9000) + 1000;
+          word = area + '-' + exchange + '-' + number;
+        } else {
+          // Regular numbers (1-4 digits)
+          const numDigits = Math.floor(Math.random() * 4) + 1;
+          let number = '';
+          for (let j = 0; j < numDigits; j++) {
+            number += Math.floor(Math.random() * 10).toString();
+          }
+          word = number;
+        }
+      } else {
+        const randomIndex = Math.floor(Math.random() * wordList.length);
+        word = wordList[randomIndex];
+
+        // Capitalize first word of sentence
+        if (i === 0) {
+          word = word.charAt(0).toUpperCase() + word.slice(1);
+        }
       }
-      words.push(number);
-    } else {
-      const randomIndex = Math.floor(Math.random() * wordList.length);
-      words.push(wordList[randomIndex]);
+
+      // Add commas appropriately (not on numbers or first/last word)
+      if (
+        i > 0 &&
+        i < sentenceLength - 1 &&
+        !word.includes('$') &&
+        !word.includes('-') &&
+        !/^\d+$/.test(word) &&
+        Math.random() < 0.15
+      ) {
+        word += ',';
+      }
+
+      sentenceWords.push(word);
     }
+
+    // Add sentence-ending punctuation
+    const lastWordIndex = sentenceWords.length - 1;
+    let endingPunct = '.';
+    const rand = Math.random();
+    if (rand < 0.1) {
+      endingPunct = '!';
+    } else if (rand < 0.2) {
+      endingPunct = '?';
+    }
+
+    sentenceWords[lastWordIndex] += endingPunct;
+    sentences.push(sentenceWords.join(' '));
   }
 
-  return words.join(' ');
+  return sentences.join(' ');
 }
 
 // Generate simple lowercase text
