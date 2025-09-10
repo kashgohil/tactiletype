@@ -1,24 +1,13 @@
 steps:
-  - name: 'gcr.io/cloud-builders/gcloud' # Use a builder with shell access
-    entrypoint: 'bash'
-    args:
-      - '-c'
-      - |
-        echo "Contents of the build context (/workspace):"
-        ls -R /workspace
-        echo "Checking if apps/api/Dockerfile exists:"
-        ls /workspace/apps/api/Dockerfile
-        echo "Checking if bun.lock exists:"
-        ls /workspace/bun.lock
-        echo "Checking if package.json exists:"
-        ls /workspace/package.json
   - name: 'gcr.io/cloud-builders/docker'
     args:
-      - 'build'
-      - '-t'
-      - 'gcr.io/$PROJECT_ID/tactiletype-api'
-      - '-f'
-      - 'apps/api/Dockerfile'
-      - '.'
+      [
+        'build',
+        '-t',
+        'gcr.io/$PROJECT_ID/tactiletype-api',
+        '-f',
+        'apps/api/Dockerfile',
+        '.',
+      ]
 images:
   - 'gcr.io/$PROJECT_ID/tactiletype-api'
