@@ -2,6 +2,7 @@ import { Button } from '@/components/ui/button';
 import { useQuery } from '@tanstack/react-query';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import React, { useState } from 'react';
+import { ActivityHeatmap } from '../components/analytics/ActivityHeatmap';
 import { useAuth } from '../contexts';
 import type { TestResult } from '../services/api';
 import { testResultsApi, usersApi } from '../services/api';
@@ -37,6 +38,8 @@ export const Profile: React.FC = () => {
     staleTime: 5 * 60 * 1000, // 5 minutes
   });
 
+  const currentYear = new Date().getFullYear();
+
   // Get test results and total count
   const testResults = testResultsData?.results || [];
   const totalCount = testResultsData?.totalCount || 0;
@@ -50,9 +53,7 @@ export const Profile: React.FC = () => {
   if (!user) {
     return (
       <div className="text-center">
-        <p className="text-gray-600 dark:text-gray-400">
-          Please log in to view your profile.
-        </p>
+        <p className="text-text/50">Please log in to view your profile.</p>
       </div>
     );
   }
@@ -86,6 +87,9 @@ export const Profile: React.FC = () => {
           </div>
         </div>
 
+        {/* Activity Heatmap */}
+        <ActivityHeatmap year={currentYear} />
+
         {/* Statistics */}
         <div className="lg:col-span-2">
           {isLoading && (
@@ -113,11 +117,11 @@ export const Profile: React.FC = () => {
           )}
 
           {!isLoading && !isError && !stats && (
-            <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-12 text-center">
-              <p className="text-xl text-gray-600 dark:text-gray-400 mb-4">
+            <div className="bg-gray-50 rounded-lg p-12 text-center">
+              <p className="text-xl text-text/50 mb-4">
                 No typing tests completed yet
               </p>
-              <p className="text-gray-500 dark:text-gray-500">
+              <p className="text-text/50">
                 Take your first typing test to see your statistics here!
               </p>
             </div>

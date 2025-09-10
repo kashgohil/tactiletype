@@ -530,6 +530,20 @@ export interface HeatmapCell {
   color: string;
 }
 
+// Activity heatmap data for daily contributions
+export interface ActivityHeatmap {
+  data: ActivityDay[];
+  totalTests: number;
+  maxCount: number;
+  activeDays: number;
+  year: number;
+}
+
+export interface ActivityDay {
+  date: string;
+  count: number;
+}
+
 // Advanced statistics
 export interface AdvancedStats {
   keystrokeAnalytics: KeystrokeStats;

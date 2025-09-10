@@ -1,12 +1,12 @@
-import api from './api';
 import type {
   AnalyticsOverview,
-  ProgressChart,
   ErrorAnalysisSummary,
+  KeystrokeAnalytics,
+  ProgressChart,
   UserGoal,
   UserRecommendation,
-  KeystrokeAnalytics,
 } from '@tactile/types';
+import api from './api';
 
 export const analyticsApi = {
   // Get analytics overview
@@ -33,7 +33,9 @@ export const analyticsApi = {
   },
 
   // Get keystroke analytics for a specific test result
-  getKeystrokeAnalytics: async (testResultId: string): Promise<KeystrokeAnalytics> => {
+  getKeystrokeAnalytics: async (
+    testResultId: string
+  ): Promise<KeystrokeAnalytics> => {
     const response = await api.get(`/api/analytics/keystrokes/${testResultId}`);
     return response.data.keystrokeAnalytics;
   },
@@ -71,13 +73,22 @@ export const analyticsApi = {
   },
 
   // Mark recommendation as applied
-  markRecommendationAsApplied: async (recommendationId: string): Promise<void> => {
-    await api.patch(`/api/analytics/recommendations/${recommendationId}/applied`);
+  markRecommendationAsApplied: async (
+    recommendationId: string
+  ): Promise<void> => {
+    await api.patch(
+      `/api/analytics/recommendations/${recommendationId}/applied`
+    );
   },
 
   // Update goal progress
-  updateGoalProgress: async (goalId: string, currentValue: number): Promise<UserGoal> => {
-    const response = await api.patch(`/api/analytics/goals/${goalId}`, { currentValue });
+  updateGoalProgress: async (
+    goalId: string,
+    currentValue: number
+  ): Promise<UserGoal> => {
+    const response = await api.patch(`/api/analytics/goals/${goalId}`, {
+      currentValue,
+    });
     return response.data.goal;
   },
 
@@ -100,13 +111,27 @@ export const analyticsApi = {
   getAccuracyHeatmap: async (params?: {
     timeframe?: 'week' | 'month' | 'all';
   }) => {
-    const response = await api.get('/api/analytics/accuracy-heatmap', { params });
+    const response = await api.get('/api/analytics/accuracy-heatmap', {
+      params,
+    });
     return response.data.heatmap;
+  },
+
+  // Get activity heatmap data
+  getActivityHeatmap: async (year?: number) => {
+    const params: { year?: number } = {};
+    if (year) {
+      params.year = year;
+    }
+    const response = await api.get('/api/analytics/activity-heatmap', {
+      params,
+    });
+    return response.data.activity;
   },
 
   // Get typing rhythm analysis
   getTypingRhythm: async (testResultId?: string) => {
-    const url = testResultId 
+    const url = testResultId
       ? `/api/analytics/typing-rhythm/${testResultId}`
       : '/api/analytics/typing-rhythm';
     const response = await api.get(url);
@@ -124,7 +149,7 @@ export const analyticsApi = {
     const response = await api.get(`/api/analytics/export?format=${format}`, {
       responseType: 'blob',
     });
-    
+
     // Create download link
     const url = window.URL.createObjectURL(new Blob([response.data]));
     const link = document.createElement('a');
@@ -134,29 +159,6 @@ export const analyticsApi = {
     link.click();
     link.remove();
     window.URL.revokeObjectURL(url);
-  },
-
-  // Generate practice session based on weaknesses
-  generatePracticeSession: async (focusArea?: 'speed' | 'accuracy' | 'specific_chars' | 'words') => {
-    const response = await api.post('/api/analytics/generate-practice', { focusArea });
-    return response.data.practiceSession;
-  },
-
-  // Submit practice session results
-  submitPracticeSession: async (sessionData: {
-    focusArea: string;
-    targetContent?: string;
-    duration: number;
-    results: Array<{
-      exerciseIndex: number;
-      wpm: number;
-      accuracy: number;
-      errors: number;
-      timeTaken: number;
-    }>;
-  }) => {
-    const response = await api.post('/api/analytics/practice-sessions', sessionData);
-    return response.data.session;
   },
 };
 

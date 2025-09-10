@@ -627,6 +627,72 @@ analytics.get('/recommendations', async (c) => {
   }
 });
 
+// Get daily activity data for heatmap
+analytics.get('/activity-heatmap', async (c) => {
+  try {
+    const payload = c.get('jwtPayload') as JWTPayload;
+    const userId = payload.userId;
+    const year = c.req.query('year')
+      ? parseInt(c.req.query('year')!)
+      : new Date().getFullYear();
+
+    // Calculate date range for the specified year (handle timezone properly)
+    const startDate = new Date(year, 0, 1, 0, 0, 0, 0); // January 1st of the year, start of day
+    const endDate = new Date(year + 1, 0, 1, 0, 0, 0, 0); // January 1st of next year, start of day
+
+    // Get daily test counts directly from completed tests (source of truth)
+    const testData = await db
+      .select({
+        date: sql<string>`DATE(${completedTests.completedAt})`,
+        count: sql<number>`COUNT(*)`,
+      })
+      .from(completedTests)
+      .where(
+        and(
+          eq(completedTests.userId, userId),
+          gte(completedTests.completedAt, startDate),
+          lt(completedTests.completedAt, endDate)
+        )
+      )
+      .groupBy(sql`DATE(${completedTests.completedAt})`)
+      .orderBy(sql`DATE(${completedTests.completedAt})`);
+
+    const activityData = testData.map((item) => ({
+      date: item.date,
+      count: item.count,
+    }));
+
+    // Get total test count for the year (separate query to ensure accuracy)
+    const totalTestsResult = await db
+      .select({ count: sql<number>`COUNT(*)` })
+      .from(completedTests)
+      .where(
+        and(
+          eq(completedTests.userId, userId),
+          gte(completedTests.completedAt, startDate),
+          lt(completedTests.completedAt, endDate)
+        )
+      );
+
+    const totalTests = Number(totalTestsResult[0]?.count || 0);
+    const maxCount = Math.max(...activityData.map((day) => day.count), 0);
+    const activeDays = activityData.filter((day) => day.count > 0).length;
+
+    return c.json({
+      activity: {
+        data: activityData,
+        totalTests,
+        maxCount,
+        activeDays,
+        year,
+      },
+    });
+  } catch (error) {
+    console.error('Error fetching activity heatmap:', error);
+    return c.json({ error: 'Failed to fetch activity heatmap' }, 500);
+  }
+});
+
 // Get accuracy heatmap data
 analytics.get('/accuracy-heatmap', async (c) => {
   try {
