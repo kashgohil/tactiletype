@@ -5,22 +5,22 @@ FROM oven/bun:1.2.0
 WORKDIR /app
 
 # Copy root package.json and lockfile first for better layer caching
-COPY ../../package.json ../../bun.lock ./
+COPY package.json bun.lock ./
 
 # Copy packages for workspace dependencies
-COPY ../../packages ./packages
+COPY packages ./packages
 
 # Copy API package.json to its proper location
-COPY package.json ./apps/api/
+COPY apps/api/package.json ./apps/api/
 
 # Install dependencies (this layer will be cached if package files don't change)
 RUN bun install --frozen-lockfile
 
 # Copy API source code
-COPY src ./apps/api/src
+COPY apps/api/src ./apps/api/src
 
 # Expose the port
-EXPOSE 3001
+EXPOSE 3000
 
 # Run database migrations (optional, uncomment if needed)
 RUN bun run db:migrate
