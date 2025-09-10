@@ -1,5 +1,5 @@
 # Use the official Bun image with fixed version for reproducibility
-FROM oven/bun:1.2.0
+FROM oven/bun:1.2.20
 
 # Set working directory to root
 WORKDIR /app
@@ -13,6 +13,9 @@ COPY packages ./packages
 # Copy API package.json to its proper location
 COPY apps/api/package.json ./apps/api/
 
+# Copy web package.json to its proper location
+COPY apps/web/package.json ./apps/web/
+
 # Install dependencies (this layer will be cached if package files don't change)
 RUN bun install --frozen-lockfile
 
@@ -23,7 +26,7 @@ COPY apps/api/src ./apps/api/src
 EXPOSE 3000
 
 # Run database migrations (optional, uncomment if needed)
-RUN bun run db:migrate
+# RUN bun run db:migrate
 
 # Start the application
 CMD ["bun", "run", "--filter=api", "start"]
