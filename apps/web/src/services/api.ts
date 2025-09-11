@@ -5,6 +5,7 @@ import axios from 'axios';
 
 const api = axios.create({
   baseURL: VITE_API_URL,
+  withCredentials: true,
 });
 
 // Add auth token to requests if available
