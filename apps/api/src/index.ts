@@ -3,6 +3,7 @@ import { cors } from 'hono/cors';
 import { logger } from 'hono/logger';
 import { prettyJSON } from 'hono/pretty-json';
 import { OAuthProviderFactory } from './auth/oauth';
+import { FRONTEND_URL, PORT } from './constants';
 import { csrfProtection } from './middleware/csrf';
 import analyticsRoutes from './routes/analytics';
 import { authRoutes } from './routes/auth';
@@ -22,7 +23,7 @@ app.use('*', prettyJSON());
 app.use(
   '*',
   cors({
-    origin: ['http://localhost:3002'],
+    origin: [FRONTEND_URL],
     allowHeaders: ['Content-Type', 'Authorization', 'X-CSRF-Token'],
     allowMethods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
     credentials: true,
@@ -68,7 +69,7 @@ app.notFound((c) => {
   return c.json({ error: 'Not Found' }, 404);
 });
 
-const port = process.env.PORT || 3001;
+const port = PORT;
 
 console.log(`tactiletype API Server running on port ${port}`);
 console.log(`WebSocket server will be available at ws://localhost:${port}/ws`);
