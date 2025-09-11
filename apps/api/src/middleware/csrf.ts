@@ -1,5 +1,6 @@
 import { type MiddlewareHandler } from 'hono';
 import { getCookie, setCookie } from 'hono/cookie';
+import { FRONTEND_URL } from '../constants';
 import { CSRFProtection } from '../utils/csrf';
 
 export const csrfProtection = (): MiddlewareHandler => {
@@ -49,8 +50,10 @@ export const setCsrfCookie = (c: any) => {
   setCookie(c, 'csrf-token', CSRFProtection.generateToken(), {
     httpOnly: false,
     secure: process.env.NODE_ENV === 'production',
-    sameSite: 'Strict',
+    sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'Strict',
     maxAge: 15 * 60,
+    domain:
+      process.env.NODE_ENV === 'production' ? `.${FRONTEND_URL}` : 'localhost',
     path: '/',
   });
 };
