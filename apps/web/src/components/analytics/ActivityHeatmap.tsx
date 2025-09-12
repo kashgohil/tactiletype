@@ -71,8 +71,8 @@ export const ActivityHeatmap: React.FC<ActivityHeatmapProps> = ({
         <div className="mb-6">
           <div className="h-6 bg-accent/20 rounded w-48 mb-2 animate-pulse"></div>
           <div className="flex items-center justify-between">
-            <div className="h-4 bg-accent/20 rounded w-32 animate-pulse"></div>
-            <div className="h-4 bg-accent/20 rounded w-24 animate-pulse"></div>
+            <div className="h-6 bg-accent/20 rounded w-32 animate-pulse"></div>
+            <div className="h-6 bg-accent/20 rounded w-24 animate-pulse"></div>
           </div>
         </div>
 
@@ -90,11 +90,11 @@ export const ActivityHeatmap: React.FC<ActivityHeatmapProps> = ({
 
             <div className="flex">
               {/* Day labels skeleton */}
-              <div className="flex flex-col mr-2">
+              <div className="flex flex-col mr-2 gap-1">
                 {Array.from({ length: 7 }, (_, i) => (
                   <div
                     key={i}
-                    className="h-3 text-xs text-gray-500 dark:text-gray-400 leading-3"
+                    className="h-6 text-xs text-text/50 flex items-center leading-3"
                   >
                     <div className="h-3 bg-accent/20 rounded w-6 animate-pulse"></div>
                   </div>
@@ -108,7 +108,7 @@ export const ActivityHeatmap: React.FC<ActivityHeatmapProps> = ({
                     {Array.from({ length: 7 }, (_, dayIndex) => (
                       <div
                         key={dayIndex}
-                        className="w-3 h-3 rounded-sm bg-accent/20 animate-pulse"
+                        className="w-6 h-6 rounded-sm bg-accent/20 animate-pulse"
                       />
                     ))}
                   </div>

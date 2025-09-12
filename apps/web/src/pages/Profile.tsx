@@ -93,19 +93,15 @@ export const Profile: React.FC = () => {
         {/* Statistics */}
         <div className="lg:col-span-2">
           {isLoading && (
-            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 text-center">
-              <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-              <p className="mt-4 text-gray-600 dark:text-gray-400">
-                Loading statistics...
-              </p>
+            <div className="bg-accent/10 rounded-lg p-6 text-center">
+              <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-accent"></div>
+              <p className="mt-4 text-text/40">Loading statistics...</p>
             </div>
           )}
 
           {isError && (
-            <div className="bg-red-50 dark:bg-red-900 border border-red-200 dark:border-red-700 rounded-lg p-6 text-center">
-              <p className="text-red-800 dark:text-red-200">
-                Failed to load test results
-              </p>
+            <div className="bg-red-50 rounded-lg p-6 text-center">
+              <p className="text-red-800">Failed to load test results</p>
               <Button
                 onClick={() => window.location.reload()}
                 variant="destructive"
@@ -117,7 +113,7 @@ export const Profile: React.FC = () => {
           )}
 
           {!isLoading && !isError && !stats && (
-            <div className="bg-gray-50 rounded-lg p-12 text-center">
+            <div className="bg-accent/10 rounded-lg p-12 text-center">
               <p className="text-xl text-text/50 mb-4">
                 No typing tests completed yet
               </p>
