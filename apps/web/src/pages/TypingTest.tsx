@@ -320,7 +320,7 @@ export const TypingTest: React.FC = () => {
           >
             <div className="flex items-center justify-between p-8 rounded-lg gap-2 w-full">
               {isTestActive ? (
-                <div className="h-9 text-xl flex items-center justify-center w-full gap-2">
+                <div className="h-9 text-xl flex items-center justify-center w-full gap-2 relative">
                   {currentMode === 'timer' && state.startTime && (
                     <Stopwatch
                       duration={timerDuration}
@@ -333,6 +333,19 @@ export const TypingTest: React.FC = () => {
                       {engine?.getCompletedWords() || 0} / {wordsCount} words
                     </span>
                   )}
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={resetTest}
+                        className="absolute right-0"
+                      >
+                        <RotateCcw />
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent side="bottom">Refresh</TooltipContent>
+                  </Tooltip>
                 </div>
               ) : (
                 <>
