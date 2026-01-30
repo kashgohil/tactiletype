@@ -1,21 +1,21 @@
-import { TimelineChart } from '@/components/analytics/TimelineChart';
-import { Stopwatch } from '@/components/stopwatch';
-import { Button } from '@/components/ui/button';
+import { TimelineChart } from "@/components/analytics/TimelineChart";
+import { Stopwatch } from "@/components/stopwatch";
+import { Button } from "@/components/ui/button";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
-import { Separator } from '@/components/ui/separator';
+} from "@/components/ui/select";
+import { Separator } from "@/components/ui/separator";
 import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
-} from '@/components/ui/tooltip';
-import { cn } from '@/lib/utils';
-import type { Difficulty, TestMode, TestType } from '@tactile/types';
+} from "@/components/ui/tooltip";
+import { cn } from "@/lib/utils";
+import type { Difficulty, TestMode, TestType } from "@tactile/types";
 import {
   ALargeSmall,
   AtSign,
@@ -25,46 +25,46 @@ import {
   Timer,
   WholeWord,
   type LucideIcon,
-} from 'lucide-react';
-import { AnimatePresence, motion } from 'motion/react';
-import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { useAuth } from '../contexts';
-import { analyticsApi } from '../services/analyticsApi';
-import type { TestText } from '../services/api';
-import { testResultsApi } from '../services/api';
-import type { TypingState, TypingStats } from '../utils/typingEngine';
+} from "lucide-react";
+import { AnimatePresence, motion } from "motion/react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
+import { useAuth } from "../contexts";
+import { analyticsApi } from "../services/analyticsApi";
+import type { TestText } from "../services/api";
+import { testResultsApi } from "../services/api";
+import type { TypingState, TypingStats } from "../utils/typingEngine";
 import {
   TypingEngine,
   formatTime,
   initializeText,
   isNonPrintingKey,
-} from '../utils/typingEngine';
+} from "../utils/typingEngine";
 
 const TimerOptions = [10, 15, 30, 60];
 const wordsOptions = [25, 50, 75, 100, 200];
 
 const Difficulties: Record<Difficulty, { id: Difficulty; label: string }> = {
-  easy: { id: 'easy', label: 'Easy' },
-  medium: { id: 'medium', label: 'Medium' },
-  hard: { id: 'hard', label: 'Hard' },
+  easy: { id: "easy", label: "Easy" },
+  medium: { id: "medium", label: "Medium" },
+  hard: { id: "hard", label: "Hard" },
 };
 
 const Types: Record<
   TestType,
   { id: TestType; label: string; icon: LucideIcon }
 > = {
-  text: { id: 'text', label: 'Text', icon: ALargeSmall },
-  punctuation: { id: 'punctuation', label: 'Punctuation', icon: AtSign },
-  numbers: { id: 'numbers', label: 'Numbers', icon: Hash },
-  quotes: { id: 'quotes', label: 'Quotes', icon: Quote },
+  text: { id: "text", label: "Text", icon: ALargeSmall },
+  punctuation: { id: "punctuation", label: "Punctuation", icon: AtSign },
+  numbers: { id: "numbers", label: "Numbers", icon: Hash },
+  quotes: { id: "quotes", label: "Quotes", icon: Quote },
 };
 
 const Modes: Record<
   TestMode,
   { id: TestMode; label: string; icon: LucideIcon }
 > = {
-  timer: { id: 'timer', label: 'Timer', icon: Timer },
-  words: { id: 'words', label: 'Words', icon: WholeWord },
+  timer: { id: "timer", label: "Timer", icon: Timer },
+  words: { id: "words", label: "Words", icon: WholeWord },
 };
 
 export const TypingTest: React.FC = () => {
@@ -72,12 +72,12 @@ export const TypingTest: React.FC = () => {
 
   const [wordsCount, setWordsCount] = useState(wordsOptions[0]);
   const [timerDuration, setTimerDuration] = useState(TimerOptions[0]);
-  const [currentMode, setCurrentMode] = useState<TestMode>('timer');
-  const [currentType, setCurrentType] = useState<TestType>('text');
+  const [currentMode, setCurrentMode] = useState<TestMode>("timer");
+  const [currentType, setCurrentType] = useState<TestType>("text");
   const [focused, setFocused] = useState(true);
-  const [testText, setTestText] = useState('');
+  const [testText, setTestText] = useState("");
   const [currentTestText, setCurrentTestText] = useState<TestText | null>(null);
-  const [difficulty, setDifficulty] = useState<Difficulty>('medium');
+  const [difficulty, setDifficulty] = useState<Difficulty>("medium");
   const [engine, setEngine] = useState<TypingEngine | null>(null);
   const [stats, setStats] = useState<TypingStats>({
     wpm: 0,
@@ -89,7 +89,7 @@ export const TypingTest: React.FC = () => {
   });
   const [state, setState] = useState<TypingState>({
     currentIndex: 0,
-    userInput: '',
+    userInput: "",
     errors: new Set(),
     startTime: null,
     endTime: null,
@@ -110,7 +110,7 @@ export const TypingTest: React.FC = () => {
         currentMode,
         timerDuration,
         wordsCount,
-        difficulty
+        difficulty,
       );
 
       setTestText(selectedText);
@@ -118,12 +118,12 @@ export const TypingTest: React.FC = () => {
       // Create a temporary test text object for the UI
       // This will be replaced with the actual saved test text when submitted
       const tempTestText: TestText = {
-        id: 'temp-' + Date.now(), // Temporary ID until saved
+        id: "temp-" + Date.now(), // Temporary ID until saved
         title: `${currentType} test - ${difficulty}`,
         content: selectedText,
-        language: 'en',
+        language: "en",
         difficulty: difficulty,
-        wordCount: selectedText.split(' ').length,
+        wordCount: selectedText.split(" ").length,
         createdAt: new Date().toISOString(),
       };
 
@@ -133,14 +133,14 @@ export const TypingTest: React.FC = () => {
       const newEngine = new TypingEngine(
         selectedText,
         (newStats) => setStats(newStats),
-        (newState) => setState(newState)
+        (newState) => setState(newState),
       );
 
       callback?.(newEngine);
 
       setEngine(newEngine);
     },
-    [currentType, currentMode, wordsCount, timerDuration, difficulty]
+    [currentType, currentMode, wordsCount, timerDuration, difficulty],
   );
 
   // Submit test result
@@ -174,26 +174,26 @@ export const TypingTest: React.FC = () => {
         });
 
         console.log(
-          'Test result submitted successfully with embedded test text data'
+          "Test result submitted successfully with embedded test text data",
         );
 
         // Process analytics data if submission was successful
         if (response.result?.id) {
           try {
             await analyticsApi.processTestResult(response.result.id);
-            console.log('Analytics processing initiated successfully');
+            console.log("Analytics processing initiated successfully");
           } catch (analyticsError) {
-            console.error('Failed to process analytics:', analyticsError);
+            console.error("Failed to process analytics:", analyticsError);
             // Don't fail the entire submission if analytics processing fails
           }
         }
       } catch (error) {
-        console.error('Failed to submit test result:', error);
+        console.error("Failed to submit test result:", error);
         // Reset the flag if submission failed so user can retry
         setResultSubmitted(false);
       }
     },
-    [user, currentTestText, engine, resultSubmitted]
+    [user, currentTestText, engine, resultSubmitted],
   );
 
   // Timer end handler
@@ -226,14 +226,14 @@ export const TypingTest: React.FC = () => {
       engine.handleKeyPress(e.key);
 
       // Check if test is complete
-      if (engine.getState().isComplete && currentMode === 'words') {
+      if (engine.getState().isComplete && currentMode === "words") {
         setIsTestActive(false);
         // Submit result if user is logged in
         const finalStats = engine.calculateStats();
         submitResult(finalStats);
       }
     },
-    [engine, isTestActive, currentMode, submitResult]
+    [engine, isTestActive, currentMode, submitResult],
   );
 
   // Initialize test on component mount
@@ -253,28 +253,28 @@ export const TypingTest: React.FC = () => {
     if (!engine) return char;
 
     const status = engine.getCharacterStatus(index);
-    let className = 'relative ';
+    let className = "relative ";
 
     switch (status) {
-      case 'correct':
-        className += 'text-text';
+      case "correct":
+        className += "text-text bg-accent/50";
         break;
-      case 'incorrect':
-        className += 'text-rose-500';
+      case "incorrect":
+        className += "text-rose-500";
         break;
-      case 'current':
-        className += 'text-text/50';
+      case "current":
+        className += "text-text/50";
         break;
       default:
-        className += 'text-text/50';
+        className += "text-text/50";
     }
 
     return (
       <div
         key={index}
-        className={cn(className, 'relative transition-colors duration-200')}
+        className={cn(className, "relative transition-colors duration-200")}
       >
-        {char === ' ' ? '\u00A0' : char}
+        {char === " " ? "\u00A0" : char}
         {state.currentIndex === index ? (
           <motion.div
             layoutId="cursor"
@@ -288,14 +288,14 @@ export const TypingTest: React.FC = () => {
 
   function text() {
     let counter = 0;
-    const chunks = testText.split(' ');
+    const chunks = testText.split(" ");
     return chunks.map((word, wordIndex) => {
       return (
         <div className="flex items-center" key={wordIndex}>
-          {word.split('').map((char) => {
+          {word.split("").map((char) => {
             return renderCharacter(char, counter++);
           })}
-          {wordIndex < chunks.length - 1 && renderCharacter(' ', counter++)}
+          {wordIndex < chunks.length - 1 && renderCharacter(" ", counter++)}
         </div>
       );
     });
@@ -311,7 +311,7 @@ export const TypingTest: React.FC = () => {
             initial={{ opacity: 0, y: 0 }}
             animate={{ opacity: 1, y: -50 }}
             exit={{ opacity: 0, y: -60 }}
-            transition={{ duration: 0.3, ease: 'easeInOut' }}
+            transition={{ duration: 0.3, ease: "easeInOut" }}
             onAnimationComplete={() => {
               if (!state.isComplete && !isTestActive) {
                 inputRef.current?.focus();
@@ -321,14 +321,14 @@ export const TypingTest: React.FC = () => {
             <div className="flex items-center justify-between p-8 rounded-lg gap-2 w-full">
               {isTestActive ? (
                 <div className="h-9 text-xl flex items-center justify-center w-full gap-2 relative">
-                  {currentMode === 'timer' && state.startTime && (
+                  {currentMode === "timer" && state.startTime && (
                     <Stopwatch
                       duration={timerDuration}
                       onEnd={handleTimerEnd}
                       startTime={state.startTime}
                     />
                   )}
-                  {currentMode === 'words' && (
+                  {currentMode === "words" && (
                     <span>
                       {engine?.getCompletedWords() || 0} / {wordsCount} words
                     </span>
@@ -361,7 +361,7 @@ export const TypingTest: React.FC = () => {
                               inputRef.current?.focus();
                             }}
                             size="icon"
-                            className={id === currentType ? 'bg-accent/50' : ''}
+                            className={id === currentType ? "bg-accent/50" : ""}
                           >
                             <Icon />
                           </Button>
@@ -381,7 +381,7 @@ export const TypingTest: React.FC = () => {
                               inputRef.current?.focus();
                             }}
                             size="icon"
-                            className={id === currentMode ? 'bg-accent/50' : ''}
+                            className={id === currentMode ? "bg-accent/50" : ""}
                           >
                             <Icon />
                           </Button>
@@ -390,7 +390,7 @@ export const TypingTest: React.FC = () => {
                       </Tooltip>
                     ))}
                     <Separator orientation="vertical" className="mx-4" />
-                    {currentMode === 'timer' && (
+                    {currentMode === "timer" && (
                       <Select
                         value={String(timerDuration)}
                         onValueChange={(value) => {
@@ -412,7 +412,7 @@ export const TypingTest: React.FC = () => {
                         </SelectContent>
                       </Select>
                     )}
-                    {currentMode === 'words' && (
+                    {currentMode === "words" && (
                       <Select
                         value={String(wordsCount)}
                         onValueChange={(value) => {
@@ -479,8 +479,8 @@ export const TypingTest: React.FC = () => {
             >
               <div
                 className={cn(
-                  'absolute inset-0 flex items-center justify-center transition-all delay-300 text-center backdrop-blur-none opacity-0 z-1',
-                  !focused && 'backdrop-blur-sm opacity-100'
+                  "absolute inset-0 flex items-center justify-center transition-all delay-300 text-center backdrop-blur-none opacity-0 z-1",
+                  !focused && "backdrop-blur-sm opacity-100",
                 )}
               >
                 Click here to focus
@@ -493,10 +493,10 @@ export const TypingTest: React.FC = () => {
           <motion.div
             key="test-completed"
             initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: '-20%' }}
+            animate={{ opacity: 1, y: "-20%" }}
             exit={{ opacity: 0, y: 20 }}
             className="flex flex-col gap-4 items-center w-full"
-            transition={{ duration: 0.3, ease: 'easeInOut' }}
+            transition={{ duration: 0.3, ease: "easeInOut" }}
           >
             <TimelineChart
               keystrokeEvents={state.keystrokeEvents}
