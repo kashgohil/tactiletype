@@ -445,7 +445,7 @@ P3  Multiplayer polish, social graph, PWA
 
 ```text
 [x] Phase A  Profile UI redesign
-[ ] Phase B  Result metadata + filters/charts
+[x] Phase B  Result metadata + filters/charts
 [ ] Phase C  Content packs + seed pipeline
 [ ] Phase D  Practice hub + weak-key drills + recommendations
 [ ] Phase E  Goals, achievements, daily challenge
