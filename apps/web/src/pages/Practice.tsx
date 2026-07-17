@@ -1,112 +1,59 @@
 import { Button } from '@/components/ui/button';
 import {
-  buildAllPacks,
   generateAccuracyChallenge,
   generateBigramDrill,
   generateKeyDrill,
   generateWordDrill,
 } from '@tactile/content';
+import { usePrefersReducedMotion } from '@/hooks/usePrefersReducedMotion';
 import { useTestPreferences } from '@/hooks/useTestPreferences';
+import { EASE_OUT, uiTransition } from '@/lib/motion';
+import { cn } from '@/lib/utils';
 import { getHomeRow } from '@/utils/keyboardLayouts';
-import { useNavigate, useSearch } from '@tanstack/react-router';
+import { Link, useNavigate, useSearch } from '@tanstack/react-router';
 import {
-  Braces,
+  ChevronRight,
   Crosshair,
-  Keyboard,
-  Quote,
-  Sparkles,
+  Gamepad2,
   Target,
   Type,
   Zap,
 } from 'lucide-react';
+import { motion } from 'motion/react';
 import React, { useMemo } from 'react';
 
-const packs = buildAllPacks();
-
-const EXERCISE_TYPES = [
+/** Only drills with a real training purpose — not “another text type”. */
+const DRILLS = [
   {
     id: 'keys',
     title: 'Key drills',
-    description: 'Focus on weak or target keys (home row, pinkies, etc.)',
+    description: 'Bias text toward weak or target keys (home row, pinkies, etc.)',
     icon: Crosshair,
-    href: '/practice?drill=keys',
   },
   {
     id: 'bigrams',
     title: 'Bigram drills',
-    description: 'Speed bottlenecks like th, ion, ing, tion',
+    description: 'Hammer speed bottlenecks like th, ion, ing, tion',
     icon: Zap,
-    href: '/practice?drill=bigrams',
   },
   {
     id: 'words',
     title: 'Word drills',
-    description: 'Repeat hard words from common vocabulary',
+    description: 'Repeat hard words until they stop tripping you',
     icon: Type,
-    href: '/practice?drill=words',
   },
   {
     id: 'accuracy',
-    title: 'Accuracy challenge',
-    description: 'Quality over speed — aim for 98%+',
+    title: 'Accuracy focus',
+    description: 'Calm passage for clean 98%+ runs (no speed pressure)',
     icon: Target,
-    href: '/practice?drill=accuracy',
-  },
-  {
-    id: 'symbols',
-    title: 'Symbols & operators',
-    description: 'Brackets, paths, emails, and operators',
-    icon: Sparkles,
-    href: '/test?type=symbols',
-  },
-  {
-    id: 'code',
-    title: 'Code typing',
-    description: 'Real snippets from the code pack',
-    icon: Braces,
-    href: '/test?type=code',
-  },
-  {
-    id: 'quotes',
-    title: 'Quotes',
-    description: 'Reading-length attributed passages',
-    icon: Quote,
-    href: '/test?type=quotes',
-  },
-  {
-    id: 'free',
-    title: 'Free test',
-    description: 'Sandbox timer/words modes',
-    icon: Keyboard,
-    href: '/test',
-  },
-  {
-    id: 'custom',
-    title: 'Custom paste',
-    description: 'Paste your own text or pick from your playlist',
-    icon: Keyboard,
-    href: '/test?paste=1',
   },
 ];
 
-function categoryIcon(category: string) {
-  switch (category) {
-    case 'code':
-      return Braces;
-    case 'quotes':
-      return Quote;
-    case 'symbols':
-    case 'real_world':
-      return Sparkles;
-    default:
-      return Type;
-  }
-}
-
 export const Practice: React.FC = () => {
   const navigate = useNavigate();
+  const reduced = usePrefersReducedMotion();
   const { prefs } = useTestPreferences();
-  // Search params typed loosely; route validates
   const search = useSearch({ strict: false }) as {
     drill?: string;
     keys?: string;
@@ -139,7 +86,6 @@ export const Practice: React.FC = () => {
 
   const startDrill = () => {
     if (!drillPreview) return;
-    // Store drill text for TypingTest to pick up
     sessionStorage.setItem(
       'tactile_practice_drill',
       JSON.stringify({
@@ -153,21 +99,75 @@ export const Practice: React.FC = () => {
   };
 
   return (
-    <div className="pt-2 pb-10 max-w-5xl mx-auto space-y-8">
-      <header className="space-y-2">
-        <h1 className="text-2xl md:text-3xl font-bold">Practice</h1>
-        <p className="text-text/50 max-w-2xl leading-relaxed">
-          Guided exercises separate from free tests. Pick a drill type or a
-          content pack — then type with purpose.
+    <div className="pt-2 pb-12 max-w-5xl mx-auto space-y-8">
+      <motion.header
+        className="space-y-2.5"
+        initial={reduced ? false : { opacity: 0, y: 6 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={uiTransition(reduced, 0.22)}
+      >
+        <p className="text-[11px] uppercase tracking-[0.22em] text-accent font-semibold">
+          Practice
         </p>
-      </header>
+        <h1 className="text-3xl md:text-[2.5rem] font-bold tracking-tight leading-[1.15]">
+          Targeted drills
+        </h1>
+        <p className="text-text/50 max-w-2xl leading-relaxed text-[15px]">
+          Generated for a skill — keys, bigrams, hard words. For game-like
+          training, use{' '}
+          <Link
+            to="/play"
+            className="text-accent underline-offset-2 hover:underline"
+          >
+            Play modes
+          </Link>
+          .
+        </p>
+      </motion.header>
+
+      {!activeDrill && (
+        <motion.section
+          initial={reduced ? false : { opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: reduced ? 0 : 0.26, delay: 0.04, ease: EASE_OUT }}
+          className="rounded-2xl border border-accent/20 bg-gradient-to-br from-accent/[0.12] to-transparent p-5 sm:p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4"
+        >
+          <div className="flex items-start gap-3">
+            <div className="size-10 rounded-xl bg-accent/15 flex items-center justify-center shrink-0">
+              <Gamepad2 className="size-5 text-accent" />
+            </div>
+            <div>
+              <h2 className="text-lg font-semibold tracking-tight">
+                Want something different?
+              </h2>
+              <p className="text-sm text-text/48 mt-1 max-w-md leading-relaxed">
+                Lesson Path, Weak Storm, Sudden Death, Ghost Race — each with
+                different rules, not the same test with a new label.
+              </p>
+            </div>
+          </div>
+          <Button asChild size="lg" className="shrink-0 gap-1">
+            <Link to="/play">
+              Browse play modes
+              <ChevronRight className="size-4 opacity-70" />
+            </Link>
+          </Button>
+        </motion.section>
+      )}
 
       {activeDrill && drillPreview && (
-        <section className="bg-accent/15 border border-accent/30 rounded-xl p-6 space-y-4">
+        <motion.section
+          initial={reduced ? false : { opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={uiTransition(reduced, 0.22)}
+          className="bg-accent/[0.08] border border-accent/25 rounded-2xl p-6 space-y-4"
+        >
           <div className="flex flex-wrap items-start justify-between gap-3">
             <div>
-              <h2 className="text-lg font-semibold">{drillPreview.title}</h2>
-              <p className="text-sm text-text/50 mt-1">
+              <h2 className="text-lg font-semibold tracking-tight">
+                {drillPreview.title}
+              </h2>
+              <p className="text-sm text-text/45 mt-1">
                 Preview — start when ready. Result saves with exercise metadata.
               </p>
             </div>
@@ -181,97 +181,70 @@ export const Practice: React.FC = () => {
               <Button onClick={startDrill}>Start drill</Button>
             </div>
           </div>
-          <p className="font-mono text-sm text-text/70 leading-relaxed bg-primary/30 rounded-lg p-4 max-h-40 overflow-y-auto">
+          <p className="font-mono text-sm text-text/65 leading-relaxed bg-primary/30 rounded-xl p-4 max-h-40 overflow-y-auto border border-accent/10">
             {drillPreview.content}
           </p>
+        </motion.section>
+      )}
+
+      {!activeDrill && (
+        <section>
+          <h2 className="text-base font-semibold mb-1 tracking-tight">
+            Drill types
+          </h2>
+          <p className="text-sm text-text/40 mb-4">
+            Still the main typing screen — text is generated for one skill.
+          </p>
+          <div className="grid sm:grid-cols-2 gap-3">
+            {DRILLS.map((ex, i) => {
+              const Icon = ex.icon;
+              return (
+                <motion.div
+                  key={ex.id}
+                  initial={reduced ? false : { opacity: 0, y: 8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{
+                    duration: reduced ? 0 : 0.24,
+                    delay: reduced ? 0 : 0.06 + i * 0.04,
+                    ease: EASE_OUT,
+                  }}
+                >
+                  <Link
+                    to="/practice"
+                    search={{ drill: ex.id } as never}
+                    className={cn(
+                      'bg-accent/[0.05] hover:bg-accent/[0.1] rounded-2xl p-5 block h-full',
+                      'border border-transparent hover:border-accent/18',
+                      'transition-[background-color,border-color,transform] duration-150 ease-[cubic-bezier(0.23,1,0.32,1)]',
+                      'active:scale-[0.99]'
+                    )}
+                  >
+                    <Icon className="size-5 text-accent mb-3" />
+                    <h3 className="font-semibold tracking-tight mb-1">
+                      {ex.title}
+                    </h3>
+                    <p className="text-sm text-text/45 leading-relaxed">
+                      {ex.description}
+                    </p>
+                  </Link>
+                </motion.div>
+              );
+            })}
+          </div>
         </section>
       )}
 
       {!activeDrill && (
-        <>
-          <section>
-            <h2 className="text-lg font-semibold mb-3">Exercise types</h2>
-            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
-              {EXERCISE_TYPES.map((ex) => {
-                const Icon = ex.icon;
-                return (
-                  <a
-                    key={ex.id}
-                    href={ex.href}
-                    className="bg-accent/10 hover:bg-accent/15 rounded-xl p-5 transition-colors border border-transparent hover:border-accent/20 block"
-                  >
-                    <Icon className="size-5 text-accent mb-3" />
-                    <h3 className="font-semibold mb-1">{ex.title}</h3>
-                    <p className="text-sm text-text/50 leading-relaxed">
-                      {ex.description}
-                    </p>
-                  </a>
-                );
-              })}
-            </div>
-          </section>
-
-          <section>
-            <h2 className="text-lg font-semibold mb-3">Content packs</h2>
-            <div className="grid sm:grid-cols-2 gap-3">
-              {packs.map((pack) => {
-                const Icon = categoryIcon(pack.category);
-                const testType =
-                  pack.category === 'code'
-                    ? 'code'
-                    : pack.category === 'symbols' ||
-                        pack.category === 'real_world'
-                      ? 'symbols'
-                      : pack.category === 'quotes'
-                        ? 'quotes'
-                        : 'text';
-                return (
-                  <div
-                    key={pack.id}
-                    className="bg-accent/10 rounded-xl p-5 flex flex-col gap-3"
-                  >
-                    <div className="flex items-start gap-3">
-                      <Icon className="size-5 text-accent shrink-0 mt-0.5" />
-                      <div className="min-w-0">
-                        <h3 className="font-semibold">{pack.title}</h3>
-                        <p className="text-sm text-text/50 mt-1 leading-relaxed">
-                          {pack.description}
-                        </p>
-                        <p className="text-xs text-text/40 mt-2">
-                          {pack.items.length} units · {pack.difficulty} ·{' '}
-                          {pack.category}
-                        </p>
-                      </div>
-                    </div>
-                    <Button
-                      size="sm"
-                      className="self-start"
-                      onClick={() => {
-                        sessionStorage.setItem(
-                          'tactile_practice_drill',
-                          JSON.stringify({
-                            content: pack.items[
-                              Math.floor(Math.random() * pack.items.length)
-                            ]!.content,
-                            title: pack.title,
-                            exerciseKind: pack.category,
-                            exercisePackId: pack.id,
-                          })
-                        );
-                        navigate({
-                          to: '/test',
-                          search: { practice: '1', type: testType } as never,
-                        });
-                      }}
-                    >
-                      Practice pack
-                    </Button>
-                  </div>
-                );
-              })}
-            </div>
-          </section>
-        </>
+        <p className="text-sm text-text/38">
+          Free sandbox (timer / words / code / symbols / quotes) lives on{' '}
+          <Link
+            to="/test"
+            className="text-accent hover:underline underline-offset-2"
+          >
+            the test page
+          </Link>
+          .
+        </p>
       )}
     </div>
   );
