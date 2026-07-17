@@ -1,6 +1,13 @@
 export { STARTER_ACHIEVEMENTS } from './achievements';
 export { CODE_SNIPPETS } from './code';
 export {
+  DAILY_MODE_IDS,
+  daySeed,
+  getDailyModeForDate,
+  type DailyModeChallenge,
+  type DailyModeId,
+} from './dailyMode';
+export {
   BOTTOM_ROW,
   COMMON_BIGRAMS,
   generateAccuracyChallenge,
