@@ -1,4 +1,6 @@
 import api from './api';
+import type { DailyModeChallenge } from '@tactile/content';
+import type { CurriculumProgress } from '@/utils/curriculum';
 
 export interface DailyChallenge {
   date: string;
@@ -43,6 +45,32 @@ export const challengesApi = {
       date: response.data.date as string,
       leaderboard: response.data.leaderboard as DailyLeaderboardEntry[],
     };
+  },
+
+  getDailyMode: async () => {
+    const response = await api.get('/api/challenges/daily/mode');
+    return response.data.mode as DailyModeChallenge;
+  },
+
+  getDailyModeLeaderboard: async (limit = 20) => {
+    const response = await api.get('/api/challenges/daily/mode/leaderboard', {
+      params: { limit },
+    });
+    return {
+      date: response.data.date as string,
+      modeId: response.data.modeId as string,
+      title: response.data.title as string,
+      leaderboard: response.data.leaderboard as DailyLeaderboardEntry[],
+    };
+  },
+
+  getCurriculum: async () => {
+    const response = await api.get('/api/challenges/curriculum');
+    return response.data.progress as CurriculumProgress;
+  },
+
+  putCurriculum: async (progress: CurriculumProgress) => {
+    await api.put('/api/challenges/curriculum', { progress });
   },
 
   getAchievements: async () => {
