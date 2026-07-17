@@ -12,14 +12,26 @@ export interface WSMessage {
   timestamp: number;
 }
 
+export type RoomRole = 'racer' | 'spectator';
+
 export interface WSConnection {
   id: string;
   socket: SocketLike;
   userId?: string;
   username?: string;
   roomId?: string;
+  role?: RoomRole;
   isAlive: boolean;
   lastPing: number;
+}
+
+export interface ChatMessage {
+  id: string;
+  userId: string;
+  username: string;
+  text: string;
+  at: number;
+  role: RoomRole;
 }
 
 export interface RoomState {
@@ -30,6 +42,9 @@ export interface RoomState {
   maxPlayers: number;
   status: 'waiting' | 'countdown' | 'active' | 'finished';
   participants: Map<string, ParticipantState>;
+  /** Spectators keyed by userId */
+  spectators: Map<string, SpectatorState>;
+  chat: ChatMessage[];
   startTime?: number;
   countdownStartTime?: number;
   createdAt: number;
@@ -48,12 +63,21 @@ export interface ParticipantState {
   lastUpdate: number;
 }
 
+export interface SpectatorState {
+  userId: string;
+  username: string;
+  connectionId: string;
+  joinedAt: number;
+}
+
 export interface JoinRoomMessage extends WSMessage {
   type: 'join_room';
   data: {
     roomId: string;
     userId: string;
     username: string;
+    /** Join as spectator (watch only). Default racer. */
+    spectate?: boolean;
   };
 }
 
@@ -66,5 +90,13 @@ export interface TypingProgressMessage extends WSMessage {
     wpm: number;
     accuracy: number;
     errors: number;
+  };
+}
+
+export interface ChatMessagePayload extends WSMessage {
+  type: 'chat_message';
+  data: {
+    roomId: string;
+    text: string;
   };
 }

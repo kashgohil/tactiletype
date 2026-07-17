@@ -1,13 +1,18 @@
 /**
  * Bun-native WebSocket race hub.
- * Shared singleton used by HTTP multiplayer routes + WS upgrade handler.
  */
-import { multiplayerRooms, db, testTexts } from '@tactile/database';
-import { eq } from 'drizzle-orm';
+import {
+  db,
+  multiplayerRooms,
+  roomParticipants,
+  testTexts,
+} from '@tactile/database';
+import { and, eq } from 'drizzle-orm';
 import { verify } from 'hono/jwt';
 import { JWT_SECRET } from '../constants';
 import { ConnectionManager } from './connectionManager';
 import type {
+  ChatMessagePayload,
   JoinRoomMessage,
   SocketLike,
   TypingProgressMessage,
@@ -16,6 +21,54 @@ import type {
 
 class MultiplayerHub {
   readonly manager = new ConnectionManager();
+
+  constructor() {
+    this.manager.setRaceStartHandler(async (roomId) => {
+      try {
+        await db
+          .update(multiplayerRooms)
+          .set({ status: 'active', startedAt: new Date() })
+          .where(eq(multiplayerRooms.id, roomId));
+      } catch (e) {
+        console.error('Failed to mark room started', e);
+      }
+    });
+
+    this.manager.setRaceFinishHandler(async (roomId, results) => {
+      try {
+        const now = new Date();
+        // Full race finish vs partial individual updates
+        const allDone =
+          results.length > 0 &&
+          this.manager.getRoom(roomId)?.status === 'finished';
+
+        for (const r of results) {
+          await db
+            .update(roomParticipants)
+            .set({
+              finishedAt: r.finishedAt ? new Date(r.finishedAt) : now,
+              finalWpm: String(Math.round(r.wpm * 100) / 100),
+              finalAccuracy: String(Math.round(r.accuracy * 100) / 100),
+            })
+            .where(
+              and(
+                eq(roomParticipants.roomId, roomId),
+                eq(roomParticipants.userId, r.userId)
+              )
+            );
+        }
+
+        if (allDone) {
+          await db
+            .update(multiplayerRooms)
+            .set({ status: 'finished', finishedAt: now })
+            .where(eq(multiplayerRooms.id, roomId));
+        }
+      } catch (e) {
+        console.error('Failed to persist race results', e);
+      }
+    });
+  }
 
   createRoom(
     roomId: string,
@@ -98,6 +151,9 @@ class MultiplayerHub {
       case 'typing_progress':
         this.handleProgress(connectionId, message as TypingProgressMessage);
         break;
+      case 'chat_message':
+        this.handleChat(connectionId, message as ChatMessagePayload);
+        break;
       default:
         this.sendError(connectionId, `Unknown message type: ${message.type}`);
     }
@@ -146,13 +202,12 @@ class MultiplayerHub {
       return;
     }
 
-    const { roomId, userId, username } = message.data;
+    const { roomId, userId, username, spectate } = message.data;
     if (connection.userId !== userId) {
       this.sendError(connectionId, 'User ID mismatch');
       return;
     }
 
-    // Ensure in-memory room exists (load from DB if needed)
     if (!this.manager.getRoom(roomId)) {
       const [dbRoom] = await db
         .select()
@@ -163,28 +218,32 @@ class MultiplayerHub {
         this.sendError(connectionId, 'Room not found');
         return;
       }
-      this.manager.createRoom(
+      // Sync in-memory status from DB
+      const room = this.manager.createRoom(
         dbRoom.id,
         dbRoom.name,
         dbRoom.hostId,
         dbRoom.testTextId,
         dbRoom.maxPlayers ?? 10
       );
+      if (dbRoom.status === 'active' || dbRoom.status === 'finished') {
+        room.status = dbRoom.status as 'active' | 'finished';
+      }
     }
 
-    const success = this.manager.joinRoom(
+    const result = this.manager.joinRoom(
       connectionId,
       roomId,
       userId,
-      username
+      username,
+      !!spectate
     );
-    if (!success) {
-      this.sendError(connectionId, 'Failed to join room');
+    if (!result.ok) {
+      this.sendError(connectionId, result.error || 'Failed to join room');
       return;
     }
 
     const room = this.manager.getRoom(roomId);
-    // Attach test content for race clients
     let testText: {
       id: string;
       title: string;
@@ -213,6 +272,7 @@ class MultiplayerHub {
       type: 'room_joined',
       data: {
         roomId,
+        role: result.role,
         room: room
           ? {
               id: room.id,
@@ -232,6 +292,11 @@ class MultiplayerHub {
                   finished: p.finished,
                 })
               ),
+              spectators: Array.from(room.spectators.values()).map((s) => ({
+                userId: s.userId,
+                username: s.username,
+              })),
+              chat: room.chat.slice(-50),
             }
           : null,
       },
@@ -260,6 +325,10 @@ class MultiplayerHub {
       this.sendError(connectionId, 'Not in a room');
       return;
     }
+    if (connection.role === 'spectator') {
+      this.sendError(connectionId, 'Spectators cannot start the race');
+      return;
+    }
     const room = this.manager.getRoom(connection.roomId);
     if (!room || room.hostId !== connection.userId) {
       this.sendError(connectionId, 'Only room host can start the race');
@@ -276,15 +345,24 @@ class MultiplayerHub {
     message: TypingProgressMessage
   ) {
     const { progress, wpm, accuracy, errors } = message.data;
-    const ok = this.manager.updateTypingProgress(
+    this.manager.updateTypingProgress(
       connectionId,
       progress,
       wpm,
       accuracy,
       errors
     );
-    if (!ok) {
-      // Silent during waiting/countdown to avoid spam
+  }
+
+  private handleChat(connectionId: string, message: ChatMessagePayload) {
+    const text = message.data?.text;
+    if (typeof text !== 'string') {
+      this.sendError(connectionId, 'Invalid chat message');
+      return;
+    }
+    const msg = this.manager.addChatMessage(connectionId, text);
+    if (!msg) {
+      this.sendError(connectionId, 'Failed to send chat');
     }
   }
 

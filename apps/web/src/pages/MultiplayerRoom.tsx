@@ -1,7 +1,8 @@
+import { RaceChat } from '@/components/multiplayer/RaceChat';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
-import { useNavigate, useParams } from '@tanstack/react-router';
-import { Crown, LogOut, Play, Trophy } from 'lucide-react';
+import { useNavigate, useParams, useSearch } from '@tanstack/react-router';
+import { Crown, Eye, LogOut, Play, Trophy } from 'lucide-react';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useAuth } from '../contexts';
 import { useMultiplayer } from '../hooks/useMultiplayer';
@@ -14,6 +15,8 @@ import {
 
 export const MultiplayerRoom: React.FC = () => {
   const { roomId } = useParams({ strict: false }) as { roomId: string };
+  const search = useSearch({ strict: false }) as { spectate?: string };
+  const wantSpectate = search.spectate === '1';
   const { user } = useAuth();
   const navigate = useNavigate();
   const [state, actions] = useMultiplayer(user?.id);
@@ -27,12 +30,17 @@ export const MultiplayerRoom: React.FC = () => {
   const progressTimer = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const text = state.currentRoom?.testText?.content ?? '';
-  const isRacing = state.raceStatus === 'active';
+  const isSpectator = state.role === 'spectator';
+  const isRacing = state.raceStatus === 'active' && !isSpectator;
   const isCountdown = state.raceStatus === 'countdown';
   const isFinished = state.raceStatus === 'finished';
   const isWaiting = state.raceStatus === 'waiting';
+  const watching =
+    isSpectator &&
+    (state.raceStatus === 'active' ||
+      state.raceStatus === 'countdown' ||
+      state.raceStatus === 'finished');
 
-  // Connect + join room
   useEffect(() => {
     if (!user || !roomId) return;
     let cancelled = false;
@@ -47,9 +55,23 @@ export const MultiplayerRoom: React.FC = () => {
         if (!state.isConnected) {
           await actions.connect(token);
         }
-        await multiplayerApi.joinRoom(roomId);
+
+        // Try racer join first unless ?spectate=1
+        let spectate = wantSpectate;
+        try {
+          await multiplayerApi.joinRoom(roomId, { spectate });
+        } catch (e) {
+          const msg = e instanceof Error ? e.message : '';
+          if (!spectate && msg.toLowerCase().includes('spectator')) {
+            spectate = true;
+            await multiplayerApi.joinRoom(roomId, { spectate: true });
+          } else {
+            throw e;
+          }
+        }
+
         if (!cancelled) {
-          actions.joinRoom(roomId, user.id, user.username);
+          actions.joinRoom(roomId, user.id, user.username, spectate);
         }
       } catch (e) {
         if (!cancelled) {
@@ -63,10 +85,9 @@ export const MultiplayerRoom: React.FC = () => {
     return () => {
       cancelled = true;
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- join once per room
-  }, [user?.id, roomId]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user?.id, roomId, wantSpectate]);
 
-  // Build typing engine when race starts
   useEffect(() => {
     if (isRacing && text && !engine) {
       const e = new TypingEngine(
@@ -77,14 +98,13 @@ export const MultiplayerRoom: React.FC = () => {
       setEngine(e);
       setTimeout(() => inputRef.current?.focus(), 50);
     }
-    if (isWaiting || isCountdown) {
+    if (isWaiting || isCountdown || isSpectator) {
       setEngine(null);
       setStats(null);
       setLocalIndex(0);
     }
-  }, [isRacing, text, engine, isWaiting, isCountdown]);
+  }, [isRacing, text, engine, isWaiting, isCountdown, isSpectator]);
 
-  // Broadcast progress ~4/s while racing
   useEffect(() => {
     if (!isRacing || !engine) return;
     progressTimer.current = setInterval(() => {
@@ -122,7 +142,7 @@ export const MultiplayerRoom: React.FC = () => {
   const leave = async () => {
     try {
       actions.leaveRoom();
-      if (roomId) await multiplayerApi.leaveRoom(roomId);
+      if (roomId && !isSpectator) await multiplayerApi.leaveRoom(roomId);
     } catch {
       // ignore
     }
@@ -130,6 +150,7 @@ export const MultiplayerRoom: React.FC = () => {
   };
 
   const participants = state.currentRoom?.participants ?? [];
+  const spectators = state.currentRoom?.spectators ?? [];
   const ranked = useMemo(
     () =>
       [...participants].sort((a, b) => {
@@ -170,16 +191,21 @@ export const MultiplayerRoom: React.FC = () => {
   }
 
   return (
-    <div className="pt-2 pb-10 max-w-4xl mx-auto space-y-6">
+    <div className="pt-2 pb-10 max-w-5xl mx-auto space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h1 className="text-xl font-bold">
+          <h1 className="text-xl font-bold flex items-center gap-2">
             {state.currentRoom?.name ?? 'Race room'}
+            {isSpectator && (
+              <span className="text-xs font-normal bg-accent/20 text-accent px-2 py-0.5 rounded-full inline-flex items-center gap-1">
+                <Eye className="size-3" /> Spectating
+              </span>
+            )}
           </h1>
           <p className="text-xs text-text/50 font-mono">{roomId}</p>
         </div>
         <div className="flex gap-2">
-          {state.isHost && isWaiting && (
+          {state.isHost && isWaiting && !isSpectator && (
             <Button onClick={() => actions.startRace()}>
               <Play className="size-4" />
               Start race
@@ -194,131 +220,171 @@ export const MultiplayerRoom: React.FC = () => {
 
       {(error || state.error || joining) && (
         <div className="rounded-xl bg-accent/10 px-4 py-3 text-sm text-text/60">
-          {joining
-            ? 'Joining room…'
-            : error || state.error}
+          {joining ? 'Joining room…' : error || state.error}
         </div>
       )}
 
-      {/* Countdown overlay */}
-      {isCountdown && state.countdown != null && (
-        <div className="bg-accent/20 border border-accent/40 rounded-2xl py-16 text-center">
-          <p className="text-sm text-text/50 mb-2">Get ready</p>
-          <p className="text-7xl font-bold font-mono text-accent">
-            {state.countdown > 0 ? state.countdown : 'GO'}
-          </p>
-        </div>
-      )}
-
-      {/* Race typing area */}
-      {isRacing && (
-        <div
-          ref={inputRef}
-          tabIndex={0}
-          role="textbox"
-          aria-label="Race typing area"
-          onKeyDown={handleKeyDown}
-          onFocus={() => setFocused(true)}
-          onBlur={() => setFocused(false)}
-          className={cn(
-            'bg-accent/15 rounded-xl p-6 outline-none focus-visible:ring-2 focus-visible:ring-accent/40 min-h-[140px]',
-            !focused && 'opacity-80'
-          )}
-        >
-          {!focused && (
-            <p className="text-center text-text/40 text-sm mb-3">
-              Click here and type
-            </p>
-          )}
-          {renderText()}
-          {stats && (
-            <div className="flex gap-4 mt-4 text-sm font-mono text-text/60">
-              <span>
-                <span className="text-accent font-semibold">{stats.wpm}</span>{' '}
-                wpm
-              </span>
-              <span>
-                <span className="text-accent font-semibold">
-                  {stats.accuracy}%
-                </span>
-              </span>
-              <span>
-                {localIndex}/{text.length}
-              </span>
+      <div className="grid lg:grid-cols-3 gap-4">
+        <div className="lg:col-span-2 space-y-4">
+          {isCountdown && state.countdown != null && (
+            <div className="bg-accent/20 border border-accent/40 rounded-2xl py-16 text-center">
+              <p className="text-sm text-text/50 mb-2">
+                {isSpectator ? 'Race starting' : 'Get ready'}
+              </p>
+              <p className="text-7xl font-bold font-mono text-accent">
+                {state.countdown > 0 ? state.countdown : 'GO'}
+              </p>
             </div>
           )}
-        </div>
-      )}
 
-      {isWaiting && (
-        <div className="bg-accent/10 rounded-xl p-8 text-center space-y-2">
-          <p className="font-medium">Waiting for host to start</p>
-          <p className="text-sm text-text/50">
-            {state.isHost
-              ? 'You are the host — press Start when ready (solo is OK).'
-              : 'Hang tight for the countdown.'}
-          </p>
-          {state.currentRoom?.testText && (
-            <p className="text-xs text-text/40 pt-2">
-              Text: {state.currentRoom.testText.title} (
-              {state.currentRoom.testText.wordCount} words)
-            </p>
-          )}
-        </div>
-      )}
-
-      {isFinished && (
-        <div className="bg-accent/15 border border-accent/30 rounded-xl p-6 text-center space-y-2">
-          <Trophy className="size-8 text-accent mx-auto" />
-          <h2 className="text-lg font-semibold">Race complete</h2>
-          <p className="text-sm text-text/50">Final standings below.</p>
-        </div>
-      )}
-
-      {/* Live standings */}
-      <section className="bg-accent/10 rounded-xl p-4 space-y-2">
-        <h2 className="text-sm font-semibold text-text/70 px-1">Racers</h2>
-        <ul className="space-y-2">
-          {ranked.map((p, i) => (
-            <li
-              key={p.userId}
+          {isRacing && (
+            <div
+              ref={inputRef}
+              tabIndex={0}
+              role="textbox"
+              aria-label="Race typing area"
+              onKeyDown={handleKeyDown}
+              onFocus={() => setFocused(true)}
+              onBlur={() => setFocused(false)}
               className={cn(
-                'rounded-lg px-3 py-2 bg-primary/40',
-                p.userId === user.id && 'ring-1 ring-accent/50'
+                'bg-accent/15 rounded-xl p-6 outline-none focus-visible:ring-2 focus-visible:ring-accent/40 min-h-[140px]',
+                !focused && 'opacity-80'
               )}
             >
-              <div className="flex items-center justify-between gap-2 text-sm mb-1.5">
-                <span className="font-medium flex items-center gap-1.5">
-                  <span className="text-text/40 font-mono w-5">{i + 1}</span>
-                  {p.username}
-                  {p.userId === state.currentRoom?.hostId && (
-                    <Crown className="size-3.5 text-accent" />
-                  )}
-                  {p.finished && (
-                    <span className="text-[10px] uppercase text-accent">
-                      done
+              {!focused && (
+                <p className="text-center text-text/40 text-sm mb-3">
+                  Click here and type
+                </p>
+              )}
+              {renderText()}
+              {stats && (
+                <div className="flex gap-4 mt-4 text-sm font-mono text-text/60">
+                  <span>
+                    <span className="text-accent font-semibold">
+                      {stats.wpm}
+                    </span>{' '}
+                    wpm
+                  </span>
+                  <span>
+                    <span className="text-accent font-semibold">
+                      {stats.accuracy}%
                     </span>
-                  )}
-                </span>
-                <span className="font-mono text-accent text-xs">
-                  {Math.round(p.wpm)} wpm · {Math.round(p.accuracy)}%
-                </span>
-              </div>
-              <div className="h-1.5 rounded-full bg-accent/15 overflow-hidden">
-                <div
-                  className="h-full bg-accent transition-all duration-200"
-                  style={{ width: `${Math.min(100, p.progress)}%` }}
-                />
-              </div>
-            </li>
-          ))}
-          {ranked.length === 0 && (
-            <li className="text-sm text-text/40 px-1 py-4 text-center">
-              No participants yet
-            </li>
+                  </span>
+                  <span>
+                    {localIndex}/{text.length}
+                  </span>
+                </div>
+              )}
+            </div>
           )}
-        </ul>
-      </section>
+
+          {watching && state.raceStatus === 'active' && (
+            <div className="bg-accent/10 rounded-xl p-8 text-center space-y-2">
+              <Eye className="size-8 text-accent mx-auto" />
+              <p className="font-medium">Watching live</p>
+              <p className="text-sm text-text/50">
+                Progress updates in the standings. Chat freely.
+              </p>
+            </div>
+          )}
+
+          {isWaiting && (
+            <div className="bg-accent/10 rounded-xl p-8 text-center space-y-2">
+              <p className="font-medium">
+                {isSpectator ? 'Spectating lobby' : 'Waiting for host to start'}
+              </p>
+              <p className="text-sm text-text/50">
+                {state.isHost && !isSpectator
+                  ? 'You are the host — press Start when ready (solo is OK).'
+                  : isSpectator
+                    ? 'You will see the race when it begins.'
+                    : 'Hang tight for the countdown.'}
+              </p>
+              {state.currentRoom?.testText && (
+                <p className="text-xs text-text/40 pt-2">
+                  Text: {state.currentRoom.testText.title} (
+                  {state.currentRoom.testText.wordCount} words)
+                </p>
+              )}
+            </div>
+          )}
+
+          {isFinished && (
+            <div className="bg-accent/15 border border-accent/30 rounded-xl p-6 text-center space-y-2">
+              <Trophy className="size-8 text-accent mx-auto" />
+              <h2 className="text-lg font-semibold">Race complete</h2>
+              <p className="text-sm text-text/50">
+                Results saved to the room standings.
+              </p>
+            </div>
+          )}
+
+          <section className="bg-accent/10 rounded-xl p-4 space-y-2">
+            <h2 className="text-sm font-semibold text-text/70 px-1">Racers</h2>
+            <ul className="space-y-2">
+              {ranked.map((p, i) => (
+                <li
+                  key={p.userId}
+                  className={cn(
+                    'rounded-lg px-3 py-2 bg-primary/40',
+                    p.userId === user.id &&
+                      !isSpectator &&
+                      'ring-1 ring-accent/50'
+                  )}
+                >
+                  <div className="flex items-center justify-between gap-2 text-sm mb-1.5">
+                    <span className="font-medium flex items-center gap-1.5">
+                      <span className="text-text/40 font-mono w-5">
+                        {i + 1}
+                      </span>
+                      {p.username}
+                      {p.userId === state.currentRoom?.hostId && (
+                        <Crown className="size-3.5 text-accent" />
+                      )}
+                      {p.finished && (
+                        <span className="text-[10px] uppercase text-accent">
+                          done
+                        </span>
+                      )}
+                    </span>
+                    <span className="font-mono text-accent text-xs">
+                      {Math.round(p.wpm)} wpm · {Math.round(p.accuracy)}%
+                    </span>
+                  </div>
+                  <div className="h-1.5 rounded-full bg-accent/15 overflow-hidden">
+                    <div
+                      className="h-full bg-accent transition-all duration-200"
+                      style={{ width: `${Math.min(100, p.progress)}%` }}
+                    />
+                  </div>
+                </li>
+              ))}
+              {ranked.length === 0 && (
+                <li className="text-sm text-text/40 px-1 py-4 text-center">
+                  No racers yet
+                </li>
+              )}
+            </ul>
+            {spectators.length > 0 && (
+              <div className="pt-2 border-t border-accent/15">
+                <p className="text-xs text-text/40 px-1 mb-1.5 flex items-center gap-1">
+                  <Eye className="size-3" />
+                  Spectators ({spectators.length})
+                </p>
+                <p className="text-xs text-text/60 px-1">
+                  {spectators.map((s) => s.username).join(', ')}
+                </p>
+              </div>
+            )}
+          </section>
+        </div>
+
+        <RaceChat
+          messages={state.chat}
+          onSend={actions.sendChat}
+          disabled={!state.isInRoom}
+        />
+      </div>
     </div>
   );
 };

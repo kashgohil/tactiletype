@@ -5,6 +5,7 @@ import type {
 } from '@tactile/types';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type {
+  ChatMessageData,
   ParticipantFinishedData,
   ParticipantJoinedData,
   ParticipantLeftData,
@@ -35,31 +36,32 @@ export interface MultiplayerRoom {
     errors: number;
     finished: boolean;
   }>;
+  spectators: Array<{ userId: string; username: string }>;
 }
 
 export interface MultiplayerState {
-  // Connection state
   connectionStatus: WebSocketStatus;
   isConnected: boolean;
-
-  // Room state
   currentRoom: MultiplayerRoom | null;
   isInRoom: boolean;
   isHost: boolean;
-
-  // Race state
+  role: 'racer' | 'spectator' | null;
   raceStatus: 'waiting' | 'countdown' | 'active' | 'finished';
   countdown: number | null;
   raceStartTime: number | null;
-
-  // Error state
+  chat: ChatMessageData[];
   error: string | null;
 }
 
 export interface MultiplayerActions {
   connect: (token: string) => Promise<void>;
   disconnect: () => void;
-  joinRoom: (roomId: string, userId: string, username: string) => void;
+  joinRoom: (
+    roomId: string,
+    userId: string,
+    username: string,
+    spectate?: boolean
+  ) => void;
   leaveRoom: () => void;
   startRace: () => void;
   sendTypingProgress: (
@@ -68,6 +70,7 @@ export interface MultiplayerActions {
     accuracy: number,
     errors: number
   ) => void;
+  sendChat: (text: string) => void;
   clearError: () => void;
 }
 
@@ -81,16 +84,17 @@ export const useMultiplayer = (
     currentRoom: null,
     isInRoom: false,
     isHost: false,
+    role: null,
     raceStatus: 'waiting',
     countdown: null,
     raceStartTime: null,
+    chat: [],
     error: null,
   });
 
   const currentRoomRef = useRef<MultiplayerRoom | null>(null);
   const userIdRef = useRef<string | undefined>(userId);
 
-  // Update refs when props change
   useEffect(() => {
     userIdRef.current = userId;
   }, [userId]);
@@ -99,7 +103,6 @@ export const useMultiplayer = (
     currentRoomRef.current = state.currentRoom;
   }, [state.currentRoom]);
 
-  // WebSocket event handlers
   const handleStatusChange = useCallback((status: WebSocketStatus) => {
     setState((prev) => ({
       ...prev,
@@ -110,27 +113,30 @@ export const useMultiplayer = (
   }, []);
 
   const handleRoomJoined = useCallback((data: RoomJoinedData) => {
-    if (data.room) {
-      const room: MultiplayerRoom = {
-        id: data.room.id,
-        name: data.room.name,
-        status: data.room.status as MultiplayerRoom['status'],
-        hostId: data.room.hostId,
-        testText: data.room.testText,
-        participants: data.room.participants,
-      };
+    const joined = data.room;
+    if (!joined) return;
+    const room: MultiplayerRoom = {
+      id: joined.id,
+      name: joined.name,
+      status: joined.status as MultiplayerRoom['status'],
+      hostId: joined.hostId,
+      testText: joined.testText,
+      participants: joined.participants,
+      spectators: joined.spectators ?? [],
+    };
 
-      setState((prev) => ({
-        ...prev,
-        currentRoom: room,
-        isInRoom: true,
-        isHost: room.hostId
-          ? room.hostId === userIdRef.current
-          : room.participants[0]?.userId === userIdRef.current,
-        raceStatus: room.status as MultiplayerState['raceStatus'],
-        error: null,
-      }));
-    }
+    setState((prev) => ({
+      ...prev,
+      currentRoom: room,
+      isInRoom: true,
+      role: data.role ?? 'racer',
+      isHost: room.hostId
+        ? room.hostId === userIdRef.current
+        : room.participants[0]?.userId === userIdRef.current,
+      raceStatus: room.status as MultiplayerState['raceStatus'],
+      chat: joined.chat ?? [],
+      error: null,
+    }));
   }, []);
 
   const handleRoomLeft = useCallback((data: RoomLeftData) => {
@@ -139,9 +145,11 @@ export const useMultiplayer = (
       currentRoom: null,
       isInRoom: false,
       isHost: false,
+      role: null,
       raceStatus: 'waiting',
       countdown: null,
       raceStartTime: null,
+      chat: [],
       error: data.reason ? `Left room: ${data.reason}` : null,
     }));
   }, []);
@@ -151,6 +159,11 @@ export const useMultiplayer = (
       setState((prev) => {
         const hostId =
           (data.room as { hostId?: string }).hostId ?? prev.currentRoom?.hostId;
+        const spectators =
+          (data.room as { spectators?: MultiplayerRoom['spectators'] })
+            .spectators ??
+          prev.currentRoom?.spectators ??
+          [];
         const room: MultiplayerRoom = {
           id: data.room.id,
           name: data.room.name,
@@ -158,6 +171,7 @@ export const useMultiplayer = (
           hostId,
           testText: prev.currentRoom?.testText,
           participants: data.room.participants,
+          spectators,
         };
         return {
           ...prev,
@@ -172,24 +186,15 @@ export const useMultiplayer = (
   const handleParticipantJoined = useCallback((data: ParticipantJoinedData) => {
     setState((prev) => {
       if (!prev.currentRoom) return prev;
-
-      const updatedParticipants = [...prev.currentRoom.participants];
-      const existingIndex = updatedParticipants.findIndex(
+      const updated = [...prev.currentRoom.participants];
+      const idx = updated.findIndex(
         (p) => p.userId === data.participant.userId
       );
-
-      if (existingIndex >= 0) {
-        updatedParticipants[existingIndex] = data.participant;
-      } else {
-        updatedParticipants.push(data.participant);
-      }
-
+      if (idx >= 0) updated[idx] = data.participant;
+      else updated.push(data.participant);
       return {
         ...prev,
-        currentRoom: {
-          ...prev.currentRoom,
-          participants: updatedParticipants,
-        },
+        currentRoom: { ...prev.currentRoom, participants: updated },
       };
     });
   }, []);
@@ -197,13 +202,15 @@ export const useMultiplayer = (
   const handleParticipantLeft = useCallback((data: ParticipantLeftData) => {
     setState((prev) => {
       if (!prev.currentRoom) return prev;
-
       return {
         ...prev,
         currentRoom: {
           ...prev.currentRoom,
           participants: prev.currentRoom.participants.filter(
             (p) => p.userId !== data.userId
+          ),
+          spectators: prev.currentRoom.spectators.filter(
+            (s) => s.userId !== data.userId
           ),
         },
       };
@@ -239,18 +246,50 @@ export const useMultiplayer = (
     (data: ParticipantFinishedData) => {
       setState((prev) => {
         if (!prev.currentRoom) return prev;
-
-        const updatedParticipants = prev.currentRoom.participants.map((p) =>
-          p.userId === data.userId
-            ? { ...p, finished: true, wpm: data.wpm, accuracy: data.accuracy }
-            : p
-        );
-
         return {
           ...prev,
           currentRoom: {
             ...prev.currentRoom,
-            participants: updatedParticipants,
+            participants: prev.currentRoom.participants.map((p) =>
+              p.userId === data.userId
+                ? {
+                    ...p,
+                    finished: true,
+                    wpm: data.wpm,
+                    accuracy: data.accuracy,
+                  }
+                : p
+            ),
+          },
+        };
+      });
+    },
+    []
+  );
+
+  const handleChatMessage = useCallback(
+    (data: { message: ChatMessageData }) => {
+      setState((prev) => ({
+        ...prev,
+        chat: [...prev.chat, data.message].slice(-100),
+      }));
+    },
+    []
+  );
+
+  const handleSpectatorJoined = useCallback(
+    (data: { spectator: { userId: string; username: string } }) => {
+      setState((prev) => {
+        if (!prev.currentRoom) return prev;
+        const exists = prev.currentRoom.spectators.some(
+          (s) => s.userId === data.spectator.userId
+        );
+        if (exists) return prev;
+        return {
+          ...prev,
+          currentRoom: {
+            ...prev.currentRoom,
+            spectators: [...prev.currentRoom.spectators, data.spectator],
           },
         };
       });
@@ -259,13 +298,9 @@ export const useMultiplayer = (
   );
 
   const handleError = useCallback((error: string) => {
-    setState((prev) => ({
-      ...prev,
-      error,
-    }));
+    setState((prev) => ({ ...prev, error }));
   }, []);
 
-  // Set up WebSocket event handlers
   useEffect(() => {
     ws.setEventHandlers({
       onStatusChange: handleStatusChange,
@@ -278,6 +313,8 @@ export const useMultiplayer = (
       onRaceStarted: handleRaceStarted,
       onRaceFinished: handleRaceFinished,
       onParticipantFinished: handleParticipantFinished,
+      onChatMessage: handleChatMessage,
+      onSpectatorJoined: handleSpectatorJoined,
       onError: handleError,
     });
   }, [
@@ -292,10 +329,11 @@ export const useMultiplayer = (
     handleRaceStarted,
     handleRaceFinished,
     handleParticipantFinished,
+    handleChatMessage,
+    handleSpectatorJoined,
     handleError,
   ]);
 
-  // Actions
   const connect = useCallback(
     async (token: string) => {
       try {
@@ -315,16 +353,17 @@ export const useMultiplayer = (
   }, [ws]);
 
   const joinRoom = useCallback(
-    (roomId: string, userId: string, username: string) => {
+    (
+      roomId: string,
+      userId: string,
+      username: string,
+      spectate = false
+    ) => {
       if (!ws.isConnected()) {
-        setState((prev) => ({
-          ...prev,
-          error: 'Not connected to server',
-        }));
+        setState((prev) => ({ ...prev, error: 'Not connected to server' }));
         return;
       }
-
-      ws.joinRoom(roomId, userId, username);
+      ws.joinRoom(roomId, userId, username, spectate);
     },
     [ws]
   );
@@ -341,7 +380,6 @@ export const useMultiplayer = (
       }));
       return;
     }
-
     ws.startRace();
   }, [ws, state.isHost]);
 
@@ -349,9 +387,7 @@ export const useMultiplayer = (
     (progress: number, wpm: number, accuracy: number, errors: number) => {
       const currentRoom = currentRoomRef.current;
       const currentUserId = userIdRef.current;
-
       if (!currentRoom || !currentUserId) return;
-
       ws.sendTypingProgress(
         currentRoom.id,
         currentUserId,
@@ -364,22 +400,30 @@ export const useMultiplayer = (
     [ws]
   );
 
+  const sendChat = useCallback(
+    (text: string) => {
+      const currentRoom = currentRoomRef.current;
+      if (!currentRoom || !text.trim()) return;
+      ws.sendChat(currentRoom.id, text.trim());
+    },
+    [ws]
+  );
+
   const clearError = useCallback(() => {
-    setState((prev) => ({
-      ...prev,
-      error: null,
-    }));
+    setState((prev) => ({ ...prev, error: null }));
   }, []);
 
-  const actions: MultiplayerActions = {
-    connect,
-    disconnect,
-    joinRoom,
-    leaveRoom,
-    startRace,
-    sendTypingProgress,
-    clearError,
-  };
-
-  return [state, actions];
+  return [
+    state,
+    {
+      connect,
+      disconnect,
+      joinRoom,
+      leaveRoom,
+      startRace,
+      sendTypingProgress,
+      sendChat,
+      clearError,
+    },
+  ];
 };

@@ -6,7 +6,7 @@ import {
   users,
 } from '@tactile/database';
 import { zValidator } from '@hono/zod-validator';
-import { and, desc, eq } from 'drizzle-orm';
+import { and, desc, eq, inArray } from 'drizzle-orm';
 import { Hono } from 'hono';
 import { z } from 'zod';
 import { authMiddleware } from '../middleware/auth';
@@ -125,6 +125,8 @@ multiplayerRoutes.get('/rooms', async (c) => {
     const page = parseInt(c.req.query('page') || '1');
     const limit = Math.min(parseInt(c.req.query('limit') || '20'), 50);
     const offset = (page - 1) * limit;
+    // waiting | active | all — active rooms can be spectated
+    const statusFilter = c.req.query('status') || 'waiting';
 
     const rooms = await db
       .select({
@@ -143,7 +145,13 @@ multiplayerRoutes.get('/rooms', async (c) => {
       .from(multiplayerRooms)
       .leftJoin(users, eq(multiplayerRooms.hostId, users.id))
       .leftJoin(testTexts, eq(multiplayerRooms.testTextId, testTexts.id))
-      .where(eq(multiplayerRooms.status, 'waiting'))
+      .where(
+        statusFilter === 'live'
+          ? inArray(multiplayerRooms.status, ['waiting', 'active'])
+          : statusFilter === 'active'
+            ? eq(multiplayerRooms.status, 'active')
+            : eq(multiplayerRooms.status, 'waiting')
+      )
       .orderBy(desc(multiplayerRooms.createdAt))
       .limit(limit)
       .offset(offset);
@@ -289,6 +297,8 @@ multiplayerRoutes.post('/rooms/:roomId/join', authMiddleware, async (c) => {
   try {
     const user = c.get('user');
     const roomId = c.req.param('roomId');
+    const body = await c.req.json().catch(() => ({}));
+    const spectate = !!(body as { spectate?: boolean }).spectate;
 
     const [room] = await db
       .select()
@@ -300,35 +310,44 @@ multiplayerRoutes.post('/rooms/:roomId/join', authMiddleware, async (c) => {
       return c.json({ error: 'Room not found' }, 404);
     }
 
-    if (room.status !== 'waiting') {
-      return c.json({ error: 'Room is not accepting new players' }, 400);
+    // Spectators can join active/finished rooms; racers only waiting
+    if (!spectate && room.status !== 'waiting') {
+      return c.json(
+        {
+          error: 'Race already in progress — join as spectator',
+          canSpectate: true,
+        },
+        400
+      );
     }
 
-    const existing = await db
-      .select()
-      .from(roomParticipants)
-      .where(
-        and(
-          eq(roomParticipants.roomId, roomId),
-          eq(roomParticipants.userId, user.userId)
-        )
-      )
-      .limit(1);
-
-    if (existing.length === 0) {
-      const current = await db
+    if (!spectate) {
+      const existing = await db
         .select()
         .from(roomParticipants)
-        .where(eq(roomParticipants.roomId, roomId));
+        .where(
+          and(
+            eq(roomParticipants.roomId, roomId),
+            eq(roomParticipants.userId, user.userId)
+          )
+        )
+        .limit(1);
 
-      if (current.length >= (room.maxPlayers || 10)) {
-        return c.json({ error: 'Room is full' }, 400);
+      if (existing.length === 0) {
+        const current = await db
+          .select()
+          .from(roomParticipants)
+          .where(eq(roomParticipants.roomId, roomId));
+
+        if (current.length >= (room.maxPlayers || 10)) {
+          return c.json({ error: 'Room is full' }, 400);
+        }
+
+        await db.insert(roomParticipants).values({
+          roomId,
+          userId: user.userId,
+        });
       }
-
-      await db.insert(roomParticipants).values({
-        roomId,
-        userId: user.userId,
-      });
     }
 
     multiplayerHub.createRoom(
@@ -339,7 +358,10 @@ multiplayerRoutes.post('/rooms/:roomId/join', authMiddleware, async (c) => {
       room.maxPlayers ?? 10
     );
 
-    return c.json({ message: 'Joined room successfully' });
+    return c.json({
+      message: spectate ? 'Spectating room' : 'Joined room successfully',
+      role: spectate ? 'spectator' : 'racer',
+    });
   } catch (error) {
     console.error('Join room error:', error);
     return c.json({ error: 'Failed to join room' }, 500);

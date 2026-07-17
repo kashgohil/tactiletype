@@ -6,11 +6,13 @@ import { multiplayerApi } from '../../services/multiplayerApi';
 
 interface RoomBrowserProps {
   onJoinRoom: (roomId: string) => void;
+  onSpectateRoom?: (roomId: string) => void;
   onCreateRoom: () => void;
 }
 
 export const RoomBrowser: React.FC<RoomBrowserProps> = ({
   onJoinRoom,
+  onSpectateRoom,
   onCreateRoom,
 }) => {
   const [rooms, setRooms] = useState<MultiplayerRoomWithDetails[]>([]);
@@ -21,7 +23,8 @@ export const RoomBrowser: React.FC<RoomBrowserProps> = ({
     try {
       setLoading(true);
       setError(null);
-      const response = await multiplayerApi.getRooms(1, 30);
+      // waiting + active so users can join or spectate
+      const response = await multiplayerApi.getRooms(1, 30, 'live');
       setRooms(response.rooms ?? []);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to load rooms');
@@ -97,9 +100,23 @@ export const RoomBrowser: React.FC<RoomBrowserProps> = ({
                   {room.testText?.difficulty ?? 'medium'}
                 </span>
               </p>
-              <Button size="sm" className="self-start" onClick={() => onJoinRoom(room.id)}>
-                Join
-              </Button>
+              <div className="flex gap-2 self-start">
+                {room.status === 'waiting' || !room.status ? (
+                  <Button size="sm" onClick={() => onJoinRoom(room.id)}>
+                    Join
+                  </Button>
+                ) : null}
+                {(room.status === 'active' || room.status === 'waiting') &&
+                  onSpectateRoom && (
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => onSpectateRoom(room.id)}
+                    >
+                      Spectate
+                    </Button>
+                  )}
+              </div>
             </li>
           ))}
         </ul>

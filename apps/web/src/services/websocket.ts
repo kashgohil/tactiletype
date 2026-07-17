@@ -9,8 +9,18 @@ import type {
 
 export type WebSocketStatus = 'connecting' | 'connected' | 'disconnected' | 'error';
 
+export interface ChatMessageData {
+  id: string;
+  userId: string;
+  username: string;
+  text: string;
+  at: number;
+  role?: 'racer' | 'spectator';
+}
+
 export interface RoomJoinedData {
   roomId: string;
+  role?: 'racer' | 'spectator';
   room: {
     id: string;
     name: string;
@@ -33,6 +43,8 @@ export interface RoomJoinedData {
       errors: number;
       finished: boolean;
     }>;
+    spectators?: Array<{ userId: string; username: string }>;
+    chat?: ChatMessageData[];
   } | null;
 }
 
@@ -79,6 +91,10 @@ export interface WebSocketEventHandlers {
   onRaceStarted?: (data: RaceStartedMessage['data']) => void;
   onRaceFinished?: (data: RaceFinishedData) => void;
   onParticipantFinished?: (data: ParticipantFinishedData) => void;
+  onChatMessage?: (data: { message: ChatMessageData }) => void;
+  onSpectatorJoined?: (data: {
+    spectator: { userId: string; username: string };
+  }) => void;
   onError?: (error: string) => void;
 }
 
@@ -209,7 +225,12 @@ export class WebSocketService {
   }
 
   // Room management
-  joinRoom(roomId: string, userId: string, username: string): void {
+  joinRoom(
+    roomId: string,
+    userId: string,
+    username: string,
+    spectate = false
+  ): void {
     if (!this.isAuthenticated) {
       console.error('Cannot join room: not authenticated');
       return;
@@ -217,11 +238,19 @@ export class WebSocketService {
 
     const message: JoinRoomMessage = {
       type: 'join_room',
-      data: { roomId, userId, username },
+      data: { roomId, userId, username, spectate },
       timestamp: Date.now(),
     };
 
     this.sendMessage(message);
+  }
+
+  sendChat(roomId: string, text: string): void {
+    this.sendMessage({
+      type: 'chat_message',
+      data: { roomId, text },
+      timestamp: Date.now(),
+    });
   }
 
   leaveRoom(): void {
@@ -300,6 +329,14 @@ export class WebSocketService {
 
       case 'participant_finished':
         this.handlers.onParticipantFinished?.(message.data);
+        break;
+
+      case 'chat_message':
+        this.handlers.onChatMessage?.(message.data);
+        break;
+
+      case 'spectator_joined':
+        this.handlers.onSpectatorJoined?.(message.data);
         break;
 
       case 'error':

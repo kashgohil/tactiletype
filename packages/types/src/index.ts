@@ -221,6 +221,7 @@ export interface JoinRoomMessage extends WSMessage {
     roomId: string;
     userId: string;
     username: string;
+    spectate?: boolean;
   };
 }
 

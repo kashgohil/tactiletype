@@ -44,6 +44,24 @@ export const Multiplayer: React.FC = () => {
     }
   };
 
+  const handleSpectateRoom = async (roomId: string) => {
+    if (!user) return;
+    setActionError(null);
+    try {
+      await multiplayerApi.joinRoom(roomId, { spectate: true });
+      multiplayerActions.joinRoom(roomId, user.id, user.username, true);
+      navigate({
+        to: '/multiplayer/room/$roomId',
+        params: { roomId },
+        search: { spectate: '1' } as never,
+      });
+    } catch (error) {
+      setActionError(
+        error instanceof Error ? error.message : 'Failed to spectate'
+      );
+    }
+  };
+
   const handleRoomCreated = async (roomId: string) => {
     if (!user) return;
     setActionError(null);
@@ -137,6 +155,7 @@ export const Multiplayer: React.FC = () => {
       {multiplayerState.isConnected ? (
         <RoomBrowser
           onJoinRoom={handleJoinRoom}
+          onSpectateRoom={handleSpectateRoom}
           onCreateRoom={() => setShowCreateModal(true)}
         />
       ) : (

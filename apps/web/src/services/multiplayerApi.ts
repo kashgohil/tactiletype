@@ -105,10 +105,15 @@ class MultiplayerApiService {
     return result.data;
   }
 
-  async getRooms(page = 1, limit = 20): Promise<GetRoomsResponse> {
+  async getRooms(
+    page = 1,
+    limit = 20,
+    status: 'waiting' | 'active' | 'live' = 'waiting'
+  ): Promise<GetRoomsResponse> {
     const params = new URLSearchParams({
       page: String(page),
       limit: String(limit),
+      status,
     });
     const response = await fetch(
       `${VITE_API_URL}/api/multiplayer/rooms?${params}`,
@@ -127,12 +132,21 @@ class MultiplayerApiService {
     return result.data;
   }
 
-  async joinRoom(roomId: string): Promise<void> {
+  async joinRoom(
+    roomId: string,
+    options?: { spectate?: boolean }
+  ): Promise<{ role: 'racer' | 'spectator' }> {
     const response = await fetch(
       `${VITE_API_URL}/api/multiplayer/rooms/${roomId}/join`,
-      { method: 'POST', headers: authHeaders(), credentials: 'include' }
+      {
+        method: 'POST',
+        headers: authHeaders(),
+        credentials: 'include',
+        body: JSON.stringify({ spectate: !!options?.spectate }),
+      }
     );
-    await handle(response);
+    const result = await handle<{ role?: 'racer' | 'spectator' }>(response);
+    return { role: result.role ?? (options?.spectate ? 'spectator' : 'racer') };
   }
 
   async leaveRoom(roomId: string): Promise<void> {

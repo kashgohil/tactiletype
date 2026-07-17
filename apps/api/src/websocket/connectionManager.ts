@@ -1,23 +1,49 @@
 import type {
+  ChatMessage,
   ParticipantState,
+  RoomRole,
   RoomState,
   SocketLike,
+  SpectatorState,
   WSConnection,
   WSMessage,
 } from './types';
 
 const OPEN = 1;
+const MAX_CHAT = 100;
 
 function canSend(socket: SocketLike): boolean {
   if (socket.readyState === undefined) return true;
   return socket.readyState === OPEN;
 }
 
+export type RaceFinishCallback = (
+  roomId: string,
+  results: Array<{
+    userId: string;
+    wpm: number;
+    accuracy: number;
+    finishedAt: number | null;
+  }>
+) => void | Promise<void>;
+
+export type RaceStartCallback = (roomId: string) => void | Promise<void>;
+
 export class ConnectionManager {
   private connections = new Map<string, WSConnection>();
   private rooms = new Map<string, RoomState>();
   private userConnections = new Map<string, string>();
   private roomConnections = new Map<string, Set<string>>();
+  private onRaceFinish: RaceFinishCallback | null = null;
+  private onRaceStart: RaceStartCallback | null = null;
+
+  setRaceFinishHandler(cb: RaceFinishCallback) {
+    this.onRaceFinish = cb;
+  }
+
+  setRaceStartHandler(cb: RaceStartCallback) {
+    this.onRaceStart = cb;
+  }
 
   addConnection(connectionId: string, socket: SocketLike): WSConnection {
     const connection: WSConnection = {
@@ -84,6 +110,8 @@ export class ConnectionManager {
       maxPlayers,
       status: 'waiting',
       participants: new Map(),
+      spectators: new Map(),
+      chat: [],
       createdAt: Date.now(),
     };
     this.rooms.set(roomId, room);
@@ -95,49 +123,48 @@ export class ConnectionManager {
     return this.rooms.get(roomId);
   }
 
-  ensureRoom(
-    roomId: string,
-    meta: {
-      name: string;
-      hostId: string;
-      testTextId: string;
-      maxPlayers: number;
-    }
-  ): RoomState {
-    return (
-      this.rooms.get(roomId) ??
-      this.createRoom(
-        roomId,
-        meta.name,
-        meta.hostId,
-        meta.testTextId,
-        meta.maxPlayers
-      )
-    );
-  }
-
   joinRoom(
     connectionId: string,
     roomId: string,
     userId: string,
-    username: string
-  ): boolean {
+    username: string,
+    spectate = false
+  ): { ok: boolean; role?: RoomRole; error?: string } {
     const connection = this.connections.get(connectionId);
     const room = this.rooms.get(roomId);
 
-    if (!connection || !room || !connection.userId) return false;
-    if (room.participants.size >= room.maxPlayers) return false;
-    if (room.status === 'active' || room.status === 'finished') return false;
+    if (!connection || !room || !connection.userId) {
+      return { ok: false, error: 'Not ready' };
+    }
 
-    // Re-join / reconnect
+    // Force spectator if race already running / finished
+    const mustSpectate =
+      spectate || room.status === 'active' || room.status === 'finished';
+
+    if (mustSpectate) {
+      return this.joinAsSpectator(connectionId, roomId, userId, username);
+    }
+
+    if (room.status !== 'waiting' && room.status !== 'countdown') {
+      return { ok: false, error: 'Race already started — join as spectator' };
+    }
+
+    if (room.participants.size >= room.maxPlayers && !room.participants.has(userId)) {
+      return { ok: false, error: 'Room is full' };
+    }
+
+    // Leave spectator seat if re-joining as racer
+    room.spectators.delete(userId);
+
     const existing = room.participants.get(userId);
     if (existing) {
       existing.connectionId = connectionId;
       existing.username = username;
       connection.roomId = roomId;
+      connection.role = 'racer';
       this.roomConnections.get(roomId)?.add(connectionId);
       this.broadcastRoomUpdate(roomId);
-      return true;
+      return { ok: true, role: 'racer' };
     }
 
     const participant: ParticipantState = {
@@ -154,6 +181,7 @@ export class ConnectionManager {
 
     room.participants.set(userId, participant);
     connection.roomId = roomId;
+    connection.role = 'racer';
 
     let roomConnections = this.roomConnections.get(roomId);
     if (!roomConnections) {
@@ -168,7 +196,52 @@ export class ConnectionManager {
       timestamp: Date.now(),
     });
     this.broadcastRoomUpdate(roomId);
-    return true;
+    return { ok: true, role: 'racer' };
+  }
+
+  private joinAsSpectator(
+    connectionId: string,
+    roomId: string,
+    userId: string,
+    username: string
+  ): { ok: boolean; role?: RoomRole; error?: string } {
+    const connection = this.connections.get(connectionId);
+    const room = this.rooms.get(roomId);
+    if (!connection || !room) return { ok: false, error: 'Room not found' };
+
+    // If they were a racer mid-waiting, remove from racers when spectating intentionally
+    // (only if race not active - during active they stay as racer)
+    if (room.status === 'waiting' && room.participants.has(userId)) {
+      // keep as racer instead
+      return this.joinRoom(connectionId, roomId, userId, username, false);
+    }
+
+    const spectator: SpectatorState = {
+      userId,
+      username,
+      connectionId,
+      joinedAt: Date.now(),
+    };
+    room.spectators.set(userId, spectator);
+    connection.roomId = roomId;
+    connection.role = 'spectator';
+
+    let roomConnections = this.roomConnections.get(roomId);
+    if (!roomConnections) {
+      roomConnections = new Set();
+      this.roomConnections.set(roomId, roomConnections);
+    }
+    roomConnections.add(connectionId);
+
+    this.broadcastToRoom(roomId, {
+      type: 'spectator_joined',
+      data: {
+        spectator: { userId, username },
+      },
+      timestamp: Date.now(),
+    });
+    this.broadcastRoomUpdate(roomId);
+    return { ok: true, role: 'spectator' };
   }
 
   leaveRoom(connectionId: string, roomId: string): boolean {
@@ -177,15 +250,20 @@ export class ConnectionManager {
     if (!connection || !room || !connection.userId) return false;
 
     const userId = connection.userId;
+    const wasRacer = room.participants.has(userId);
     room.participants.delete(userId);
+    room.spectators.delete(userId);
     connection.roomId = undefined;
+    connection.role = undefined;
     this.roomConnections.get(roomId)?.delete(connectionId);
 
-    if (room.participants.size === 0) {
+    if (
+      room.participants.size === 0 &&
+      room.spectators.size === 0
+    ) {
       this.cleanupRoom(roomId);
     } else {
-      // Transfer host if needed
-      if (userId === room.hostId) {
+      if (wasRacer && userId === room.hostId) {
         const next = room.participants.values().next().value as
           | ParticipantState
           | undefined;
@@ -201,7 +279,41 @@ export class ConnectionManager {
     return true;
   }
 
-  /** Allow solo practice races (1+ players) for polish UX. */
+  addChatMessage(
+    connectionId: string,
+    text: string
+  ): ChatMessage | null {
+    const connection = this.connections.get(connectionId);
+    if (!connection?.roomId || !connection.userId || !connection.username) {
+      return null;
+    }
+    const room = this.rooms.get(connection.roomId);
+    if (!room) return null;
+
+    const cleaned = text.trim().slice(0, 500);
+    if (!cleaned) return null;
+
+    const msg: ChatMessage = {
+      id: `chat_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`,
+      userId: connection.userId,
+      username: connection.username,
+      text: cleaned,
+      at: Date.now(),
+      role: connection.role ?? 'racer',
+    };
+    room.chat.push(msg);
+    if (room.chat.length > MAX_CHAT) {
+      room.chat = room.chat.slice(-MAX_CHAT);
+    }
+
+    this.broadcastToRoom(connection.roomId, {
+      type: 'chat_message',
+      data: { message: msg },
+      timestamp: Date.now(),
+    });
+    return msg;
+  }
+
   startRaceCountdown(roomId: string): boolean {
     const room = this.rooms.get(roomId);
     if (!room || room.status !== 'waiting' || room.participants.size < 1) {
@@ -225,7 +337,6 @@ export class ConnectionManager {
         setTimeout(tick, 1000);
       }
     };
-    // Immediate first tick
     tick();
     return true;
   }
@@ -237,7 +348,6 @@ export class ConnectionManager {
     room.status = 'active';
     room.startTime = Date.now();
 
-    // Reset progress
     for (const p of room.participants.values()) {
       p.progress = 0;
       p.wpm = 0;
@@ -246,6 +356,8 @@ export class ConnectionManager {
       p.finished = false;
       p.finishedAt = undefined;
     }
+
+    void this.onRaceStart?.(roomId);
 
     this.broadcastToRoom(roomId, {
       type: 'race_started',
@@ -264,6 +376,7 @@ export class ConnectionManager {
   ): boolean {
     const connection = this.connections.get(connectionId);
     if (!connection?.roomId || !connection.userId) return false;
+    if (connection.role === 'spectator') return false;
 
     const room = this.rooms.get(connection.roomId);
     if (!room || room.status !== 'active') return false;
@@ -291,6 +404,16 @@ export class ConnectionManager {
         timestamp: Date.now(),
       });
 
+      // Persist individual finish early
+      void this.onRaceFinish?.(connection.roomId, [
+        {
+          userId: connection.userId,
+          wpm: participant.wpm,
+          accuracy: participant.accuracy,
+          finishedAt: participant.finishedAt,
+        },
+      ]);
+
       const allFinished = Array.from(room.participants.values()).every(
         (p) => p.finished
       );
@@ -305,16 +428,26 @@ export class ConnectionManager {
     const room = this.rooms.get(roomId);
     if (!room) return;
     room.status = 'finished';
+
+    const results = Array.from(room.participants.values()).map((p) => ({
+      userId: p.userId,
+      wpm: p.wpm,
+      accuracy: p.accuracy,
+      finishedAt: p.finishedAt ?? null,
+    }));
+
+    void this.onRaceFinish?.(roomId, results);
+
     this.broadcastToRoom(roomId, {
       type: 'race_finished',
-      data: { roomId },
+      data: { roomId, results },
       timestamp: Date.now(),
     });
-    // Keep room for results; auto-cleanup later
+
     setTimeout(() => {
       const r = this.rooms.get(roomId);
       if (r?.status === 'finished') this.cleanupRoom(roomId);
-    }, 60_000);
+    }, 120_000);
   }
 
   broadcastToRoom(roomId: string, message: WSMessage): void {
@@ -327,7 +460,7 @@ export class ConnectionManager {
         try {
           connection.socket.send(messageStr);
         } catch {
-          // ignore dead sockets
+          // ignore
         }
       }
     }
@@ -347,6 +480,10 @@ export class ConnectionManager {
           participants: Array.from(room.participants.values()).map((p) =>
             this.serializeParticipant(p)
           ),
+          spectators: Array.from(room.spectators.values()).map((s) => ({
+            userId: s.userId,
+            username: s.username,
+          })),
         },
       },
       timestamp: Date.now(),
@@ -383,6 +520,7 @@ export class ConnectionManager {
         const connection = this.connections.get(connectionId);
         if (connection) {
           connection.roomId = undefined;
+          connection.role = undefined;
           this.sendToConnection(connectionId, {
             type: 'room_left',
             data: { roomId, reason: 'Room closed' },
