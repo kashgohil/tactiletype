@@ -106,11 +106,49 @@ export const testResultsApi = {
   },
 };
 
+export interface UserProfileData {
+  userId: string;
+  displayName?: string | null;
+  bio?: string | null;
+  country?: string | null;
+  keyboard?: string | null;
+  preferredLanguage?: string | null;
+  isPublic?: boolean | null;
+}
+
+export interface UpdateProfilePayload {
+  displayName?: string;
+  bio?: string;
+  country?: string;
+  keyboard?: string;
+  preferredLanguage?: string;
+  isPublic?: boolean;
+}
+
 // Users API
 export const usersApi = {
   getUserStats: async () => {
     const response = await api.get('/api/users/stats');
     return response.data.stats as UserStats | null;
+  },
+
+  getProfile: async () => {
+    const response = await api.get('/api/users/profile');
+    return {
+      user: response.data.user as {
+        id: string;
+        email: string;
+        username: string;
+        createdAt: string;
+        profile?: UserProfileData | null;
+      },
+      profile: (response.data.user?.profile ?? null) as UserProfileData | null,
+    };
+  },
+
+  updateProfile: async (data: UpdateProfilePayload) => {
+    const response = await api.put('/api/users/profile', data);
+    return response.data.profile as UserProfileData;
   },
 };
 
