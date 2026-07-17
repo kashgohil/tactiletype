@@ -448,7 +448,7 @@ P3  Multiplayer polish, social graph, PWA
 [x] Phase B  Result metadata + filters/charts
 [x] Phase C  Content packs + seed pipeline
 [x] Phase D  Practice hub + weak-key drills + recommendations
-[ ] Phase E  Goals, achievements, daily challenge
+[x] Phase E  Goals, achievements, daily challenge
 [ ] Phase F  Code packs, public profiles, share cards
 [ ] Phase G  Social / multiplayer / PWA growth features
 ```
