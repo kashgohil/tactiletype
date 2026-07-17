@@ -57,18 +57,26 @@ import {
   tokenizeCodeChars,
 } from "../utils/codeHighlight";
 import { saveGuestResult } from "../utils/guestResults";
+import { computeConsistency } from "../utils/consistency";
+import { ResultsSummary } from "@/components/test/ResultsSummary";
 import {
   playCompleteChime,
   playErrorBeep,
   playKeyClick,
 } from "../utils/testSounds";
+import {
+  breakCombo,
+  emptyCombo,
+  updateComboOnWordBoundary,
+  type ComboState,
+} from "../utils/combo";
 import type { TypingState, TypingStats } from "../utils/typingEngine";
 import {
   TypingEngine,
-  formatTime,
   initializeText,
   isNonPrintingKey,
 } from "../utils/typingEngine";
+import { recordFromKeystrokes, recordKeyAttempt } from "../utils/weakKeys";
 
 type CaretBox = { x: number; y: number; w: number; h: number };
 
@@ -184,8 +192,17 @@ export const TypingTest: React.FC = () => {
     keystrokeEvents: [],
   });
   const [isTestActive, setIsTestActive] = useState(false);
+  // The idle "front door" greeting shows until the very first keystroke of the session
+  const [firstArrival, setFirstArrival] = useState(true);
   const [resultSubmitted, setResultSubmitted] = useState(false);
+  const [combo, setCombo] = useState<ComboState>(emptyCombo);
   const practiceConsumed = useRef(false);
+
+  // Personal-best + consistency, computed once per completed test
+  const [previousBest, setPreviousBest] = useState<number | null>(null);
+  const [isNewBest, setIsNewBest] = useState(false);
+  const [consistency, setConsistency] = useState(100);
+  const bestComputedRef = useRef(false);
 
   const inputRef = useRef<HTMLDivElement | null>(null);
   const [caretBox, setCaretBox] = useState<CaretBox | null>(null);
@@ -278,7 +295,9 @@ export const TypingTest: React.FC = () => {
       }
 
       const keystrokeEvents = engine.getKeystrokeEvents();
+      recordFromKeystrokes(keystrokeEvents);
       const keystrokeData = JSON.stringify(keystrokeEvents);
+
       const payload = {
         title: currentTestText.title,
         content: currentTestText.content,
@@ -348,7 +367,45 @@ export const TypingTest: React.FC = () => {
   const resetTest = useCallback(() => {
     initializeTest((engine) => engine.reset());
     setIsTestActive(false);
+    setCombo(emptyCombo());
+    setPreviousBest(null);
+    setIsNewBest(false);
+    setConsistency(100);
+    bestComputedRef.current = false;
   }, [initializeTest]);
+
+  // When a test completes: resolve the personal best + consistency exactly once
+  useEffect(() => {
+    if (!state.isComplete) {
+      bestComputedRef.current = false;
+      return;
+    }
+    if (bestComputedRef.current) return;
+    bestComputedRef.current = true;
+
+    const stored = Number(localStorage.getItem("tactile-best-wpm"));
+    const prev = Number.isFinite(stored) && stored > 0 ? stored : null;
+    setPreviousBest(prev);
+    const newBest = prev === null || stats.wpm > prev;
+    setIsNewBest(newBest);
+    if (newBest) {
+      localStorage.setItem("tactile-best-wpm", String(stats.wpm));
+    }
+    setConsistency(computeConsistency(state.keystrokeEvents));
+  }, [state.isComplete, state.keystrokeEvents, stats.wpm]);
+
+  // On the results screen, Enter starts the next test (Monkeytype muscle memory)
+  useEffect(() => {
+    if (!state.isComplete) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Enter") {
+        e.preventDefault();
+        resetTest();
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [state.isComplete, resetTest]);
 
   // Handle key press
   const handleKeyDown = useCallback(
@@ -358,17 +415,41 @@ export const TypingTest: React.FC = () => {
       e.preventDefault();
       if (!isTestActive && !isNonPrintingKey(e.key)) {
         setIsTestActive(true);
+        setFirstArrival(false);
       }
 
       const errorsBefore = engine.getState().errors.size;
+      const indexBefore = engine.getState().currentIndex;
+      const text = engine.getText();
       engine.handleKeyPress(e.key);
 
       if (e.key.length === 1) {
+        const expected = text[indexBefore];
         const errorsAfter = engine.getState().errors.size;
-        if (errorsAfter > errorsBefore) {
+        const madeError = errorsAfter > errorsBefore;
+        if (expected) {
+          recordKeyAttempt(expected, !madeError);
+        }
+        if (madeError) {
           if (prefs.errorSoundEnabled) playErrorBeep();
+          setCombo((c) => breakCombo(c));
         } else if (prefs.soundEnabled) {
           playKeyClick();
+        }
+
+        // Word boundary: space or finished text → update combo
+        const st = engine.getState();
+        const justTypedSpace = e.key === " ";
+        const finished = st.isComplete;
+        if ((justTypedSpace || finished) && !madeError) {
+          setCombo((c) =>
+            updateComboOnWordBoundary(
+              text,
+              st.currentIndex,
+              st.errors,
+              c,
+            ),
+          );
         }
       }
 
@@ -637,11 +718,44 @@ export const TypingTest: React.FC = () => {
           setTimeout(() => inputRef.current?.focus(), 50);
         }}
       />
+      <AnimatePresence>
+        {firstArrival && !isTestActive && !state.isComplete && (
+          <motion.div
+            key="front-door"
+            className="w-full max-w-2xl text-center overflow-hidden"
+            initial={
+              reducedMotion ? { opacity: 0 } : { opacity: 0, height: 0, y: -8 }
+            }
+            animate={
+              reducedMotion
+                ? { opacity: 1 }
+                : { opacity: 1, height: "auto", y: 0 }
+            }
+            exit={
+              reducedMotion
+                ? { opacity: 0 }
+                : { opacity: 0, height: 0, y: -8, marginBottom: 0 }
+            }
+            transition={uiTransition(reducedMotion, 0.4)}
+          >
+            <p className="font-mono text-xs uppercase tracking-[0.35em] text-text/40">
+              tactiletype
+            </p>
+            <h1 className="mt-3 text-display font-semibold text-text">
+              {user ? `Welcome back, ${user.username}.` : "Just start typing."}
+            </h1>
+            <p className="mt-2 text-base text-text/55 font-saira">
+              A free typing test that turns your misses into practice — the
+              passage below is live.
+            </p>
+          </motion.div>
+        )}
+      </AnimatePresence>
       <AnimatePresence mode="wait">
         {!state.isComplete ? (
           <motion.div
             key="typing-test"
-            className="bg-accent/30 rounded-lg w-full"
+            className="w-full max-w-4xl mx-auto rounded-2xl border border-accent/20 bg-accent/10 overflow-hidden shadow-sm"
             initial={panelMotion.initial}
             animate={panelMotion.animate}
             exit={panelMotion.exit}
@@ -652,7 +766,7 @@ export const TypingTest: React.FC = () => {
               }
             }}
           >
-            <div className="flex items-center justify-between p-8 rounded-lg gap-2 w-full">
+            <div className="flex items-center justify-between gap-2 px-5 py-3.5 border-b border-accent/15 w-full">
               {isTestActive ? (
                 <div className="h-9 text-xl flex items-center justify-center w-full gap-2 relative">
                   {currentMode === "timer" && state.startTime && (
@@ -667,7 +781,11 @@ export const TypingTest: React.FC = () => {
                       {engine?.getCompletedWords() || 0} / {wordsCount} words
                     </span>
                   )}
-                  <LiveStats stats={stats} hidden={prefs.hideLiveStats} />
+                  <LiveStats
+                    stats={stats}
+                    hidden={prefs.hideLiveStats}
+                    combo={combo}
+                  />
                   <div className="absolute right-0 flex items-center gap-1">
                     <TestPreferencesPanel
                       prefs={prefs}
@@ -830,7 +948,7 @@ export const TypingTest: React.FC = () => {
 
             <div
               className={cn(
-                "p-8 mt-4 mb-6 flex flex-wrap leading-relaxed font-mono select-none outline-none relative max-h-[50vh] overflow-y-auto tracking-wide focus-visible:ring-2 focus-visible:ring-accent/50 focus-visible:ring-offset-2 focus-visible:ring-offset-primary rounded-md",
+                "px-8 py-10 flex flex-wrap leading-relaxed font-mono select-none outline-none relative max-h-[50vh] overflow-y-auto tracking-wide rounded-b-2xl focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-accent/30",
                 FONT_SIZE_CLASS[prefs.fontSize],
               )}
               onKeyDown={handleKeyDown}
@@ -845,7 +963,7 @@ export const TypingTest: React.FC = () => {
             >
               <div
                 className={cn(
-                  "absolute inset-0 flex items-center justify-center text-center z-[2] pointer-events-none",
+                  "absolute inset-0 flex flex-col items-center justify-center gap-3 text-center z-[2] pointer-events-none",
                   !focused && "backdrop-blur-sm",
                   focused ? "opacity-0" : "opacity-100",
                   !reducedMotion &&
@@ -853,7 +971,17 @@ export const TypingTest: React.FC = () => {
                 )}
                 aria-hidden={focused}
               >
-                Click here to focus
+                <span
+                  className={cn(
+                    "inline-flex items-center gap-2 rounded-full border border-accent/30 bg-primary/60 px-4 py-1.5 font-saira text-sm text-text/70",
+                    !reducedMotion && "animate-pulse",
+                  )}
+                >
+                  <kbd className="rounded border border-accent/40 bg-accent/15 px-1.5 py-0.5 font-mono text-xs text-text">
+                    click
+                  </kbd>
+                  or press any key to start
+                </span>
               </div>
 
               {text()}
@@ -871,44 +999,18 @@ export const TypingTest: React.FC = () => {
           >
             <TimelineChart
               keystrokeEvents={state.keystrokeEvents}
-              height={300}
+              height={220}
             />
-            <div className="bg-accent/30 rounded-lg p-6 text-center w-full max-w-2xl">
-              <h2 className="text-2xl font-bold mb-4">Test Complete!</h2>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                <div>
-                  <div className="text-xl font-semibold">{stats.wpm}</div>
-                  <div className="text-sm">Words per minute</div>
-                </div>
-                <div>
-                  <div className="text-xl font-semibold">{stats.accuracy}%</div>
-                  <div className="text-sm">Accuracy</div>
-                </div>
-                <div>
-                  <div className="text-xl font-semibold">
-                    {stats.correctChars}
-                  </div>
-                  <div className="text-sm">Correct characters</div>
-                </div>
-                <div>
-                  <div className="text-xl font-semibold">
-                    {formatTime(stats.timeElapsed)}
-                  </div>
-                  <div className="text-sm">Time taken</div>
-                </div>
-              </div>
-              {!user && (
-                <p className="text-xs text-text/50 mt-4">
-                  Result saved on this device.{" "}
-                  <a href="/login" className="text-accent hover:underline">
-                    Log in
-                  </a>{" "}
-                  to sync to your profile.
-                </p>
-              )}
-            </div>
-
-            <Button onClick={resetTest}>Reset</Button>
+            <ResultsSummary
+              stats={stats}
+              bestCombo={combo.best}
+              consistency={consistency}
+              previousBest={previousBest}
+              isNewBest={isNewBest}
+              isGuest={!user}
+              reducedMotion={reducedMotion}
+              onRestart={resetTest}
+            />
           </motion.div>
         )}
       </AnimatePresence>
