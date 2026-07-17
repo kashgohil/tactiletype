@@ -38,8 +38,16 @@ import {
   WholeWord,
   type LucideIcon,
 } from "lucide-react";
+import { uiTransition } from "@/lib/motion";
 import { AnimatePresence, motion } from "motion/react";
-import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import React, {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import { useAuth } from "../contexts";
 import { analyticsApi } from "../services/analyticsApi";
 import type { TestText } from "../services/api";
@@ -61,6 +69,8 @@ import {
   initializeText,
   isNonPrintingKey,
 } from "../utils/typingEngine";
+
+type CaretBox = { x: number; y: number; w: number; h: number };
 
 type PracticeDrillPayload = {
   content: string;
@@ -177,7 +187,8 @@ export const TypingTest: React.FC = () => {
   const [resultSubmitted, setResultSubmitted] = useState(false);
   const practiceConsumed = useRef(false);
 
-  const inputRef = useRef<HTMLInputElement | null>(null);
+  const inputRef = useRef<HTMLDivElement | null>(null);
+  const [caretBox, setCaretBox] = useState<CaretBox | null>(null);
 
   // Initialize test with generated text (or practice drill once)
   const initializeTest = useCallback(
@@ -437,72 +448,10 @@ export const TypingTest: React.FC = () => {
       }
     }
 
-    const isCaret = state.currentIndex === index && !state.isComplete;
-    const caretTransition = smoothCaret
-      ? { type: "spring" as const, stiffness: 500, damping: 35, mass: 0.4 }
-      : { duration: 0 };
-
-    let caretNode: React.ReactNode = null;
-    if (isCaret) {
-      const base =
-        "absolute pointer-events-none z-[1] " +
-        (smoothCaret ? "" : reducedMotion ? "" : "animate-pulse ");
-      switch (prefs.caretStyle) {
-        case "block":
-          caretNode = (
-            <motion.div
-              layoutId={reducedMotion ? undefined : "cursor"}
-              transition={caretTransition}
-              className={cn(base, "inset-0 bg-accent/35 rounded-sm")}
-              aria-hidden
-            />
-          );
-          break;
-        case "underline":
-          caretNode = (
-            <motion.div
-              layoutId={reducedMotion ? undefined : "cursor"}
-              transition={caretTransition}
-              className={cn(
-                base,
-                "left-0 right-0 bottom-0 h-0.5 bg-accent",
-              )}
-              aria-hidden
-            />
-          );
-          break;
-        case "box":
-          caretNode = (
-            <motion.div
-              layoutId={reducedMotion ? undefined : "cursor"}
-              transition={caretTransition}
-              className={cn(
-                base,
-                "inset-0 border-2 border-accent rounded-sm",
-              )}
-              aria-hidden
-            />
-          );
-          break;
-        case "line":
-        default:
-          caretNode = (
-            <motion.div
-              layoutId={reducedMotion ? undefined : "cursor"}
-              transition={caretTransition}
-              className={cn(
-                base,
-                "inset-y-0 left-0 w-0.5 bg-accent",
-              )}
-              aria-hidden
-            />
-          );
-      }
-    }
-
     return (
       <span
         key={index}
+        data-char-index={index}
         className={cn(
           className,
           smoothCaret
@@ -511,7 +460,6 @@ export const TypingTest: React.FC = () => {
         )}
       >
         {char === " " ? "\u00A0" : char}
-        {caretNode}
       </span>
     );
   };
@@ -531,13 +479,132 @@ export const TypingTest: React.FC = () => {
     });
   }
 
+  // Single GPU caret: measure active char and retarget transform (not layoutId).
+  useLayoutEffect(() => {
+    if (state.isComplete || !testText) {
+      setCaretBox(null);
+      return;
+    }
+    const container = inputRef.current;
+    if (!container) return;
+
+    const measure = () => {
+      const el = container.querySelector(
+        `[data-char-index="${state.currentIndex}"]`,
+      ) as HTMLElement | null;
+      if (!el) {
+        setCaretBox(null);
+        return;
+      }
+      const cRect = container.getBoundingClientRect();
+      const eRect = el.getBoundingClientRect();
+      const style = getComputedStyle(container);
+      const borderLeft = parseFloat(style.borderLeftWidth) || 0;
+      const borderTop = parseFloat(style.borderTopWidth) || 0;
+      setCaretBox({
+        x: eRect.left - cRect.left - borderLeft + container.scrollLeft,
+        y: eRect.top - cRect.top - borderTop + container.scrollTop,
+        w: Math.max(eRect.width, 1),
+        h: Math.max(eRect.height, 1),
+      });
+    };
+
+    measure();
+    const ro = new ResizeObserver(measure);
+    ro.observe(container);
+    container.addEventListener("scroll", measure, { passive: true });
+    return () => {
+      ro.disconnect();
+      container.removeEventListener("scroll", measure);
+    };
+  }, [
+    state.currentIndex,
+    state.isComplete,
+    testText,
+    prefs.fontSize,
+    prefs.caretStyle,
+    focused,
+  ]);
+
+  const caretTransition = smoothCaret
+    ? { type: "spring" as const, stiffness: 500, damping: 35, mass: 0.4 }
+    : { duration: 0 };
+
   const panelMotion = reducedMotion
-    ? { initial: false, animate: { opacity: 1, y: 0 }, exit: { opacity: 1 } }
+    ? {
+        initial: false as const,
+        animate: { opacity: 1, transform: "translateY(0px)" },
+        exit: { opacity: 1, transform: "translateY(0px)" },
+      }
     : {
-        initial: { opacity: 0, y: 0 },
-        animate: { opacity: 1, y: -50 },
-        exit: { opacity: 0, y: -60 },
+        initial: { opacity: 0, transform: "translateY(8px)" },
+        animate: { opacity: 1, transform: "translateY(0px)" },
+        exit: { opacity: 0, transform: "translateY(-8px)" },
       };
+
+  const resultsMotion = reducedMotion
+    ? {
+        initial: false as const,
+        animate: { opacity: 1, transform: "translateY(0px)" },
+        exit: { opacity: 1 },
+      }
+    : {
+        initial: { opacity: 0, transform: "translateY(12px)" },
+        animate: { opacity: 1, transform: "translateY(0px)" },
+        exit: { opacity: 0, transform: "translateY(8px)" },
+      };
+
+  const renderCaret = () => {
+    if (!caretBox || state.isComplete) return null;
+    const style = prefs.caretStyle;
+    const pulse =
+      !smoothCaret && !reducedMotion ? "animate-pulse" : "";
+
+    let className = "absolute top-0 left-0 pointer-events-none z-[1] ";
+    let size: React.CSSProperties = {};
+
+    switch (style) {
+      case "block":
+        className += cn("bg-accent/35 rounded-sm", pulse);
+        size = { width: caretBox.w, height: caretBox.h };
+        break;
+      case "underline":
+        className += "bg-accent h-0.5";
+        size = {
+          width: caretBox.w,
+          height: 2,
+          // sit on the baseline of the glyph box
+          // transform already places top-left; nudge down
+        };
+        break;
+      case "box":
+        className += cn("border-2 border-accent rounded-sm", pulse);
+        size = { width: caretBox.w, height: caretBox.h };
+        break;
+      case "line":
+      default:
+        className += cn("w-0.5 bg-accent", pulse);
+        size = { width: 2, height: caretBox.h };
+        break;
+    }
+
+    const y =
+      style === "underline" ? caretBox.y + caretBox.h - 2 : caretBox.y;
+
+    return (
+      <motion.div
+        aria-hidden
+        className={className}
+        style={size}
+        initial={false}
+        animate={{
+          transform: `translate3d(${caretBox.x}px, ${y}px, 0)`,
+        }}
+        transition={caretTransition}
+        data-allow-transform-motion=""
+      />
+    );
+  };
 
   return (
     <div className="h-full flex flex-col gap-4 items-center justify-center">
@@ -578,10 +645,7 @@ export const TypingTest: React.FC = () => {
             initial={panelMotion.initial}
             animate={panelMotion.animate}
             exit={panelMotion.exit}
-            transition={{
-              duration: reducedMotion ? 0 : 0.3,
-              ease: "easeInOut",
-            }}
+            transition={uiTransition(reducedMotion, 0.22)}
             onAnimationComplete={() => {
               if (!state.isComplete && !isTestActive) {
                 inputRef.current?.focus();
@@ -781,9 +845,11 @@ export const TypingTest: React.FC = () => {
             >
               <div
                 className={cn(
-                  "absolute inset-0 flex items-center justify-center text-center backdrop-blur-none opacity-0 z-1 pointer-events-none",
-                  !reducedMotion && "transition-all delay-300",
-                  !focused && "backdrop-blur-sm opacity-100",
+                  "absolute inset-0 flex items-center justify-center text-center z-[2] pointer-events-none",
+                  !focused && "backdrop-blur-sm",
+                  focused ? "opacity-0" : "opacity-100",
+                  !reducedMotion &&
+                    "transition-opacity duration-150 ease-[cubic-bezier(0.23,1,0.32,1)]",
                 )}
                 aria-hidden={focused}
               >
@@ -791,21 +857,17 @@ export const TypingTest: React.FC = () => {
               </div>
 
               {text()}
+              {renderCaret()}
             </div>
           </motion.div>
         ) : (
           <motion.div
             key="test-completed"
-            initial={reducedMotion ? false : { opacity: 0, y: 20 }}
-            animate={
-              reducedMotion ? { opacity: 1, y: 0 } : { opacity: 1, y: "-20%" }
-            }
-            exit={reducedMotion ? { opacity: 1 } : { opacity: 0, y: 20 }}
+            initial={resultsMotion.initial}
+            animate={resultsMotion.animate}
+            exit={resultsMotion.exit}
             className="flex flex-col gap-4 items-center w-full"
-            transition={{
-              duration: reducedMotion ? 0 : 0.3,
-              ease: "easeInOut",
-            }}
+            transition={uiTransition(reducedMotion, 0.22)}
           >
             <TimelineChart
               keystrokeEvents={state.keystrokeEvents}
