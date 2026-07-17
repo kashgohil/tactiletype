@@ -15,6 +15,15 @@ export interface RoomJoinedData {
     id: string;
     name: string;
     status: string;
+    hostId?: string;
+    testTextId?: string;
+    testText?: {
+      id: string;
+      title: string;
+      content: string;
+      difficulty: string;
+      wordCount: number;
+    } | null;
     participants: Array<{
       userId: string;
       username: string;
@@ -89,10 +98,14 @@ export class WebSocketService {
     this.wsUrl = wsUrl;
   }
 
-  // Connection management
+  // Connection management — resolves after authenticate succeeds
   connect(token: string): Promise<void> {
     return new Promise((resolve, reject) => {
-      if (this.ws && this.ws.readyState === WebSocket.OPEN) {
+      if (
+        this.ws &&
+        this.ws.readyState === WebSocket.OPEN &&
+        this.isAuthenticated
+      ) {
         resolve();
         return;
       }
@@ -100,22 +113,47 @@ export class WebSocketService {
       this.authToken = token;
       this.setStatus('connecting');
 
+      let settled = false;
+      const settleOk = () => {
+        if (!settled) {
+          settled = true;
+          resolve();
+        }
+      };
+      const settleErr = (err: Error) => {
+        if (!settled) {
+          settled = true;
+          reject(err);
+        }
+      };
+
       try {
         this.ws = new WebSocket(this.wsUrl);
-        
+
         this.ws.onopen = () => {
           console.log('WebSocket connected');
           this.setStatus('connected');
           this.reconnectAttempts = 0;
           this.startPingInterval();
           this.authenticate(token);
-          resolve();
         };
 
         this.ws.onmessage = (event) => {
           try {
             const message: WSMessage = JSON.parse(event.data);
             this.handleMessage(message);
+            if (message.type === 'authenticated') {
+              settleOk();
+            }
+            if (
+              message.type === 'error' &&
+              !this.isAuthenticated &&
+              !settled
+            ) {
+              settleErr(
+                new Error(message.data?.error || 'Authentication failed')
+              );
+            }
           } catch (error) {
             console.error('Failed to parse WebSocket message:', error);
           }
@@ -126,21 +164,27 @@ export class WebSocketService {
           this.setStatus('disconnected');
           this.isAuthenticated = false;
           this.stopPingInterval();
-          
-          if (!event.wasClean && this.reconnectAttempts < this.maxReconnectAttempts) {
+
+          if (!settled) {
+            settleErr(new Error('WebSocket closed before auth'));
+          }
+
+          if (
+            !event.wasClean &&
+            this.reconnectAttempts < this.maxReconnectAttempts
+          ) {
             this.scheduleReconnect();
           }
         };
 
-        this.ws.onerror = (error) => {
-          console.error('WebSocket error:', error);
+        this.ws.onerror = () => {
+          console.error('WebSocket error');
           this.setStatus('error');
-          reject(new Error('WebSocket connection failed'));
+          settleErr(new Error('WebSocket connection failed'));
         };
-
       } catch (error) {
         this.setStatus('error');
-        reject(error);
+        settleErr(error instanceof Error ? error : new Error(String(error)));
       }
     });
   }
@@ -333,10 +377,23 @@ export class WebSocketService {
 // Singleton instance
 let wsService: WebSocketService | null = null;
 
+function defaultWsUrl(): string {
+  if (import.meta.env.VITE_WS_URL) return import.meta.env.VITE_WS_URL as string;
+  const api = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+  try {
+    const u = new URL(api);
+    u.protocol = u.protocol === 'https:' ? 'wss:' : 'ws:';
+    u.pathname = '/ws';
+    u.search = '';
+    return u.toString();
+  } catch {
+    return 'ws://localhost:3001/ws';
+  }
+}
+
 export const getWebSocketService = (): WebSocketService => {
   if (!wsService) {
-    const wsUrl = import.meta.env.VITE_WS_URL || 'ws://localhost:3002/ws';
-    wsService = new WebSocketService(wsUrl);
+    wsService = new WebSocketService(defaultWsUrl());
   }
   return wsService;
 };

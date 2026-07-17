@@ -261,7 +261,7 @@ Surface as a single **Recommended next exercise** card on profile.
 | Item | Notes |
 |------|--------|
 | Code typing + language packs | Done — packs + lightweight syntax tints |
-| Multiplayer polish | After solo loop is sticky (see roadmap Phase 3) |
+| Multiplayer polish | Done — Bun WS hub, race room, themed lobby |
 | Shareable result cards | Done — canvas PNG export + Web Share / clipboard |
 | Custom paste / personal playlists | Done — modal + local playlist |
 

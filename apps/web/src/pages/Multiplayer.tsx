@@ -1,10 +1,11 @@
-import React, { useState, useEffect } from 'react';
-import { useNavigate } from '@tanstack/react-router';
-import { RoomBrowser } from '../components/multiplayer/RoomBrowser';
+import { Button } from '@/components/ui/button';
+import { Link, useNavigate } from '@tanstack/react-router';
+import React, { useEffect, useState } from 'react';
 import { CreateRoomModal } from '../components/multiplayer/CreateRoomModal';
+import { RoomBrowser } from '../components/multiplayer/RoomBrowser';
+import { useAuth } from '../contexts';
 import { useMultiplayer } from '../hooks/useMultiplayer';
 import { multiplayerApi } from '../services/multiplayerApi';
-import { useAuth } from '../contexts/context';
 
 export const Multiplayer: React.FC = () => {
   const navigate = useNavigate();
@@ -12,159 +13,145 @@ export const Multiplayer: React.FC = () => {
   const [multiplayerState, multiplayerActions] = useMultiplayer(user?.id);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [connecting, setConnecting] = useState(false);
+  const [actionError, setActionError] = useState<string | null>(null);
 
-  // Auto-connect to WebSocket when component mounts
   useEffect(() => {
     if (user && !multiplayerState.isConnected && !connecting) {
-      const token = localStorage.getItem('authToken');
+      const token = localStorage.getItem('auth_token');
       if (token) {
         setConnecting(true);
-        multiplayerActions.connect(token).finally(() => {
-          setConnecting(false);
-        });
+        multiplayerActions
+          .connect(token)
+          .catch((e) =>
+            setActionError(e instanceof Error ? e.message : 'Connect failed')
+          )
+          .finally(() => setConnecting(false));
       }
     }
   }, [user, multiplayerState.isConnected, connecting, multiplayerActions]);
 
-  // Redirect to login if not authenticated
-  useEffect(() => {
-    if (!user) {
-      navigate({ to: '/login' });
-    }
-  }, [user, navigate]);
-
   const handleJoinRoom = async (roomId: string) => {
     if (!user) return;
-
+    setActionError(null);
     try {
-      // First join the room in the database
       await multiplayerApi.joinRoom(roomId);
-      
-      // Then join via WebSocket
       multiplayerActions.joinRoom(roomId, user.id, user.username);
-      
-      // Navigate to the room
-      navigate({ to: `/multiplayer/room/${roomId}` });
+      navigate({ to: '/multiplayer/room/$roomId', params: { roomId } });
     } catch (error) {
-      console.error('Failed to join room:', error);
-      // Handle error (could show a toast notification)
+      setActionError(
+        error instanceof Error ? error.message : 'Failed to join room'
+      );
     }
-  };
-
-  const handleCreateRoom = () => {
-    setShowCreateModal(true);
   };
 
   const handleRoomCreated = async (roomId: string) => {
     if (!user) return;
-
+    setActionError(null);
     try {
-      // Join the newly created room
-      await multiplayerApi.joinRoom(roomId);
+      // Host already DB-joined on create; still ensure WS join
       multiplayerActions.joinRoom(roomId, user.id, user.username);
-      
-      // Navigate to the room
-      navigate({ to: `/multiplayer/room/${roomId}` });
+      navigate({ to: '/multiplayer/room/$roomId', params: { roomId } });
     } catch (error) {
-      console.error('Failed to join created room:', error);
+      setActionError(
+        error instanceof Error ? error.message : 'Failed to open room'
+      );
     }
   };
 
   if (!user) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-center">
-          <h2 className="text-2xl font-bold text-gray-900 mb-4">Authentication Required</h2>
-          <p className="text-gray-600 mb-6">Please log in to access multiplayer features.</p>
-          <button
-            onClick={() => navigate({ to: '/login' })}
-            className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
-          >
-            Go to Login
-          </button>
-        </div>
+      <div className="text-center py-16 space-y-4">
+        <h2 className="text-2xl font-bold">Log in for multiplayer</h2>
+        <p className="text-text/50">
+          Race friends in real time with live WPM and progress.
+        </p>
+        <Button asChild>
+          <Link to="/login">Log in</Link>
+        </Button>
       </div>
     );
   }
 
+  const status = multiplayerState.connectionStatus;
+  const statusColor =
+    status === 'connected'
+      ? 'bg-emerald-500'
+      : status === 'connecting' || connecting
+        ? 'bg-amber-400'
+        : 'bg-rose-500';
+
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Connection Status */}
-        <div className="mb-6">
-          <div className="flex items-center space-x-2">
-            <div className={`w-3 h-3 rounded-full ${
-              multiplayerState.connectionStatus === 'connected' ? 'bg-green-500' :
-              multiplayerState.connectionStatus === 'connecting' || connecting ? 'bg-yellow-500' :
-              'bg-red-500'
-            }`} />
-            <span className="text-sm text-gray-600">
-              {multiplayerState.connectionStatus === 'connected' ? 'Connected to server' :
-               multiplayerState.connectionStatus === 'connecting' || connecting ? 'Connecting to server...' :
-               'Disconnected from server'}
-            </span>
-            {multiplayerState.connectionStatus === 'disconnected' && (
-              <button
-                onClick={() => {
-                  const token = localStorage.getItem('authToken');
-                  if (token) {
-                    setConnecting(true);
-                    multiplayerActions.connect(token).finally(() => {
-                      setConnecting(false);
-                    });
-                  }
-                }}
-                disabled={connecting}
-                className="ml-2 px-2 py-1 text-xs bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50"
-              >
-                {connecting ? 'Connecting...' : 'Reconnect'}
-              </button>
-            )}
-          </div>
+    <div className="pt-2 pb-10 max-w-5xl mx-auto space-y-6">
+      <header className="flex flex-wrap items-start justify-between gap-4">
+        <div>
+          <h1 className="text-2xl md:text-3xl font-bold">Multiplayer</h1>
+          <p className="text-text/50 text-sm mt-1">
+            Create or join a room — race starts with a short countdown.
+          </p>
         </div>
+        <div className="flex items-center gap-2 text-sm text-text/60">
+          <span className={`size-2.5 rounded-full ${statusColor}`} />
+          {status === 'connected'
+            ? 'Connected'
+            : status === 'connecting' || connecting
+              ? 'Connecting…'
+              : 'Disconnected'}
+          {status === 'disconnected' && (
+            <Button
+              size="sm"
+              variant="outline"
+              disabled={connecting}
+              onClick={() => {
+                const token = localStorage.getItem('auth_token');
+                if (!token) return;
+                setConnecting(true);
+                multiplayerActions
+                  .connect(token)
+                  .finally(() => setConnecting(false));
+              }}
+            >
+              Reconnect
+            </Button>
+          )}
+        </div>
+      </header>
 
-        {/* Error Message */}
-        {multiplayerState.error && (
-          <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-md">
-            <div className="flex items-center justify-between">
-              <p className="text-sm text-red-800">{multiplayerState.error}</p>
-              <button
-                onClick={multiplayerActions.clearError}
-                className="text-red-600 hover:text-red-800"
-              >
-                <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              </button>
-            </div>
-          </div>
-        )}
+      {(multiplayerState.error || actionError) && (
+        <div className="rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 flex justify-between gap-3">
+          <p className="text-sm text-red-700 dark:text-red-300">
+            {actionError || multiplayerState.error}
+          </p>
+          <Button
+            size="sm"
+            variant="ghost"
+            onClick={() => {
+              setActionError(null);
+              multiplayerActions.clearError();
+            }}
+          >
+            Dismiss
+          </Button>
+        </div>
+      )}
 
-        {/* Main Content */}
-        {multiplayerState.connectionStatus === 'connected' ? (
-          <RoomBrowser
-            onJoinRoom={handleJoinRoom}
-            onCreateRoom={handleCreateRoom}
-          />
-        ) : (
-          <div className="text-center py-12">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-            <h3 className="text-lg font-medium text-gray-900 mb-2">
-              {connecting ? 'Connecting to server...' : 'Connection required'}
-            </h3>
-            <p className="text-gray-600">
-              {connecting ? 'Please wait while we establish a connection.' : 'Please connect to the server to view available rooms.'}
-            </p>
-          </div>
-        )}
-
-        {/* Create Room Modal */}
-        <CreateRoomModal
-          isOpen={showCreateModal}
-          onClose={() => setShowCreateModal(false)}
-          onRoomCreated={handleRoomCreated}
+      {multiplayerState.isConnected ? (
+        <RoomBrowser
+          onJoinRoom={handleJoinRoom}
+          onCreateRoom={() => setShowCreateModal(true)}
         />
-      </div>
+      ) : (
+        <div className="bg-accent/10 rounded-xl p-12 text-center text-text/50">
+          {connecting
+            ? 'Connecting to race server…'
+            : 'Connect to browse and create rooms.'}
+        </div>
+      )}
+
+      <CreateRoomModal
+        isOpen={showCreateModal}
+        onClose={() => setShowCreateModal(false)}
+        onRoomCreated={handleRoomCreated}
+      />
     </div>
   );
 };

@@ -24,6 +24,7 @@ import { Route as ContactRouteImport } from './routes/contact'
 import { Route as AnalyticsRouteImport } from './routes/analytics'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as UUsernameRouteImport } from './routes/u.$username'
+import { Route as MultiplayerRoomRoomIdRouteImport } from './routes/multiplayer.room.$roomId'
 import { Route as AuthSsoCallbackRouteImport } from './routes/auth/sso/callback'
 
 const TestRoute = TestRouteImport.update({
@@ -101,6 +102,11 @@ const UUsernameRoute = UUsernameRouteImport.update({
   path: '/u/$username',
   getParentRoute: () => rootRouteImport,
 } as any)
+const MultiplayerRoomRoomIdRoute = MultiplayerRoomRoomIdRouteImport.update({
+  id: '/room/$roomId',
+  path: '/room/$roomId',
+  getParentRoute: () => MultiplayerRoute,
+} as any)
 const AuthSsoCallbackRoute = AuthSsoCallbackRouteImport.update({
   id: '/auth/sso/callback',
   path: '/auth/sso/callback',
@@ -114,7 +120,7 @@ export interface FileRoutesByFullPath {
   '/daily': typeof DailyRoute
   '/leaderboard': typeof LeaderboardRoute
   '/login': typeof LoginRoute
-  '/multiplayer': typeof MultiplayerRoute
+  '/multiplayer': typeof MultiplayerRouteWithChildren
   '/practice': typeof PracticeRoute
   '/privacy': typeof PrivacyRoute
   '/profile': typeof ProfileRoute
@@ -124,6 +130,7 @@ export interface FileRoutesByFullPath {
   '/test': typeof TestRoute
   '/u/$username': typeof UUsernameRoute
   '/auth/sso/callback': typeof AuthSsoCallbackRoute
+  '/multiplayer/room/$roomId': typeof MultiplayerRoomRoomIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -132,7 +139,7 @@ export interface FileRoutesByTo {
   '/daily': typeof DailyRoute
   '/leaderboard': typeof LeaderboardRoute
   '/login': typeof LoginRoute
-  '/multiplayer': typeof MultiplayerRoute
+  '/multiplayer': typeof MultiplayerRouteWithChildren
   '/practice': typeof PracticeRoute
   '/privacy': typeof PrivacyRoute
   '/profile': typeof ProfileRoute
@@ -142,6 +149,7 @@ export interface FileRoutesByTo {
   '/test': typeof TestRoute
   '/u/$username': typeof UUsernameRoute
   '/auth/sso/callback': typeof AuthSsoCallbackRoute
+  '/multiplayer/room/$roomId': typeof MultiplayerRoomRoomIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -151,7 +159,7 @@ export interface FileRoutesById {
   '/daily': typeof DailyRoute
   '/leaderboard': typeof LeaderboardRoute
   '/login': typeof LoginRoute
-  '/multiplayer': typeof MultiplayerRoute
+  '/multiplayer': typeof MultiplayerRouteWithChildren
   '/practice': typeof PracticeRoute
   '/privacy': typeof PrivacyRoute
   '/profile': typeof ProfileRoute
@@ -161,6 +169,7 @@ export interface FileRoutesById {
   '/test': typeof TestRoute
   '/u/$username': typeof UUsernameRoute
   '/auth/sso/callback': typeof AuthSsoCallbackRoute
+  '/multiplayer/room/$roomId': typeof MultiplayerRoomRoomIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -181,6 +190,7 @@ export interface FileRouteTypes {
     | '/test'
     | '/u/$username'
     | '/auth/sso/callback'
+    | '/multiplayer/room/$roomId'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -199,6 +209,7 @@ export interface FileRouteTypes {
     | '/test'
     | '/u/$username'
     | '/auth/sso/callback'
+    | '/multiplayer/room/$roomId'
   id:
     | '__root__'
     | '/'
@@ -217,6 +228,7 @@ export interface FileRouteTypes {
     | '/test'
     | '/u/$username'
     | '/auth/sso/callback'
+    | '/multiplayer/room/$roomId'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -226,7 +238,7 @@ export interface RootRouteChildren {
   DailyRoute: typeof DailyRoute
   LeaderboardRoute: typeof LeaderboardRoute
   LoginRoute: typeof LoginRoute
-  MultiplayerRoute: typeof MultiplayerRoute
+  MultiplayerRoute: typeof MultiplayerRouteWithChildren
   PracticeRoute: typeof PracticeRoute
   PrivacyRoute: typeof PrivacyRoute
   ProfileRoute: typeof ProfileRoute
@@ -345,6 +357,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof UUsernameRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/multiplayer/room/$roomId': {
+      id: '/multiplayer/room/$roomId'
+      path: '/room/$roomId'
+      fullPath: '/multiplayer/room/$roomId'
+      preLoaderRoute: typeof MultiplayerRoomRoomIdRouteImport
+      parentRoute: typeof MultiplayerRoute
+    }
     '/auth/sso/callback': {
       id: '/auth/sso/callback'
       path: '/auth/sso/callback'
@@ -355,6 +374,18 @@ declare module '@tanstack/react-router' {
   }
 }
 
+interface MultiplayerRouteChildren {
+  MultiplayerRoomRoomIdRoute: typeof MultiplayerRoomRoomIdRoute
+}
+
+const MultiplayerRouteChildren: MultiplayerRouteChildren = {
+  MultiplayerRoomRoomIdRoute: MultiplayerRoomRoomIdRoute,
+}
+
+const MultiplayerRouteWithChildren = MultiplayerRoute._addFileChildren(
+  MultiplayerRouteChildren,
+)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AnalyticsRoute: AnalyticsRoute,
@@ -362,7 +393,7 @@ const rootRouteChildren: RootRouteChildren = {
   DailyRoute: DailyRoute,
   LeaderboardRoute: LeaderboardRoute,
   LoginRoute: LoginRoute,
-  MultiplayerRoute: MultiplayerRoute,
+  MultiplayerRoute: MultiplayerRouteWithChildren,
   PracticeRoute: PracticeRoute,
   PrivacyRoute: PrivacyRoute,
   ProfileRoute: ProfileRoute,

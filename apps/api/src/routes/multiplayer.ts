@@ -1,76 +1,76 @@
-import { Hono } from 'hono';
+import {
+  db,
+  multiplayerRooms,
+  roomParticipants,
+  testTexts,
+  users,
+} from '@tactile/database';
 import { zValidator } from '@hono/zod-validator';
+import { and, desc, eq } from 'drizzle-orm';
+import { Hono } from 'hono';
 import { z } from 'zod';
-import { db, multiplayerRooms, roomParticipants, testTexts, users } from '@tactile/database';
-import { eq, and, desc } from 'drizzle-orm';
-import { verify } from 'jsonwebtoken';
-import type { JWTPayload } from '@tactile/types';
+import { authMiddleware } from '../middleware/auth';
+import { multiplayerHub } from '../websocket/hub';
 
-export const multiplayerRoutes = new Hono<{
-  Variables: {
-    user: JWTPayload;
-    wsHandler: any;
+type Variables = {
+  user: {
+    userId: string;
+    email: string;
+    username: string;
   };
-}>();
-
-// Middleware to verify JWT token
-const authMiddleware = async (c: any, next: any) => {
-  const authHeader = c.req.header('Authorization');
-  if (!authHeader || !authHeader.startsWith('Bearer ')) {
-    return c.json({ error: 'Authorization token required' }, 401);
-  }
-
-  const token = authHeader.substring(7);
-  try {
-    const jwtSecret = process.env.JWT_SECRET || 'your-secret-key';
-    const payload = verify(token, jwtSecret) as JWTPayload;
-    c.set('user', payload);
-    await next();
-  } catch (error) {
-    return c.json({ error: 'Invalid token' }, 401);
-  }
 };
 
-// Create room schema
+export const multiplayerRoutes = new Hono<{ Variables: Variables }>();
+
 const createRoomSchema = z.object({
   name: z.string().min(1).max(100),
-  testTextId: z.string().uuid(),
-  maxPlayers: z.number().min(2).max(10).default(10),
+  testTextId: z.string().uuid().optional(),
+  maxPlayers: z.number().min(2).max(10).default(5),
 });
 
-// Join room schema
-const joinRoomSchema = z.object({
-  roomId: z.string().uuid(),
-});
-
-// Create a new multiplayer room
+// Create room — picks a random active text if none provided
 multiplayerRoutes.post(
   '/rooms',
   authMiddleware,
   zValidator('json', createRoomSchema),
   async (c) => {
     try {
-      const user = c.get('user') as JWTPayload;
+      const user = c.get('user');
       const { name, testTextId, maxPlayers } = c.req.valid('json');
 
-      // Verify test text exists
-      const testText = await db
-        .select()
-        .from(testTexts)
-        .where(and(eq(testTexts.id, testTextId), eq(testTexts.isActive, true)))
-        .limit(1);
+      let textId = testTextId;
+      let testTextRow;
 
-      if (testText.length === 0) {
-        return c.json({ error: 'Test text not found' }, 404);
+      if (textId) {
+        const found = await db
+          .select()
+          .from(testTexts)
+          .where(and(eq(testTexts.id, textId), eq(testTexts.isActive, true)))
+          .limit(1);
+        testTextRow = found[0];
+      } else {
+        const all = await db
+          .select()
+          .from(testTexts)
+          .where(eq(testTexts.isActive, true))
+          .limit(50);
+        testTextRow = all[Math.floor(Math.random() * all.length)];
+        textId = testTextRow?.id;
       }
 
-      // Create room in database
+      if (!testTextRow || !textId) {
+        return c.json(
+          { error: 'No test text available — run db:seed' },
+          404
+        );
+      }
+
       const [room] = await db
         .insert(multiplayerRooms)
         .values({
           name,
           hostId: user.userId,
-          testTextId,
+          testTextId: textId,
           maxPlayers,
           status: 'waiting',
         })
@@ -80,17 +80,19 @@ multiplayerRoutes.post(
         return c.json({ error: 'Failed to create room' }, 500);
       }
 
-      // Get WebSocket handler from context (will be set in main server)
-      const wsHandler = c.get('wsHandler');
-      if (wsHandler) {
-        // Create room in WebSocket manager
-        wsHandler.createRoom(room.id, name, user.userId, testTextId, maxPlayers);
-      }
+      // Host joins DB as participant
+      await db.insert(roomParticipants).values({
+        roomId: room.id,
+        userId: user.userId,
+      });
 
-      const testTextData = testText[0];
-      if (!testTextData) {
-        return c.json({ error: 'Test text data not found' }, 500);
-      }
+      multiplayerHub.createRoom(
+        room.id,
+        room.name,
+        user.userId,
+        textId,
+        maxPlayers
+      );
 
       return c.json({
         message: 'Room created successfully',
@@ -104,9 +106,9 @@ multiplayerRoutes.post(
             status: room.status,
             createdAt: room.createdAt,
             testText: {
-              title: testTextData.title,
-              difficulty: testTextData.difficulty,
-              wordCount: testTextData.wordCount,
+              title: testTextRow.title,
+              difficulty: testTextRow.difficulty,
+              wordCount: testTextRow.wordCount,
             },
           },
         },
@@ -118,11 +120,10 @@ multiplayerRoutes.post(
   }
 );
 
-// Get all available rooms
 multiplayerRoutes.get('/rooms', async (c) => {
   try {
     const page = parseInt(c.req.query('page') || '1');
-    const limit = parseInt(c.req.query('limit') || '10');
+    const limit = Math.min(parseInt(c.req.query('limit') || '20'), 50);
     const offset = (page - 1) * limit;
 
     const rooms = await db
@@ -147,29 +148,31 @@ multiplayerRoutes.get('/rooms', async (c) => {
       .limit(limit)
       .offset(offset);
 
-    // Get participant counts for each room
     const roomsWithCounts = await Promise.all(
       rooms.map(async (room) => {
-        const participantCount = await db
-          .select({ count: roomParticipants.id })
+        const participants = await db
+          .select({ id: roomParticipants.id })
           .from(roomParticipants)
           .where(eq(roomParticipants.roomId, room.id));
+
+        const live = multiplayerHub.getRoomParticipants(room.id);
 
         return {
           id: room.id,
           name: room.name,
+          hostId: room.hostId,
           host: {
             id: room.hostId,
-            username: room.hostUsername,
+            username: room.hostUsername ?? 'unknown',
           },
           testText: {
             id: room.testTextId,
-            title: room.testTextTitle,
-            difficulty: room.testTextDifficulty,
-            wordCount: room.testTextWordCount,
+            title: room.testTextTitle ?? 'Text',
+            difficulty: room.testTextDifficulty ?? 'medium',
+            wordCount: room.testTextWordCount ?? 0,
           },
-          maxPlayers: room.maxPlayers,
-          currentPlayers: participantCount.length,
+          maxPlayers: room.maxPlayers ?? 10,
+          currentPlayers: live?.length ?? participants.length,
           status: room.status,
           createdAt: room.createdAt,
         };
@@ -192,7 +195,6 @@ multiplayerRoutes.get('/rooms', async (c) => {
   }
 });
 
-// Get specific room details
 multiplayerRoutes.get('/rooms/:roomId', async (c) => {
   try {
     const roomId = c.req.param('roomId');
@@ -224,7 +226,6 @@ multiplayerRoutes.get('/rooms/:roomId', async (c) => {
       return c.json({ error: 'Room not found' }, 404);
     }
 
-    // Get participants
     const participants = await db
       .select({
         id: roomParticipants.id,
@@ -239,42 +240,40 @@ multiplayerRoutes.get('/rooms/:roomId', async (c) => {
       .leftJoin(users, eq(roomParticipants.userId, users.id))
       .where(eq(roomParticipants.roomId, roomId));
 
-    // Get live participants from WebSocket if available
-    const wsHandler = c.get('wsHandler');
-    let liveParticipants = null;
-    if (wsHandler) {
-      liveParticipants = wsHandler.getRoomParticipants(roomId);
-    }
+    const liveParticipants = multiplayerHub.getRoomParticipants(roomId);
 
     return c.json({
       data: {
         room: {
           id: room.id,
           name: room.name,
+          hostId: room.hostId,
           host: {
             id: room.hostId,
-            username: room.hostUsername,
+            username: room.hostUsername ?? 'unknown',
           },
           testText: {
             id: room.testTextId,
-            title: room.testTextTitle,
-            content: room.testTextContent,
-            difficulty: room.testTextDifficulty,
-            wordCount: room.testTextWordCount,
+            title: room.testTextTitle ?? 'Text',
+            content: room.testTextContent ?? '',
+            difficulty: room.testTextDifficulty ?? 'medium',
+            wordCount: room.testTextWordCount ?? 0,
           },
           maxPlayers: room.maxPlayers,
           status: room.status,
           startedAt: room.startedAt,
           finishedAt: room.finishedAt,
           createdAt: room.createdAt,
-          participants: participants.map(p => ({
+          participants: participants.map((p) => ({
             id: p.id,
             userId: p.userId,
             username: p.username,
             joinedAt: p.joinedAt,
             finishedAt: p.finishedAt,
             finalWpm: p.finalWpm ? parseFloat(p.finalWpm) : null,
-            finalAccuracy: p.finalAccuracy ? parseFloat(p.finalAccuracy) : null,
+            finalAccuracy: p.finalAccuracy
+              ? parseFloat(p.finalAccuracy)
+              : null,
           })),
           liveParticipants,
         },
@@ -286,133 +285,88 @@ multiplayerRoutes.get('/rooms/:roomId', async (c) => {
   }
 });
 
-// Join a room (creates database record)
-multiplayerRoutes.post(
-  '/rooms/:roomId/join',
-  authMiddleware,
-  async (c) => {
-    try {
-      const user = c.get('user') as JWTPayload;
-      const roomId = c.req.param('roomId');
+multiplayerRoutes.post('/rooms/:roomId/join', authMiddleware, async (c) => {
+  try {
+    const user = c.get('user');
+    const roomId = c.req.param('roomId');
 
-      // Check if room exists and is joinable
-      const [room] = await db
-        .select()
-        .from(multiplayerRooms)
-        .where(eq(multiplayerRooms.id, roomId))
-        .limit(1);
+    const [room] = await db
+      .select()
+      .from(multiplayerRooms)
+      .where(eq(multiplayerRooms.id, roomId))
+      .limit(1);
 
-      if (!room) {
-        return c.json({ error: 'Room not found' }, 404);
-      }
+    if (!room) {
+      return c.json({ error: 'Room not found' }, 404);
+    }
 
-      if (room.status !== 'waiting') {
-        return c.json({ error: 'Room is not accepting new players' }, 400);
-      }
+    if (room.status !== 'waiting') {
+      return c.json({ error: 'Room is not accepting new players' }, 400);
+    }
 
-      // Check if user is already in the room
-      const existingParticipant = await db
-        .select()
-        .from(roomParticipants)
-        .where(
-          and(
-            eq(roomParticipants.roomId, roomId),
-            eq(roomParticipants.userId, user.userId)
-          )
+    const existing = await db
+      .select()
+      .from(roomParticipants)
+      .where(
+        and(
+          eq(roomParticipants.roomId, roomId),
+          eq(roomParticipants.userId, user.userId)
         )
-        .limit(1);
+      )
+      .limit(1);
 
-      if (existingParticipant.length > 0) {
-        return c.json({ error: 'Already joined this room' }, 400);
-      }
-
-      // Check room capacity
-      const currentParticipants = await db
+    if (existing.length === 0) {
+      const current = await db
         .select()
         .from(roomParticipants)
         .where(eq(roomParticipants.roomId, roomId));
 
-      if (currentParticipants.length >= (room.maxPlayers || 10)) {
+      if (current.length >= (room.maxPlayers || 10)) {
         return c.json({ error: 'Room is full' }, 400);
       }
 
-      // Add participant to database
-      const [participant] = await db
-        .insert(roomParticipants)
-        .values({
-          roomId,
-          userId: user.userId,
-        })
-        .returning();
-
-      if (!participant) {
-        return c.json({ error: 'Failed to join room' }, 500);
-      }
-
-      return c.json({
-        message: 'Joined room successfully',
-        data: {
-          participant: {
-            id: participant.id,
-            roomId: participant.roomId,
-            userId: participant.userId,
-            joinedAt: participant.joinedAt,
-          },
-        },
+      await db.insert(roomParticipants).values({
+        roomId,
+        userId: user.userId,
       });
-    } catch (error) {
-      console.error('Join room error:', error);
-      return c.json({ error: 'Failed to join room' }, 500);
-    }
-  }
-);
-
-// Leave a room
-multiplayerRoutes.post(
-  '/rooms/:roomId/leave',
-  authMiddleware,
-  async (c) => {
-    try {
-      const user = c.get('user') as JWTPayload;
-      const roomId = c.req.param('roomId');
-
-      // Remove participant from database
-      const deletedParticipants = await db
-        .delete(roomParticipants)
-        .where(
-          and(
-            eq(roomParticipants.roomId, roomId),
-            eq(roomParticipants.userId, user.userId)
-          )
-        )
-        .returning();
-
-      if (deletedParticipants.length === 0) {
-        return c.json({ error: 'Not in this room' }, 400);
-      }
-
-      return c.json({
-        message: 'Left room successfully',
-      });
-    } catch (error) {
-      console.error('Leave room error:', error);
-      return c.json({ error: 'Failed to leave room' }, 500);
-    }
-  }
-);
-
-// Get WebSocket connection stats (for debugging)
-multiplayerRoutes.get('/stats', async (c) => {
-  try {
-    const wsHandler = c.get('wsHandler');
-    if (!wsHandler) {
-      return c.json({ error: 'WebSocket handler not available' }, 503);
     }
 
-    const stats = wsHandler.getStats();
-    return c.json({ data: stats });
+    multiplayerHub.createRoom(
+      room.id,
+      room.name,
+      room.hostId,
+      room.testTextId,
+      room.maxPlayers ?? 10
+    );
+
+    return c.json({ message: 'Joined room successfully' });
   } catch (error) {
-    console.error('Get stats error:', error);
-    return c.json({ error: 'Failed to get stats' }, 500);
+    console.error('Join room error:', error);
+    return c.json({ error: 'Failed to join room' }, 500);
   }
+});
+
+multiplayerRoutes.post('/rooms/:roomId/leave', authMiddleware, async (c) => {
+  try {
+    const user = c.get('user');
+    const roomId = c.req.param('roomId');
+
+    await db
+      .delete(roomParticipants)
+      .where(
+        and(
+          eq(roomParticipants.roomId, roomId),
+          eq(roomParticipants.userId, user.userId)
+        )
+      );
+
+    return c.json({ message: 'Left room' });
+  } catch (error) {
+    console.error('Leave room error:', error);
+    return c.json({ error: 'Failed to leave room' }, 500);
+  }
+});
+
+multiplayerRoutes.get('/stats', async (c) => {
+  return c.json({ data: multiplayerHub.getStats() });
 });

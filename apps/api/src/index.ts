@@ -11,13 +11,9 @@ import { challengeRoutes } from './routes/challenges';
 import { multiplayerRoutes } from './routes/multiplayer';
 import { testRoutes } from './routes/tests';
 import { userRoutes } from './routes/users';
-import { WebSocketHandler } from './websocket/server';
+import { multiplayerHub } from './websocket/hub';
 
-const app = new Hono<{
-  Variables: {
-    wsHandler: WebSocketHandler;
-  };
-}>().basePath('/api');
+const app = new Hono().basePath('/api');
 
 app.use('*', logger());
 app.use('*', prettyJSON());
@@ -33,6 +29,12 @@ app.use(
 
 app.use('*', csrfProtection());
 
+// Inject multiplayer hub for HTTP routes that create/list rooms
+app.use('/multiplayer/*', async (c, next) => {
+  c.set('wsHandler' as never, multiplayerHub as never);
+  await next();
+});
+
 app.get('/', (c) => {
   return c.json({
     message: 'tactiletype API Server',
@@ -43,11 +45,6 @@ app.get('/', (c) => {
 });
 
 OAuthProviderFactory.initialize();
-
-app.use('*', async (c, next) => {
-  // WebSocket handler will be available in production setup
-  await next();
-});
 
 app.route('/', authRoutes);
 app.route('/users', userRoutes);
@@ -71,24 +68,39 @@ app.notFound((c) => {
   return c.json({ error: 'Not Found' }, 404);
 });
 
-const port = PORT;
+const port = Number(PORT) || 3001;
 
 console.log(`tactiletype API Server running on port ${port}`);
-console.log(`WebSocket server will be available at ws://localhost:${port}/ws`);
+console.log(`WebSocket available at ws://localhost:${port}/ws`);
+
+let connectionSeq = 0;
 
 export default {
   port,
-  fetch: app.fetch,
+  async fetch(req: Request, server: { upgrade: (req: Request, opts?: { data?: unknown }) => boolean }) {
+    const url = new URL(req.url);
+    if (url.pathname === '/ws') {
+      const upgraded = server.upgrade(req, {
+        data: { connectionId: `conn_${Date.now()}_${++connectionSeq}` },
+      });
+      if (upgraded) return undefined as unknown as Response;
+      return new Response('WebSocket upgrade failed', { status: 400 });
+    }
+    return app.fetch(req);
+  },
   websocket: {
-    message(ws: any, message: any) {
-      // Handle WebSocket messages here
-      console.log('WebSocket message received:', message);
+    open(ws: { data: { connectionId: string }; send: (d: string) => void }) {
+      const id = ws.data.connectionId;
+      multiplayerHub.onOpen(id, ws);
     },
-    open(ws: any) {
-      console.log('WebSocket connection opened');
+    async message(
+      ws: { data: { connectionId: string } },
+      message: string | Buffer
+    ) {
+      await multiplayerHub.onMessage(ws.data.connectionId, message);
     },
-    close(ws: any) {
-      console.log('WebSocket connection closed');
+    close(ws: { data: { connectionId: string } }) {
+      multiplayerHub.onClose(ws.data.connectionId);
     },
   },
 };

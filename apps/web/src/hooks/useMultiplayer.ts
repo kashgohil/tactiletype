@@ -18,6 +18,14 @@ export interface MultiplayerRoom {
   id: string;
   name: string;
   status: 'waiting' | 'countdown' | 'active' | 'finished';
+  hostId?: string;
+  testText?: {
+    id: string;
+    title: string;
+    content: string;
+    difficulty: string;
+    wordCount: number;
+  } | null;
   participants: Array<{
     userId: string;
     username: string;
@@ -107,6 +115,8 @@ export const useMultiplayer = (
         id: data.room.id,
         name: data.room.name,
         status: data.room.status as MultiplayerRoom['status'],
+        hostId: data.room.hostId,
+        testText: data.room.testText,
         participants: data.room.participants,
       };
 
@@ -114,10 +124,10 @@ export const useMultiplayer = (
         ...prev,
         currentRoom: room,
         isInRoom: true,
-        isHost:
-          room.participants.some((p) => p.userId === userIdRef.current) &&
-          room.participants[0]?.userId === userIdRef.current,
-        raceStatus: room.status,
+        isHost: room.hostId
+          ? room.hostId === userIdRef.current
+          : room.participants[0]?.userId === userIdRef.current,
+        raceStatus: room.status as MultiplayerState['raceStatus'],
         error: null,
       }));
     }
@@ -138,21 +148,24 @@ export const useMultiplayer = (
 
   const handleRoomUpdated = useCallback((data: RoomUpdatedMessage['data']) => {
     if (data.room) {
-      const room: MultiplayerRoom = {
-        id: data.room.id,
-        name: data.room.name,
-        status: data.room.status as MultiplayerRoom['status'],
-        participants: data.room.participants,
-      };
-
-      setState((prev) => ({
-        ...prev,
-        currentRoom: room,
-        raceStatus: room.status,
-        isHost:
-          room.participants.some((p) => p.userId === userIdRef.current) &&
-          room.participants[0]?.userId === userIdRef.current,
-      }));
+      setState((prev) => {
+        const hostId =
+          (data.room as { hostId?: string }).hostId ?? prev.currentRoom?.hostId;
+        const room: MultiplayerRoom = {
+          id: data.room.id,
+          name: data.room.name,
+          status: data.room.status as MultiplayerRoom['status'],
+          hostId,
+          testText: prev.currentRoom?.testText,
+          participants: data.room.participants,
+        };
+        return {
+          ...prev,
+          currentRoom: room,
+          raceStatus: room.status as MultiplayerState['raceStatus'],
+          isHost: hostId === userIdRef.current,
+        };
+      });
     }
   }, []);
 

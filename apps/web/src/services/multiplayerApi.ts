@@ -1,10 +1,10 @@
-import type { MultiplayerRoomWithDetails, TestText, ApiResponse } from '@tactile/types';
-
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3002';
+import { VITE_API_URL } from '@/constants';
+import { getCsrfTokenFromCookie } from '@/utils/csrf';
+import type { MultiplayerRoomWithDetails, TestText } from '@tactile/types';
 
 export interface CreateRoomRequest {
   name: string;
-  testTextId: string;
+  testTextId?: string;
   maxPlayers?: number;
 }
 
@@ -38,10 +38,8 @@ export interface GetRoomResponse {
   room: {
     id: string;
     name: string;
-    host: {
-      id: string;
-      username: string;
-    };
+    hostId: string;
+    host: { id: string; username: string };
     testText: {
       id: string;
       title: string;
@@ -60,8 +58,8 @@ export interface GetRoomResponse {
       username: string;
       joinedAt: string;
       finishedAt?: string;
-      finalWpm?: number;
-      finalAccuracy?: number;
+      finalWpm?: number | null;
+      finalAccuracy?: number | null;
     }>;
     liveParticipants?: Array<{
       userId: string;
@@ -71,108 +69,88 @@ export interface GetRoomResponse {
       accuracy: number;
       errors: number;
       finished: boolean;
-    }>;
+    }> | null;
   };
 }
 
+function authHeaders(): HeadersInit {
+  const token = localStorage.getItem('auth_token');
+  return {
+    'Content-Type': 'application/json',
+    'X-CSRF-Token': getCsrfTokenFromCookie() || '',
+    ...(token ? { Authorization: `Bearer ${token}` } : {}),
+  };
+}
+
+async function handle<T>(response: Response): Promise<T> {
+  const body = await response.json().catch(() => ({}));
+  if (!response.ok) {
+    throw new Error(
+      (body as { error?: string }).error ||
+        `HTTP ${response.status}: ${response.statusText}`
+    );
+  }
+  return body as T;
+}
+
 class MultiplayerApiService {
-  private getAuthHeaders(): HeadersInit {
-    const token = localStorage.getItem('authToken');
-    return {
-      'Content-Type': 'application/json',
-      ...(token && { Authorization: `Bearer ${token}` }),
-    };
-  }
-
-  private async handleResponse<T>(response: Response): Promise<T> {
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
-      throw new Error(errorData.error || `HTTP ${response.status}: ${response.statusText}`);
-    }
-    return response.json();
-  }
-
-  // Create a new multiplayer room
   async createRoom(request: CreateRoomRequest): Promise<CreateRoomResponse> {
-    const response = await fetch(`${API_BASE_URL}/api/multiplayer/rooms`, {
+    const response = await fetch(`${VITE_API_URL}/api/multiplayer/rooms`, {
       method: 'POST',
-      headers: this.getAuthHeaders(),
+      headers: authHeaders(),
+      credentials: 'include',
       body: JSON.stringify(request),
     });
-
-    const result = await this.handleResponse<ApiResponse<CreateRoomResponse>>(response);
-    return result.data!;
+    const result = await handle<{ data: CreateRoomResponse }>(response);
+    return result.data;
   }
 
-  // Get list of available rooms
-  async getRooms(page = 1, limit = 10): Promise<GetRoomsResponse> {
+  async getRooms(page = 1, limit = 20): Promise<GetRoomsResponse> {
     const params = new URLSearchParams({
-      page: page.toString(),
-      limit: limit.toString(),
+      page: String(page),
+      limit: String(limit),
     });
-
-    const response = await fetch(`${API_BASE_URL}/api/multiplayer/rooms?${params}`, {
-      method: 'GET',
-      headers: this.getAuthHeaders(),
-    });
-
-    const result = await this.handleResponse<ApiResponse<GetRoomsResponse>>(response);
-    return result.data!;
+    const response = await fetch(
+      `${VITE_API_URL}/api/multiplayer/rooms?${params}`,
+      { headers: authHeaders(), credentials: 'include' }
+    );
+    const result = await handle<{ data: GetRoomsResponse }>(response);
+    return result.data;
   }
 
-  // Get specific room details
   async getRoom(roomId: string): Promise<GetRoomResponse> {
-    const response = await fetch(`${API_BASE_URL}/api/multiplayer/rooms/${roomId}`, {
-      method: 'GET',
-      headers: this.getAuthHeaders(),
-    });
-
-    const result = await this.handleResponse<ApiResponse<GetRoomResponse>>(response);
-    return result.data!;
+    const response = await fetch(
+      `${VITE_API_URL}/api/multiplayer/rooms/${roomId}`,
+      { headers: authHeaders(), credentials: 'include' }
+    );
+    const result = await handle<{ data: GetRoomResponse }>(response);
+    return result.data;
   }
 
-  // Join a room (creates database record)
   async joinRoom(roomId: string): Promise<void> {
-    const response = await fetch(`${API_BASE_URL}/api/multiplayer/rooms/${roomId}/join`, {
-      method: 'POST',
-      headers: this.getAuthHeaders(),
-    });
-
-    await this.handleResponse(response);
+    const response = await fetch(
+      `${VITE_API_URL}/api/multiplayer/rooms/${roomId}/join`,
+      { method: 'POST', headers: authHeaders(), credentials: 'include' }
+    );
+    await handle(response);
   }
 
-  // Leave a room
   async leaveRoom(roomId: string): Promise<void> {
-    const response = await fetch(`${API_BASE_URL}/api/multiplayer/rooms/${roomId}/leave`, {
-      method: 'POST',
-      headers: this.getAuthHeaders(),
-    });
-
-    await this.handleResponse(response);
+    const response = await fetch(
+      `${VITE_API_URL}/api/multiplayer/rooms/${roomId}/leave`,
+      { method: 'POST', headers: authHeaders(), credentials: 'include' }
+    );
+    await handle(response);
   }
 
-  // Get WebSocket connection stats (for debugging)
-  async getStats(): Promise<{ connections: number; rooms: number; authenticatedUsers: number }> {
-    const response = await fetch(`${API_BASE_URL}/api/multiplayer/stats`, {
-      method: 'GET',
-      headers: this.getAuthHeaders(),
-    });
-
-    const result = await this.handleResponse<ApiResponse<{ connections: number; rooms: number; authenticatedUsers: number }>>(response);
-    return result.data!;
-  }
-
-  // Get available test texts for room creation
   async getTestTexts(): Promise<TestText[]> {
-    const response = await fetch(`${API_BASE_URL}/api/tests/texts`, {
-      method: 'GET',
-      headers: this.getAuthHeaders(),
+    const response = await fetch(`${VITE_API_URL}/api/tests/texts?limit=50`, {
+      headers: authHeaders(),
+      credentials: 'include',
     });
-
-    const result = await this.handleResponse<ApiResponse<{ texts: TestText[] }>>(response);
-    return result.data!.texts;
+    const result = await handle<{ texts: TestText[] }>(response);
+    return result.texts ?? [];
   }
 }
 
-// Singleton instance
 export const multiplayerApi = new MultiplayerApiService();
