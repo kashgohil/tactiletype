@@ -15,12 +15,15 @@ logs
 _.log
 report.[0-9]_.[0-9]_.[0-9]_.[0-9]_.json
 
-# dotenv environment variable files
+# dotenv environment variable files (keep .env.example tracked)
 .env
+.env.*
 .env.development.local
 .env.test.local
 .env.production.local
 .env.local
+!.env.example
+!**/.env.example
 
 # caches
 .eslintcache
@@ -33,10 +36,7 @@ report.[0-9]_.[0-9]_.[0-9]_.[0-9]_.json
 # Finder (MacOS) folder config
 .DS_Store
 
-.env*
 .cursor
 .kiro
 .next
 .vscode
-
-.env.*
