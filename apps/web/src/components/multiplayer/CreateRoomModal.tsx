@@ -47,12 +47,12 @@ export const CreateRoomModal: React.FC<CreateRoomModalProps> = ({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50"
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 animate-in fade-in-0 duration-200 ease-[cubic-bezier(0.23,1,0.32,1)]"
       role="dialog"
       aria-modal="true"
       aria-labelledby="create-room-title"
     >
-      <div className="bg-primary border border-accent/30 rounded-2xl max-w-md w-full shadow-xl">
+      <div className="bg-primary border border-accent/30 rounded-2xl max-w-md w-full shadow-xl animate-in fade-in-0 zoom-in-95 duration-200 ease-[cubic-bezier(0.23,1,0.32,1)] origin-center">
         <div className="flex items-center justify-between px-4 py-3 border-b border-accent/20">
           <h2 id="create-room-title" className="font-semibold">
             Create room

@@ -20,7 +20,10 @@ export const Navbar: React.FC = () => {
 
   return (
     <nav className="p-4 w-full sticky top-0">
-      <div className="container mx-auto p-4 bg-accent/30 rounded-lg backdrop-blur-3xl">
+      <div
+        data-theme-surface
+        className="container mx-auto p-4 bg-accent/30 rounded-lg backdrop-blur-3xl"
+      >
         <div className="flex justify-between items-center">
           <Link to="/" className="text-2xl font-bold flex items-center gap-2">
             <img

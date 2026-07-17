@@ -39,7 +39,7 @@ export const TestPreferencesPanel: React.FC<TestPreferencesPanelProps> = ({
       </Button>
 
       {open && (
-        <div className="absolute right-0 top-full mt-2 z-50 w-72 rounded-xl border border-accent/30 bg-primary shadow-xl p-4 space-y-3">
+        <div className="absolute right-0 top-full mt-2 z-50 w-72 rounded-xl border border-accent/30 bg-primary shadow-xl p-4 space-y-3 origin-top-right animate-in fade-in-0 zoom-in-95 duration-150 ease-[cubic-bezier(0.23,1,0.32,1)]">
           <div className="flex items-center justify-between">
             <h3 className="text-sm font-semibold">Test display</h3>
             <Button

@@ -3,15 +3,28 @@
 
 @custom-variant dark (&:is(.dark *));
 
-/* Respect OS reduced-motion preference globally */
+/* Reduced motion: keep brief opacity/color, kill looping motion & long movement.
+   Motion/JS animations still need usePrefersReducedMotion per component. */
 @media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
   *,
   *::before,
   *::after {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
+  }
+
+  /* Prefer property-limited transitions (opacity/color stay short; no transform travel) */
+  *:not([data-allow-transform-motion]),
+  *:not([data-allow-transform-motion])::before,
+  *:not([data-allow-transform-motion])::after {
+    transition-property: color, background-color, border-color, opacity,
+      box-shadow, outline-color, fill, stroke, text-decoration-color !important;
+    transition-duration: 0.05s !important;
   }
 }
 
@@ -66,6 +79,9 @@
   --color-primary: var(--theme-primary, #edebe1);
   --color-text: var(--theme-text, #333333);
   --color-accent: var(--theme-accent, #ceb11e);
+
+  --ease-out-strong: cubic-bezier(0.23, 1, 0.32, 1);
+  --ease-in-out-strong: cubic-bezier(0.77, 0, 0.175, 1);
 }
 
 @theme inline {
@@ -116,5 +132,17 @@
   }
   body {
     @apply bg-primary text-text font-saira selection:bg-accent/30 selection:text-accent-foreground;
+  }
+
+  /* Smooth theme color morph when CSS variables change (occasional delight) */
+  @media (prefers-reduced-motion: no-preference) {
+    body,
+    [data-theme-surface] {
+      transition:
+        background-color 0.28s var(--ease-out-strong),
+        color 0.28s var(--ease-out-strong),
+        border-color 0.28s var(--ease-out-strong),
+        box-shadow 0.28s var(--ease-out-strong);
+    }
   }
 }

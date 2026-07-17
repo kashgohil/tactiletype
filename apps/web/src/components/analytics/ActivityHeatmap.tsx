@@ -254,7 +254,7 @@ export const ActivityHeatmap: React.FC<ActivityHeatmapProps> = ({
                       <TooltipTrigger>
                         <div
                           className={cn(
-                            'w-6 h-6 rounded-sm cursor-pointer transition-all duration-200',
+                            'w-6 h-6 rounded-sm cursor-pointer transition-colors duration-150 ease',
                             getActivityClassName(
                               day.count,
                               heatmapData.maxCount

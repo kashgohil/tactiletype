@@ -221,7 +221,7 @@ export const GoalTracker: React.FC<GoalTrackerProps> = ({
             return (
               <div
                 key={goal.id}
-                className={`p-4 rounded-lg border-2 transition-all ${
+                className={`p-4 rounded-lg border-2 ${
                   isAchieved
                     ? 'border-green-200 bg-green-50 dark:border-green-800 dark:bg-green-900/20'
                     : isExpired

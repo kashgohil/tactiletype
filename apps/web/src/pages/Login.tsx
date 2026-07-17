@@ -2,6 +2,8 @@ import { Github } from '@/assets/github';
 import { Google } from '@/assets/google';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { usePrefersReducedMotion } from '@/hooks/usePrefersReducedMotion';
+import { fadeEnter } from '@/lib/motion';
 import api from '@/services/api';
 import { Link, useNavigate } from '@tanstack/react-router';
 import { motion } from 'motion/react';
@@ -14,6 +16,8 @@ export const Login: React.FC = () => {
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [isOAuthLoading, setIsOAuthLoading] = useState<string | null>(null);
+  const reducedMotion = usePrefersReducedMotion();
+  const fade = fadeEnter(reducedMotion);
 
   const { login } = useAuth();
   const navigate = useNavigate();
@@ -50,10 +54,10 @@ export const Login: React.FC = () => {
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: '-30%' }}
-      animate={{ opacity: 1, y: '-40%' }}
-      exit={{ opacity: 0, y: -40 }}
-      transition={{ duration: 0.3, ease: 'easeInOut' }}
+      initial={fade.initial}
+      animate={fade.animate}
+      exit={fade.exit}
+      transition={fade.transition}
       className="max-w-md w-full my-auto mx-auto bg-white dark:bg-gray-800 rounded-lg shadow-md p-8"
     >
       <h1 className="flex items-center justify-center gap-2 text-2xl font-bold text-center mb-8">

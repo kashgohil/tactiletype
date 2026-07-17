@@ -50,7 +50,7 @@ export const CustomPasteModal: React.FC<CustomPasteModalProps> = ({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50"
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 animate-in fade-in-0 duration-200 ease-[cubic-bezier(0.23,1,0.32,1)]"
       role="dialog"
       aria-modal="true"
       aria-labelledby="custom-paste-title"
@@ -58,7 +58,7 @@ export const CustomPasteModal: React.FC<CustomPasteModalProps> = ({
         if (e.key === 'Escape') onClose();
       }}
     >
-      <div className="bg-primary border border-accent/30 rounded-2xl max-w-lg w-full shadow-xl max-h-[90vh] overflow-y-auto">
+      <div className="bg-primary border border-accent/30 rounded-2xl max-w-lg w-full shadow-xl max-h-[90vh] overflow-y-auto animate-in fade-in-0 zoom-in-95 duration-200 ease-[cubic-bezier(0.23,1,0.32,1)] origin-center">
         <div className="flex items-center justify-between px-4 py-3 border-b border-accent/20">
           <h2 id="custom-paste-title" className="font-semibold flex items-center gap-2">
             <ClipboardPaste className="size-4 text-accent" />

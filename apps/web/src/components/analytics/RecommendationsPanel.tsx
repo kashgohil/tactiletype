@@ -93,7 +93,7 @@ export const RecommendationsPanel: React.FC<RecommendationsPanelProps> = ({
 
     return (
       <div
-        className={`p-4 rounded-lg border-2 transition-all ${
+        className={`p-4 rounded-lg border-2 ${
           expired
             ? 'border-gray-300 bg-gray-100 dark:border-gray-600 dark:bg-gray-800 opacity-60'
             : getRecommendationColor(recommendation.priority)

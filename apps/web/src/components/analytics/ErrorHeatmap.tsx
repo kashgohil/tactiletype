@@ -63,8 +63,9 @@ const KeyboardRow: React.FC<{ row: string; characters: HeatmapCell[] }> = ({
                 className={`
                   ${isSpace ? 'w-32' : 'w-10'} h-10 rounded flex items-center justify-center
                   text-sm font-semibold cursor-pointer
-                  transition-transform motion-reduce:transition-none duration-200
-                  hover:scale-110 hover:shadow-lg motion-reduce:hover:scale-100
+                  transition-transform motion-reduce:transition-none duration-150 ease-[cubic-bezier(0.23,1,0.32,1)]
+                  [@media(hover:hover)_and_(pointer:fine)]:hover:scale-105 [@media(hover:hover)_and_(pointer:fine)]:hover:shadow-lg
+                  motion-reduce:hover:scale-100
                   ${getTextColor(cell.accuracy, hasData)}
                 `}
                 style={{

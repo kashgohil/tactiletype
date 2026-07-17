@@ -353,8 +353,10 @@ export const MultiplayerRoom: React.FC = () => {
                   </div>
                   <div className="h-1.5 rounded-full bg-accent/15 overflow-hidden">
                     <div
-                      className="h-full bg-accent transition-all duration-200"
-                      style={{ width: `${Math.min(100, p.progress)}%` }}
+                      className="h-full w-full bg-accent origin-left transition-transform duration-200 ease-linear"
+                      style={{
+                        transform: `translateX(-${100 - Math.min(100, p.progress)}%)`,
+                      }}
                     />
                   </div>
                 </li>
