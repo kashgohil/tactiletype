@@ -1,3 +1,4 @@
+export { STARTER_ACHIEVEMENTS } from './achievements';
 export { CODE_SNIPPETS } from './code';
 export {
   BOTTOM_ROW,

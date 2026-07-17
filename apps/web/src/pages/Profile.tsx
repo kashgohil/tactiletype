@@ -1,6 +1,7 @@
+import { GoalTracker } from '@/components/analytics/GoalTracker';
 import {
+  AchievementsPanel,
   ActivitySection,
-  GoalsPlaceholder,
   MetricHierarchy,
   ProfileEmptyState,
   ProfileHero,
@@ -12,14 +13,16 @@ import {
 import { ProfileProgressChart } from '@/components/profile/ProfileProgressChart';
 import { Button } from '@/components/ui/button';
 import { buildRecommendation } from '@/utils/recommendations';
-import { useQuery } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import React, { useMemo, useState } from 'react';
 import { useAuth } from '../contexts';
 import { analyticsApi } from '../services/analyticsApi';
+import { challengesApi } from '../services/challengesApi';
 import { testResultsApi, usersApi } from '../services/api';
 
 export const Profile: React.FC = () => {
   const { user } = useAuth();
+  const queryClient = useQueryClient();
   const [currentPage, setCurrentPage] = useState(1);
   const [filters, setFilters] = useState<ResultFilters>({});
   const pageSize = 10;
@@ -67,6 +70,33 @@ export const Profile: React.FC = () => {
     queryFn: () => analyticsApi.getErrorAnalysis(),
     enabled: !!user,
     staleTime: 5 * 60 * 1000,
+  });
+
+  const { data: goals = [], isLoading: isLoadingGoals } = useQuery({
+    queryKey: ['userGoals', user?.id],
+    queryFn: () => analyticsApi.getGoals(),
+    enabled: !!user,
+    staleTime: 60 * 1000,
+  });
+
+  const { data: achievements = [], isLoading: isLoadingAchievements } =
+    useQuery({
+      queryKey: ['userAchievements', user?.id],
+      queryFn: () => challengesApi.getAchievements(),
+      enabled: !!user,
+      staleTime: 60 * 1000,
+    });
+
+  const createGoalMutation = useMutation({
+    mutationFn: analyticsApi.createGoal,
+    onSuccess: () =>
+      queryClient.invalidateQueries({ queryKey: ['userGoals', user?.id] }),
+  });
+
+  const deleteGoalMutation = useMutation({
+    mutationFn: analyticsApi.deleteGoal,
+    onSuccess: () =>
+      queryClient.invalidateQueries({ queryKey: ['userGoals', user?.id] }),
   });
 
   const recommendation = useMemo(
@@ -156,13 +186,28 @@ export const Profile: React.FC = () => {
             <>
               <RecommendedExerciseCard recommendation={recommendation} />
 
+              <div className="flex flex-wrap gap-2">
+                <Button asChild variant="outline" size="sm">
+                  <a href="/daily">Daily challenge</a>
+                </Button>
+                <Button asChild variant="outline" size="sm">
+                  <a href="/practice">Practice hub</a>
+                </Button>
+              </div>
+
               <div className="grid lg:grid-cols-3 gap-4 md:gap-6">
-                <div className="lg:col-span-1">
-                  <GoalsPlaceholder
-                    bestWpm={stats ? Number(stats.bestWpm) : 0}
-                    avgAccuracy={stats ? Number(stats.avgAccuracy) : 0}
-                    currentStreak={stats?.currentStreak ?? 0}
-                  />
+                <div className="lg:col-span-1 space-y-4">
+                  {isLoadingGoals ? (
+                    <div className="bg-accent/10 rounded-xl p-6 text-sm text-text/40">
+                      Loading goals…
+                    </div>
+                  ) : (
+                    <GoalTracker
+                      goals={goals}
+                      onCreateGoal={(data) => createGoalMutation.mutate(data)}
+                      onDeleteGoal={(id) => deleteGoalMutation.mutate(id)}
+                    />
+                  )}
                 </div>
                 <div className="lg:col-span-2 space-y-2">
                   <h2 className="text-lg font-semibold px-1">Progress</h2>
@@ -182,16 +227,10 @@ export const Profile: React.FC = () => {
                   errorAnalysis={errorAnalysis}
                   isLoading={isLoadingErrors}
                 />
-                <div className="bg-accent/10 rounded-xl p-5 md:p-6">
-                  <h2 className="text-lg font-semibold mb-2">Practice hub</h2>
-                  <p className="text-sm text-text/50 mb-4 leading-relaxed">
-                    Guided drills and content packs live on the Practice page —
-                    separate from free tests.
-                  </p>
-                  <Button asChild>
-                    <a href="/practice">Open Practice</a>
-                  </Button>
-                </div>
+                <AchievementsPanel
+                  achievements={achievements}
+                  isLoading={isLoadingAchievements}
+                />
               </div>
 
               <ActivitySection

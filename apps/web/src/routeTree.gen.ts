@@ -19,6 +19,7 @@ import { Route as PracticeRouteImport } from './routes/practice'
 import { Route as MultiplayerRouteImport } from './routes/multiplayer'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as LeaderboardRouteImport } from './routes/leaderboard'
+import { Route as DailyRouteImport } from './routes/daily'
 import { Route as ContactRouteImport } from './routes/contact'
 import { Route as AnalyticsRouteImport } from './routes/analytics'
 import { Route as IndexRouteImport } from './routes/index'
@@ -74,6 +75,11 @@ const LeaderboardRoute = LeaderboardRouteImport.update({
   path: '/leaderboard',
   getParentRoute: () => rootRouteImport,
 } as any)
+const DailyRoute = DailyRouteImport.update({
+  id: '/daily',
+  path: '/daily',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ContactRoute = ContactRouteImport.update({
   id: '/contact',
   path: '/contact',
@@ -99,6 +105,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/analytics': typeof AnalyticsRoute
   '/contact': typeof ContactRoute
+  '/daily': typeof DailyRoute
   '/leaderboard': typeof LeaderboardRoute
   '/login': typeof LoginRoute
   '/multiplayer': typeof MultiplayerRoute
@@ -115,6 +122,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/analytics': typeof AnalyticsRoute
   '/contact': typeof ContactRoute
+  '/daily': typeof DailyRoute
   '/leaderboard': typeof LeaderboardRoute
   '/login': typeof LoginRoute
   '/multiplayer': typeof MultiplayerRoute
@@ -132,6 +140,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/analytics': typeof AnalyticsRoute
   '/contact': typeof ContactRoute
+  '/daily': typeof DailyRoute
   '/leaderboard': typeof LeaderboardRoute
   '/login': typeof LoginRoute
   '/multiplayer': typeof MultiplayerRoute
@@ -150,6 +159,7 @@ export interface FileRouteTypes {
     | '/'
     | '/analytics'
     | '/contact'
+    | '/daily'
     | '/leaderboard'
     | '/login'
     | '/multiplayer'
@@ -166,6 +176,7 @@ export interface FileRouteTypes {
     | '/'
     | '/analytics'
     | '/contact'
+    | '/daily'
     | '/leaderboard'
     | '/login'
     | '/multiplayer'
@@ -182,6 +193,7 @@ export interface FileRouteTypes {
     | '/'
     | '/analytics'
     | '/contact'
+    | '/daily'
     | '/leaderboard'
     | '/login'
     | '/multiplayer'
@@ -199,6 +211,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AnalyticsRoute: typeof AnalyticsRoute
   ContactRoute: typeof ContactRoute
+  DailyRoute: typeof DailyRoute
   LeaderboardRoute: typeof LeaderboardRoute
   LoginRoute: typeof LoginRoute
   MultiplayerRoute: typeof MultiplayerRoute
@@ -284,6 +297,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LeaderboardRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/daily': {
+      id: '/daily'
+      path: '/daily'
+      fullPath: '/daily'
+      preLoaderRoute: typeof DailyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/contact': {
       id: '/contact'
       path: '/contact'
@@ -319,6 +339,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AnalyticsRoute: AnalyticsRoute,
   ContactRoute: ContactRoute,
+  DailyRoute: DailyRoute,
   LeaderboardRoute: LeaderboardRoute,
   LoginRoute: LoginRoute,
   MultiplayerRoute: MultiplayerRoute,

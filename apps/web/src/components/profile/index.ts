@@ -1,3 +1,4 @@
+export { AchievementsPanel } from './AchievementsPanel';
 export { ActivitySection } from './ActivitySection';
 export { GoalsPlaceholder } from './GoalsPlaceholder';
 export { MetricHierarchy } from './MetricHierarchy';

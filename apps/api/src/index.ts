@@ -7,6 +7,7 @@ import { FRONTEND_URL, PORT } from './constants';
 import { csrfProtection } from './middleware/csrf';
 import analyticsRoutes from './routes/analytics';
 import { authRoutes } from './routes/auth';
+import { challengeRoutes } from './routes/challenges';
 import { multiplayerRoutes } from './routes/multiplayer';
 import { testRoutes } from './routes/tests';
 import { userRoutes } from './routes/users';
@@ -53,6 +54,7 @@ app.route('/users', userRoutes);
 app.route('/tests', testRoutes);
 app.route('/multiplayer', multiplayerRoutes);
 app.route('/analytics', analyticsRoutes);
+app.route('/challenges', challengeRoutes);
 
 app.onError((err, c) => {
   console.error('API Error:', err);

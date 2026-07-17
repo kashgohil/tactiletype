@@ -6,6 +6,7 @@ import { z } from 'zod';
 import { authMiddleware } from '../middleware/auth';
 import { optionalAuthMiddleware } from '../middleware/optionalAuth';
 import { AnalyticsEngine } from '../utils/analyticsEngine';
+import { evaluateAchievements } from './challenges';
 
 type Variables = {
   user: {
@@ -205,6 +206,13 @@ testRoutes.post(
         return c.json({ error: 'Failed to save test result' }, 500);
       }
 
+      let newlyUnlocked: string[] = [];
+      try {
+        newlyUnlocked = await evaluateAchievements(user.userId);
+      } catch (achErr) {
+        console.error('Achievement evaluation failed:', achErr);
+      }
+
       return c.json({
         message: 'Test result submitted successfully',
         result: {
@@ -218,6 +226,7 @@ testRoutes.post(
           modeTarget: result.modeTarget,
           completedAt: result.completedAt,
         },
+        newlyUnlocked,
       });
     } catch (error) {
       console.error('Submit result error:', error);

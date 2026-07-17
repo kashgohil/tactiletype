@@ -2,8 +2,9 @@ import {
   buildAllPacks,
   countPracticeUnits,
   flattenPackItems,
+  STARTER_ACHIEVEMENTS,
 } from '@tactile/content';
-import { db, testTexts } from './index';
+import { achievements, db, testTexts } from './index';
 
 async function seed() {
   try {
@@ -15,7 +16,6 @@ async function seed() {
     const packs = buildAllPacks();
     const items = flattenPackItems(packs);
 
-    // Insert as test_texts for multiplayer / API consumers
     const rows = items.map((item) => ({
       title: item.title.slice(0, 200),
       content: item.content,
@@ -25,7 +25,6 @@ async function seed() {
       isActive: true,
     }));
 
-    // Batch insert to avoid huge single statements
     const batchSize = 50;
     for (let i = 0; i < rows.length; i += batchSize) {
       const batch = rows.slice(i, i + batchSize);
@@ -35,11 +34,36 @@ async function seed() {
     console.log(
       `Inserted ${rows.length} practice units from ${packs.length} packs`
     );
-    console.log(`Pack breakdown:`);
     for (const pack of packs) {
-      console.log(`  - ${pack.id}: ${pack.items.length} items (${pack.category})`);
+      console.log(
+        `  - ${pack.id}: ${pack.items.length} items (${pack.category})`
+      );
     }
     console.log(`Total practice units: ${countPracticeUnits(packs)}`);
+
+    // Seed starter achievements (skip if name already exists)
+    const existing = await db.select().from(achievements);
+    const existingNames = new Set(existing.map((a) => a.name));
+    const toInsert = STARTER_ACHIEVEMENTS.filter(
+      (a) => !existingNames.has(a.name)
+    ).map((a) => ({
+      name: a.name,
+      description: a.description,
+      category: a.category,
+      criteria: a.criteria,
+      badgeIcon: a.badgeIcon,
+      points: a.points,
+      rarity: a.rarity,
+      isActive: true,
+    }));
+
+    if (toInsert.length) {
+      await db.insert(achievements).values(toInsert);
+      console.log(`Inserted ${toInsert.length} starter achievements`);
+    } else {
+      console.log('Starter achievements already present');
+    }
+
     console.log('✅ Database seeded successfully!');
   } catch (error) {
     console.error('❌ Error seeding database:', error);

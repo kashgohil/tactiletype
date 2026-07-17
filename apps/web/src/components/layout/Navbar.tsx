@@ -1,5 +1,6 @@
 import { Link } from '@tanstack/react-router';
 import {
+  Calendar,
   ChartPie,
   Crown,
   Dumbbell,
@@ -52,6 +53,16 @@ export const Navbar: React.FC = () => {
                 </Link>
               </TooltipTrigger>
               <TooltipContent>Practice</TooltipContent>
+            </Tooltip>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Link to="/daily">
+                  <Button variant="link" size="icon">
+                    <Calendar />
+                  </Button>
+                </Link>
+              </TooltipTrigger>
+              <TooltipContent>Daily</TooltipContent>
             </Tooltip>
             <Tooltip>
               <TooltipTrigger asChild>
