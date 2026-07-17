@@ -1,21 +1,27 @@
 import type { ErrorAnalysisSummary } from '@tactile/types';
+import {
+  curriculumCompletionPercent,
+  loadCurriculumProgress,
+} from '@/utils/curriculum';
+import { mergeWeakKeys } from '@/utils/weakKeys';
 
 export type RecommendedExercise = {
   id: string;
   title: string;
   description: string;
   reason: string;
-  /** Path with search for /practice or /test */
+  /** Path with search for /practice, /play, or /test */
   href: string;
   priority: number;
 };
 
 /**
- * v1 rule-based recommendations (PRODUCT_PLAN §5.4).
- * 1. Weak keys → key drill
- * 2. Low accuracy last tests → accuracy challenge
- * 3. Streak at risk → short timer test
- * 4. Else → curriculum / random pack
+ * Rule-based recommendations — prefer unique play modes over more categories.
+ * 1. Weak keys → Weak Storm (adaptive)
+ * 2. Curriculum incomplete → next lesson
+ * 3. Low accuracy → accuracy drill
+ * 4. Streak at risk → short timer
+ * 5. Else → explore play modes
  */
 export function buildRecommendation(input: {
   errorAnalysis?: ErrorAnalysisSummary | null;
@@ -23,21 +29,37 @@ export function buildRecommendation(input: {
   currentStreak?: number;
   lastPracticeHoursAgo?: number | null;
 }): RecommendedExercise {
-  const weakKeys =
-    input.errorAnalysis?.mostProblematicChars
-      ?.slice(0, 5)
-      .map((c) => c.character)
-      .filter(Boolean) ?? [];
+  const weakKeys = mergeWeakKeys(
+    input.errorAnalysis?.mostProblematicChars,
+    5
+  );
 
   if (weakKeys.length >= 2) {
-    const keys = weakKeys.join(',');
     return {
-      id: 'weak-keys',
-      title: `Practice weak keys: ${weakKeys.map((k) => k.toUpperCase()).join(' ')}`,
-      description: 'Targeted drill built from your recent error heatmap.',
-      reason: 'Clear weak keys detected',
-      href: `/practice?drill=keys&keys=${encodeURIComponent(keys)}`,
+      id: 'weak-storm',
+      title: `Weak Storm: ${weakKeys.map((k) => k.toUpperCase()).join(' ')}`,
+      description:
+        'Rising-timer storm aimed at the keys you miss most — not the same free test.',
+      reason: 'Weak keys detected from your recent typing',
+      href: '/play/weak-storm',
       priority: 5,
+    };
+  }
+
+  const progress = loadCurriculumProgress();
+  const pct = curriculumCompletionPercent(progress);
+  if (pct < 100) {
+    return {
+      id: 'lesson-path',
+      title: pct === 0 ? 'Start the lesson path' : `Continue lessons (${pct}%)`,
+      description:
+        'Home row → no-backspace → speed checks. Unlock each stage with a real pass rule.',
+      reason:
+        pct === 0
+          ? 'Structured path builds speed faster than random tests'
+          : 'You still have lessons left on the path',
+      href: '/play/lesson-path',
+      priority: 4,
     };
   }
 
@@ -52,7 +74,7 @@ export function buildRecommendation(input: {
       description: 'Slow down and aim for 98%+ on a short passage.',
       reason: `Recent accuracy around ${input.recentAvgAccuracy.toFixed(0)}%`,
       href: '/practice?drill=accuracy',
-      priority: 4,
+      priority: 3,
     };
   }
 
@@ -71,12 +93,14 @@ export function buildRecommendation(input: {
     };
   }
 
+  // Prefer today's rotating mode for variety
   return {
-    id: 'explore',
-    title: 'Browse practice packs',
-    description: 'Word lists, quotes, symbols, and code drills await.',
-    reason: 'No urgent weak spots — explore the library',
-    href: '/practice',
+    id: 'daily-mode',
+    title: "Today's play mode",
+    description:
+      'A rotating ranked mode (Sudden Death, Storm, Ghost…) — different rules every UTC day.',
+    reason: 'Keep skills sharp with daily variety',
+    href: '/daily',
     priority: 1,
   };
 }

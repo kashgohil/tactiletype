@@ -58,15 +58,20 @@ export const WeakSpotsPanel: React.FC<WeakSpotsPanelProps> = ({
                   </a>
                 ))}
               </div>
-              <Button size="sm" className="mt-3" asChild>
-                <a
-                  href={`/practice?drill=keys&keys=${encodeURIComponent(
-                    chars.map((c) => c.character).join(',')
-                  )}`}
-                >
-                  Drill all weak keys
-                </a>
-              </Button>
+              <div className="flex flex-wrap gap-2 mt-3">
+                <Button size="sm" asChild>
+                  <a href="/play/weak-storm">Weak Storm</a>
+                </Button>
+                <Button size="sm" variant="outline" asChild>
+                  <a
+                    href={`/practice?drill=keys&keys=${encodeURIComponent(
+                      chars.map((c) => c.character).join(',')
+                    )}`}
+                  >
+                    Classic key drill
+                  </a>
+                </Button>
+              </div>
             </div>
           )}
 
