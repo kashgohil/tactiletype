@@ -54,6 +54,34 @@ export function getLayoutRows(layout: LayoutId): string[] {
 }
 
 /**
+ * Letter rows for heatmap UI (upper + lower case display).
+ */
+export function getHeatmapLetterRows(layout: LayoutId): {
+  uppercase: string[][];
+  lowercase: string[][];
+  numbers: string[];
+  symbols: string[][];
+} {
+  const rows = LAYOUTS[layout];
+  const letters = [rows[1]!, rows[2]!, rows[3]!].map((r) =>
+    r
+      .toLowerCase()
+      .split('')
+      .filter((c) => /[a-z]/.test(c))
+  );
+  return {
+    uppercase: letters.map((r) => r.map((c) => c.toUpperCase())),
+    lowercase: letters,
+    numbers: rows[0]!.split(''),
+    symbols: [
+      rows[1]!.split('').filter((c) => !/[a-zA-Z]/.test(c)),
+      rows[2]!.split('').filter((c) => !/[a-zA-Z]/.test(c)),
+      rows[3]!.split('').filter((c) => !/[a-zA-Z]/.test(c)),
+    ],
+  };
+}
+
+/**
  * Map a character to a row/column for heatmap positioning.
  * Returns null for unmapped chars.
  */

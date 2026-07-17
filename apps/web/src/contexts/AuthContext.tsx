@@ -10,9 +10,16 @@ interface AuthProviderProps {
 
 async function tryMergeGuestResults() {
   try {
-    const n = await mergeGuestResults((data) => testResultsApi.submit(data));
-    if (n > 0) {
-      console.log(`Merged ${n} guest result(s) into account`);
+    const result = await mergeGuestResults((data) =>
+      testResultsApi.submit(data)
+    );
+    if (result.succeeded > 0) {
+      console.log(
+        `Merged ${result.succeeded}/${result.attempted} guest result(s)` +
+          (result.remaining
+            ? ` (${result.remaining} remaining for next login)`
+            : '')
+      );
     }
   } catch (err) {
     console.error('Guest result merge failed:', err);

@@ -1,5 +1,6 @@
 import { TimelineChart } from "@/components/analytics/TimelineChart";
 import { Stopwatch } from "@/components/stopwatch";
+import { CustomPasteModal } from "@/components/test/CustomPasteModal";
 import { LiveStats } from "@/components/test/LiveStats";
 import { TestPreferencesPanel } from "@/components/test/TestPreferencesPanel";
 import { Button } from "@/components/ui/button";
@@ -16,6 +17,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { usePrefersReducedMotion } from "@/hooks/usePrefersReducedMotion";
 import {
   FONT_SIZE_CLASS,
   useTestPreferences,
@@ -27,6 +29,7 @@ import {
   ALargeSmall,
   AtSign,
   Braces,
+  ClipboardPaste,
   Hash,
   Quote,
   RotateCcw,
@@ -36,11 +39,15 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
-import React, { useCallback, useEffect, useRef, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useAuth } from "../contexts";
 import { analyticsApi } from "../services/analyticsApi";
 import type { TestText } from "../services/api";
 import { testResultsApi } from "../services/api";
+import {
+  codeTokenClass,
+  tokenizeCodeChars,
+} from "../utils/codeHighlight";
 import { saveGuestResult } from "../utils/guestResults";
 import {
   playCompleteChime,
@@ -112,12 +119,16 @@ const Modes: Record<
 export const TypingTest: React.FC = () => {
   const { user } = useAuth();
   const { prefs, setPrefs, resetPrefs } = useTestPreferences();
+  const reducedMotion = usePrefersReducedMotion();
+  const smoothCaret = prefs.smoothCaret && !reducedMotion;
   const search = useSearch({ strict: false }) as {
     practice?: string;
     type?: string;
     mode?: string;
     duration?: string;
+    paste?: string;
   };
+  const [pasteOpen, setPasteOpen] = useState(search.paste === "1");
 
   const initialType = (["text", "punctuation", "numbers", "quotes", "code", "symbols"].includes(
     search.type ?? "",
@@ -379,17 +390,23 @@ export const TypingTest: React.FC = () => {
     inputRef.current?.focus();
   }, [currentType, currentMode, timerDuration, wordsCount, difficulty]);
 
-  // Render character — clear typed vs untyped distinction
+  const codeTokens = useMemo(
+    () =>
+      currentType === "code" ? tokenizeCodeChars(testText) : null,
+    [currentType, testText],
+  );
+
+  // Render character — clear typed vs untyped distinction (+ soft code tints)
   const renderCharacter = (char: string, index: number) => {
     if (!engine) return char;
 
     const status = engine.getCharacterStatus(index);
     const hi = prefs.highContrastTyped;
+    const token = codeTokens?.[index];
 
     let className = "relative inline-block ";
     switch (status) {
       case "correct":
-        // Typed correct: full opacity + underline trail so progress is obvious
         className += hi
           ? "text-text opacity-100 border-b-2 border-accent/70"
           : "text-text bg-accent/40";
@@ -402,12 +419,26 @@ export const TypingTest: React.FC = () => {
         className += hi ? "text-text/45" : "text-text/50";
         break;
       default:
-        // Untyped: dimmer, no underline
         className += hi ? "text-text/35" : "text-text/50";
     }
 
+    if (token && status !== "incorrect") {
+      const tint = codeTokenClass(token, status);
+      if (tint) {
+        // Replace generic text color with token tint for code mode
+        className = className
+          .replace(/text-text(\/\d+)?/g, "")
+          .replace(/opacity-100/g, "")
+          .trim();
+        className += " " + tint;
+        if (status === "correct" && hi) {
+          className += " border-b-2 border-accent/70";
+        }
+      }
+    }
+
     const isCaret = state.currentIndex === index && !state.isComplete;
-    const caretTransition = prefs.smoothCaret
+    const caretTransition = smoothCaret
       ? { type: "spring" as const, stiffness: 500, damping: 35, mass: 0.4 }
       : { duration: 0 };
 
@@ -415,38 +446,41 @@ export const TypingTest: React.FC = () => {
     if (isCaret) {
       const base =
         "absolute pointer-events-none z-[1] " +
-        (prefs.smoothCaret ? "" : "animate-pulse ");
+        (smoothCaret ? "" : reducedMotion ? "" : "animate-pulse ");
       switch (prefs.caretStyle) {
         case "block":
           caretNode = (
             <motion.div
-              layoutId="cursor"
+              layoutId={reducedMotion ? undefined : "cursor"}
               transition={caretTransition}
               className={cn(base, "inset-0 bg-accent/35 rounded-sm")}
+              aria-hidden
             />
           );
           break;
         case "underline":
           caretNode = (
             <motion.div
-              layoutId="cursor"
+              layoutId={reducedMotion ? undefined : "cursor"}
               transition={caretTransition}
               className={cn(
                 base,
                 "left-0 right-0 bottom-0 h-0.5 bg-accent",
               )}
+              aria-hidden
             />
           );
           break;
         case "box":
           caretNode = (
             <motion.div
-              layoutId="cursor"
+              layoutId={reducedMotion ? undefined : "cursor"}
               transition={caretTransition}
               className={cn(
                 base,
                 "inset-0 border-2 border-accent rounded-sm",
               )}
+              aria-hidden
             />
           );
           break;
@@ -454,30 +488,31 @@ export const TypingTest: React.FC = () => {
         default:
           caretNode = (
             <motion.div
-              layoutId="cursor"
+              layoutId={reducedMotion ? undefined : "cursor"}
               transition={caretTransition}
               className={cn(
                 base,
                 "inset-y-0 left-0 w-0.5 bg-accent",
               )}
+              aria-hidden
             />
           );
       }
     }
 
     return (
-      <div
+      <span
         key={index}
         className={cn(
           className,
-          prefs.smoothCaret
+          smoothCaret
             ? "transition-colors duration-150"
             : "transition-none",
         )}
       >
         {char === " " ? "\u00A0" : char}
         {caretNode}
-      </div>
+      </span>
     );
   };
 
@@ -496,17 +531,57 @@ export const TypingTest: React.FC = () => {
     });
   }
 
+  const panelMotion = reducedMotion
+    ? { initial: false, animate: { opacity: 1, y: 0 }, exit: { opacity: 1 } }
+    : {
+        initial: { opacity: 0, y: 0 },
+        animate: { opacity: 1, y: -50 },
+        exit: { opacity: 0, y: -60 },
+      };
+
   return (
     <div className="h-full flex flex-col gap-4 items-center justify-center">
+      <CustomPasteModal
+        open={pasteOpen}
+        onClose={() => setPasteOpen(false)}
+        onStart={(content, title) => {
+          setPracticeMeta({
+            exerciseKind: "custom_paste",
+            exercisePackId: "playlist-local",
+          });
+          setTestText(content);
+          setCurrentTestText({
+            id: "custom-" + Date.now(),
+            title,
+            content,
+            language: "en",
+            difficulty,
+            wordCount: content.split(/\s+/).filter(Boolean).length,
+            createdAt: new Date().toISOString(),
+          });
+          setResultSubmitted(false);
+          setIsTestActive(false);
+          const newEngine = new TypingEngine(
+            content,
+            (newStats) => setStats(newStats),
+            (newState) => setState(newState),
+          );
+          setEngine(newEngine);
+          setTimeout(() => inputRef.current?.focus(), 50);
+        }}
+      />
       <AnimatePresence mode="wait">
         {!state.isComplete ? (
           <motion.div
             key="typing-test"
             className="bg-accent/30 rounded-lg w-full"
-            initial={{ opacity: 0, y: 0 }}
-            animate={{ opacity: 1, y: -50 }}
-            exit={{ opacity: 0, y: -60 }}
-            transition={{ duration: 0.3, ease: "easeInOut" }}
+            initial={panelMotion.initial}
+            animate={panelMotion.animate}
+            exit={panelMotion.exit}
+            transition={{
+              duration: reducedMotion ? 0 : 0.3,
+              ease: "easeInOut",
+            }}
             onAnimationComplete={() => {
               if (!state.isComplete && !isTestActive) {
                 inputRef.current?.focus();
@@ -636,6 +711,21 @@ export const TypingTest: React.FC = () => {
                     )}
                   </div>
                   <div className="flex items-center gap-2">
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => setPasteOpen(true)}
+                          aria-label="Custom paste"
+                        >
+                          <ClipboardPaste />
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent side="bottom">
+                        Custom paste
+                      </TooltipContent>
+                    </Tooltip>
                     <TestPreferencesPanel
                       prefs={prefs}
                       onChange={setPrefs}
@@ -676,7 +766,7 @@ export const TypingTest: React.FC = () => {
 
             <div
               className={cn(
-                "p-8 mt-4 mb-6 flex flex-wrap leading-relaxed font-mono select-none outline-none relative max-h-[50vh] overflow-y-auto tracking-wide",
+                "p-8 mt-4 mb-6 flex flex-wrap leading-relaxed font-mono select-none outline-none relative max-h-[50vh] overflow-y-auto tracking-wide focus-visible:ring-2 focus-visible:ring-accent/50 focus-visible:ring-offset-2 focus-visible:ring-offset-primary rounded-md",
                 FONT_SIZE_CLASS[prefs.fontSize],
               )}
               onKeyDown={handleKeyDown}
@@ -684,13 +774,18 @@ export const TypingTest: React.FC = () => {
               onFocus={() => setFocused(true)}
               tabIndex={0}
               ref={inputRef}
+              role="textbox"
+              aria-label="Typing test area"
+              aria-multiline="true"
               data-keyboard-layout={prefs.keyboardLayout}
             >
               <div
                 className={cn(
-                  "absolute inset-0 flex items-center justify-center transition-all delay-300 text-center backdrop-blur-none opacity-0 z-1",
+                  "absolute inset-0 flex items-center justify-center text-center backdrop-blur-none opacity-0 z-1 pointer-events-none",
+                  !reducedMotion && "transition-all delay-300",
                   !focused && "backdrop-blur-sm opacity-100",
                 )}
+                aria-hidden={focused}
               >
                 Click here to focus
               </div>
@@ -701,11 +796,16 @@ export const TypingTest: React.FC = () => {
         ) : (
           <motion.div
             key="test-completed"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: "-20%" }}
-            exit={{ opacity: 0, y: 20 }}
+            initial={reducedMotion ? false : { opacity: 0, y: 20 }}
+            animate={
+              reducedMotion ? { opacity: 1, y: 0 } : { opacity: 1, y: "-20%" }
+            }
+            exit={reducedMotion ? { opacity: 1 } : { opacity: 0, y: 20 }}
             className="flex flex-col gap-4 items-center w-full"
-            transition={{ duration: 0.3, ease: "easeInOut" }}
+            transition={{
+              duration: reducedMotion ? 0 : 0.3,
+              ease: "easeInOut",
+            }}
           >
             <TimelineChart
               keystrokeEvents={state.keystrokeEvents}

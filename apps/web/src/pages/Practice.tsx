@@ -80,6 +80,13 @@ const EXERCISE_TYPES = [
     icon: Keyboard,
     href: '/test',
   },
+  {
+    id: 'custom',
+    title: 'Custom paste',
+    description: 'Paste your own text or pick from your playlist',
+    icon: Keyboard,
+    href: '/test?paste=1',
+  },
 ];
 
 function categoryIcon(category: string) {

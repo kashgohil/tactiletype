@@ -260,10 +260,10 @@ Surface as a single **Recommended next exercise** card on profile.
 
 | Item | Notes |
 |------|--------|
-| Code typing + language packs | Core differentiator |
+| Code typing + language packs | Done — packs + lightweight syntax tints |
 | Multiplayer polish | After solo loop is sticky (see roadmap Phase 3) |
-| Shareable result cards | Image / OG for social |
-| Custom paste / personal playlists | Power users |
+| Shareable result cards | Done — canvas PNG export + Web Share / clipboard |
+| Custom paste / personal playlists | Done — modal + local playlist |
 
 ### 6.4 P3 — Growth & social
 
@@ -281,7 +281,9 @@ Surface as a single **Recommended next exercise** card on profile.
 | Result metadata on `completed_tests` | Enables profile filters & charts |
 | Content pipeline | Packs + seed scripts |
 | Aggregated analytics endpoints | Don’t over-fetch raw keystrokes for charts |
-| A11y & reduced motion | |
+| A11y & reduced motion | Done — prefers-reduced-motion, ARIA on test/heatmap |
+| Layout-aware heatmaps | Done — QWERTY/Colemak/Dvorak from test prefs |
+| Guest merge hardening | Done — retries + continue on failure |
 | Port / env consistency | See `setup.md` |
 
 ---
