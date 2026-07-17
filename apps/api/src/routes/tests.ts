@@ -34,6 +34,15 @@ const submitResultSchema = z.object({
   language: z.string().min(1).max(10),
   difficulty: z.enum(['easy', 'medium', 'hard']),
   wordCount: z.number().min(1),
+  // Session metadata
+  mode: z.enum(['timer', 'words']).optional().default('timer'),
+  testType: z
+    .enum(['text', 'punctuation', 'numbers', 'quotes', 'code', 'symbols'])
+    .optional()
+    .default('text'),
+  modeTarget: z.number().int().min(1).optional(),
+  exercisePackId: z.string().max(100).optional(),
+  exerciseKind: z.string().max(50).optional(),
   // Test results data
   wpm: z.number().min(0).max(500),
   accuracy: z.number().min(0).max(100),
@@ -177,6 +186,12 @@ testRoutes.post(
           language: resultData.language,
           difficulty: resultData.difficulty,
           wordCount: resultData.wordCount,
+          // Session metadata
+          mode: resultData.mode ?? 'timer',
+          testType: resultData.testType ?? 'text',
+          modeTarget: resultData.modeTarget,
+          exercisePackId: resultData.exercisePackId,
+          exerciseKind: resultData.exerciseKind,
           // Test results data
           wpm: resultData.wpm.toString(),
           accuracy: resultData.accuracy.toString(),
@@ -198,6 +213,9 @@ testRoutes.post(
           accuracy: parseFloat(result.accuracy),
           errors: result.errors,
           timeTaken: result.timeTaken,
+          mode: result.mode,
+          testType: result.testType,
+          modeTarget: result.modeTarget,
           completedAt: result.completedAt,
         },
       });
@@ -298,23 +316,33 @@ testRoutes.get('/leaderboard', async (c) => {
   }
 });
 
-// Get user's test results
+// Get user's test results (supports filters for profile)
 testRoutes.get('/results', authMiddleware, async (c) => {
   try {
     const user = c.get('user') as any;
     const limit = parseInt(c.req.query('limit') || '50');
     const offset = parseInt(c.req.query('offset') || '0');
+    const mode = c.req.query('mode');
+    const testType = c.req.query('testType');
+    const difficulty = c.req.query('difficulty');
+
+    const conditions = [eq(completedTests.userId, user.userId)];
+    if (mode) conditions.push(eq(completedTests.mode, mode));
+    if (testType) conditions.push(eq(completedTests.testType, testType));
+    if (difficulty) conditions.push(eq(completedTests.difficulty, difficulty));
+
+    const whereClause = and(...conditions);
 
     // Get total count of user's test results
     const totalCountResult = await db
       .select({ count: sql<number>`count(*)` })
       .from(completedTests)
-      .where(eq(completedTests.userId, user.userId));
+      .where(whereClause);
 
     const totalCount = totalCountResult[0]?.count || 0;
 
     const results = await db.query.completedTests.findMany({
-      where: eq(completedTests.userId, user.userId),
+      where: whereClause,
       orderBy: desc(completedTests.completedAt),
       limit,
       offset,
@@ -326,6 +354,11 @@ testRoutes.get('/results', authMiddleware, async (c) => {
       accuracy: parseFloat(result.accuracy),
       errors: result.errors,
       timeTaken: result.timeTaken,
+      mode: result.mode,
+      testType: result.testType,
+      modeTarget: result.modeTarget,
+      exercisePackId: result.exercisePackId,
+      exerciseKind: result.exerciseKind,
       completedAt: result.completedAt,
       testText: {
         title: result.title,
@@ -339,6 +372,46 @@ testRoutes.get('/results', authMiddleware, async (c) => {
   } catch (error) {
     console.error('Get results error:', error);
     return c.json({ error: 'Failed to get test results' }, 500);
+  }
+});
+
+// 30-day progress series for profile charts
+testRoutes.get('/progress', authMiddleware, async (c) => {
+  try {
+    const user = c.get('user') as any;
+    const days = Math.min(parseInt(c.req.query('days') || '30'), 90);
+    const since = new Date();
+    since.setDate(since.getDate() - days);
+    since.setHours(0, 0, 0, 0);
+
+    const rows = await db
+      .select({
+        date: sql<string>`DATE(${completedTests.completedAt})`,
+        avgWpm: sql<number>`AVG(${completedTests.wpm}::float)`,
+        avgAccuracy: sql<number>`AVG(${completedTests.accuracy}::float)`,
+        testCount: sql<number>`COUNT(*)`,
+      })
+      .from(completedTests)
+      .where(
+        and(
+          eq(completedTests.userId, user.userId),
+          gte(completedTests.completedAt, since)
+        )
+      )
+      .groupBy(sql`DATE(${completedTests.completedAt})`)
+      .orderBy(sql`DATE(${completedTests.completedAt})`);
+
+    const series = rows.map((row) => ({
+      date: row.date,
+      avgWpm: Math.round(Number(row.avgWpm) * 10) / 10,
+      avgAccuracy: Math.round(Number(row.avgAccuracy) * 10) / 10,
+      testCount: Number(row.testCount),
+    }));
+
+    return c.json({ days, series });
+  } catch (error) {
+    console.error('Get progress error:', error);
+    return c.json({ error: 'Failed to get progress' }, 500);
   }
 });
 

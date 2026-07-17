@@ -36,6 +36,11 @@ export interface TestResult {
   accuracy: number;
   errors: number;
   timeTaken: number;
+  mode?: string | null;
+  testType?: string | null;
+  modeTarget?: number | null;
+  exercisePackId?: string | null;
+  exerciseKind?: string | null;
   completedAt: string;
   testText: {
     title: string;
@@ -61,12 +66,25 @@ export interface SubmitResultData {
   language: string;
   difficulty: 'easy' | 'medium' | 'hard';
   wordCount: number;
+  // Session metadata
+  mode?: 'timer' | 'words' | string;
+  testType?: string;
+  modeTarget?: number;
+  exercisePackId?: string;
+  exerciseKind?: string;
   // Test results data
   wpm: number;
   accuracy: number;
   errors: number;
   timeTaken: number;
   keystrokeData?: string;
+}
+
+export interface ProgressPoint {
+  date: string;
+  avgWpm: number;
+  avgAccuracy: number;
+  testCount: number;
 }
 
 export interface UserStats {
@@ -86,7 +104,13 @@ export const testResultsApi = {
     return response.data;
   },
 
-  getUserResults: async (params?: { limit?: number; offset?: number }) => {
+  getUserResults: async (params?: {
+    limit?: number;
+    offset?: number;
+    mode?: string;
+    testType?: string;
+    difficulty?: string;
+  }) => {
     const response = await api.get('/api/tests/results', { params });
     return {
       results: response.data.results as TestResult[],
@@ -94,14 +118,28 @@ export const testResultsApi = {
     };
   },
 
-  getUserResultsPage: async (page: number, pageSize: number = 10) => {
+  getUserResultsPage: async (
+    page: number,
+    pageSize: number = 10,
+    filters?: { mode?: string; testType?: string; difficulty?: string }
+  ) => {
     const offset = (page - 1) * pageSize;
     const response = await api.get('/api/tests/results', {
-      params: { limit: pageSize, offset },
+      params: { limit: pageSize, offset, ...filters },
     });
     return {
       results: response.data.results as TestResult[],
       totalCount: response.data.totalCount as number,
+    };
+  },
+
+  getProgress: async (days: number = 30) => {
+    const response = await api.get('/api/tests/progress', {
+      params: { days },
+    });
+    return {
+      days: response.data.days as number,
+      series: response.data.series as ProgressPoint[],
     };
   },
 };

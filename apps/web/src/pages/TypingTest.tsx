@@ -19,9 +19,11 @@ import type { Difficulty, TestMode, TestType } from "@tactile/types";
 import {
   ALargeSmall,
   AtSign,
+  Braces,
   Hash,
   Quote,
   RotateCcw,
+  Sigma,
   Timer,
   WholeWord,
   type LucideIcon,
@@ -51,13 +53,22 @@ const Difficulties: Record<Difficulty, { id: Difficulty; label: string }> = {
 
 const Types: Record<
   TestType,
-  { id: TestType; label: string; icon: LucideIcon }
+  { id: TestType; label: string; icon: LucideIcon; available?: boolean }
 > = {
-  text: { id: "text", label: "Text", icon: ALargeSmall },
-  punctuation: { id: "punctuation", label: "Punctuation", icon: AtSign },
-  numbers: { id: "numbers", label: "Numbers", icon: Hash },
-  quotes: { id: "quotes", label: "Quotes", icon: Quote },
+  text: { id: "text", label: "Text", icon: ALargeSmall, available: true },
+  punctuation: {
+    id: "punctuation",
+    label: "Punctuation",
+    icon: AtSign,
+    available: true,
+  },
+  numbers: { id: "numbers", label: "Numbers", icon: Hash, available: true },
+  quotes: { id: "quotes", label: "Quotes", icon: Quote, available: true },
+  code: { id: "code", label: "Code", icon: Braces, available: false },
+  symbols: { id: "symbols", label: "Symbols", icon: Sigma, available: false },
 };
+
+const availableTypes = Object.values(Types).filter((t) => t.available !== false);
 
 const Modes: Record<
   TestMode,
@@ -157,7 +168,7 @@ export const TypingTest: React.FC = () => {
         const keystrokeEvents = engine.getKeystrokeEvents();
         const keystrokeData = JSON.stringify(keystrokeEvents);
 
-        // Submit test result with embedded test text data
+        // Submit test result with embedded test text data + session metadata
         const response = await testResultsApi.submit({
           // Test text data
           title: currentTestText.title,
@@ -165,6 +176,11 @@ export const TypingTest: React.FC = () => {
           language: currentTestText.language,
           difficulty: currentTestText.difficulty,
           wordCount: currentTestText.wordCount,
+          // Session metadata
+          mode: currentMode,
+          testType: currentType,
+          modeTarget:
+            currentMode === "timer" ? timerDuration : wordsCount,
           // Test results data
           wpm: finalStats.wpm,
           accuracy: finalStats.accuracy,
@@ -193,7 +209,16 @@ export const TypingTest: React.FC = () => {
         setResultSubmitted(false);
       }
     },
-    [user, currentTestText, engine, resultSubmitted],
+    [
+      user,
+      currentTestText,
+      engine,
+      resultSubmitted,
+      currentMode,
+      currentType,
+      timerDuration,
+      wordsCount,
+    ],
   );
 
   // Timer end handler
@@ -350,7 +375,7 @@ export const TypingTest: React.FC = () => {
               ) : (
                 <>
                   <div className="flex items-center gap-2 h-9">
-                    {Object.values(Types).map(({ id, icon: Icon, label }) => (
+                    {availableTypes.map(({ id, icon: Icon, label }) => (
                       <Tooltip>
                         <TooltipTrigger asChild>
                           <Button
