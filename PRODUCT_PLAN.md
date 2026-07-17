@@ -177,24 +177,31 @@ Modes already exist on the test page. This section expands **content**, **exerci
 - Seed / import scripts (`bun run db:seed` extended or `db:seed:packs`).
 - Prefer word-bank generation + curated packs over hand-writing every string.
 
-### 5.2 Exercise types (Practice hub)
+### 5.2 Ways to play (not “more categories”)
 
-Separate **free Test** (sandbox) from **Practice / Exercises** (guided):
+Separate **free Test** (sandbox) from **Play modes** (unique rules) and **Practice** (targeted drills):
 
-| Exercise | Description | Primary user |
-|----------|-------------|--------------|
-| Key drills | Focus on weak / target keys (home row, pinkies, etc.) | Beginners + analytics loop |
-| Bigram / trigram drills | `th`, `ion`, `ing`, `tion` | Speed bottlenecks |
-| Word drills | Repeat hardest words from user history | Personalization |
-| Punctuation / numbers | Short dedicated bursts | Jobs, coding |
-| Code typing | Real snippets; optional syntax highlight | Developers |
-| Accuracy challenge | Fail under e.g. 98% accuracy | Quality over speed |
-| Consistency challenge | Penalize speed spikes | Rhythm |
-| Endurance | 3 / 5 / 10 minute runs | Stamina |
-| Blind / zen | Hide live WPM until end | Focus |
-| Lesson path | Ordered curriculum: home row → full keyboard | Onboarding |
-| Daily challenge | Same text for everyone that day | Social / leaderboard |
-| Custom paste | User pastes email, essay, code | Power users |
+**Play modes** (`/play`) — each has different win conditions and pressure:
+
+| Mode | Rules | Skill |
+|------|-------|--------|
+| Lesson Path | 10-stage curriculum with unlocks; different pass rules per lesson | Structured progress |
+| Weak Storm | Word Storm biased to keys you miss (local + analytics) | Adaptive targeting |
+| Sudden Death | One wrong key ends the run (optional 3 lives) | Precision under pressure |
+| Word Storm | One word at a time; shrinking timer; levels | Burst speed & focus |
+| Memory Flash | Phrase flashes, then type from memory | Chunking & recall |
+| Ghost Race | Race a pace caret at a target WPM | Pacing & consistency |
+
+**Main test:** word combo chain (live multiplier + best combo on results).
+
+**Practice drills** (`/practice`) — still use the test engine, but text is *generated for a skill*:
+
+| Drill | Purpose |
+|-------|---------|
+| Key / bigram / word drills | Weak spots from analytics |
+| Accuracy focus | Clean runs without arcade pressure |
+
+**Test page** owns types (text, code, symbols, quotes) and modes (timer/words). Do not re-list those as “practice categories.”
 
 ### 5.3 Data model direction
 
