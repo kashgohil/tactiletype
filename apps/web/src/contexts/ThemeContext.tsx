@@ -15,6 +15,31 @@ export const ThemeContext = createContext<ThemeContextType | undefined>(
   undefined
 );
 
+const relativeLuminance = (hex: string): number => {
+  const value = hex.replace('#', '');
+  const full =
+    value.length === 3
+      ? value
+          .split('')
+          .map((c) => c + c)
+          .join('')
+      : value;
+  const [r, g, b] = [0, 2, 4].map((i) => {
+    const channel = parseInt(full.slice(i, i + 2), 16) / 255;
+    return channel <= 0.03928
+      ? channel / 12.92
+      : Math.pow((channel + 0.055) / 1.055, 2.4);
+  });
+  return 0.2126 * r + 0.7152 * g + 0.0722 * b;
+};
+
+const contrastRatio = (a: string, b: string): number => {
+  const [hi, lo] = [relativeLuminance(a), relativeLuminance(b)].sort(
+    (x, y) => y - x
+  );
+  return (hi + 0.05) / (lo + 0.05);
+};
+
 interface ThemeProviderProps {
   children: React.ReactNode;
 }
@@ -42,6 +67,18 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
     root.style.setProperty('--theme-text', themeToApply.textColor);
     root.style.setProperty('--theme-accent', themeToApply.accentColor);
     root.style.setProperty('--theme-primary', themeToApply.primaryColor);
+
+    // Text placed on a solid accent surface: whichever of text/primary reads better
+    const onAccent =
+      contrastRatio(themeToApply.accentColor, themeToApply.textColor) >=
+      contrastRatio(themeToApply.accentColor, themeToApply.primaryColor)
+        ? themeToApply.textColor
+        : themeToApply.primaryColor;
+    root.style.setProperty('--theme-on-accent', onAccent);
+
+    // Native controls, scrollbars, and form widgets follow the theme's polarity
+    root.style.colorScheme =
+      relativeLuminance(themeToApply.primaryColor) < 0.4 ? 'dark' : 'light';
   }, [currentTheme, previewTheme]);
 
   const setTheme = (theme: Theme) => {
