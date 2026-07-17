@@ -5,7 +5,9 @@ import {
   ProfileEmptyState,
   ProfileHero,
   ResultCards,
+  type ResultFilters,
 } from '@/components/profile';
+import { ProfileProgressChart } from '@/components/profile/ProfileProgressChart';
 import { Button } from '@/components/ui/button';
 import { useQuery } from '@tanstack/react-query';
 import React, { useState } from 'react';
@@ -15,6 +17,7 @@ import { testResultsApi, usersApi } from '../services/api';
 export const Profile: React.FC = () => {
   const { user } = useAuth();
   const [currentPage, setCurrentPage] = useState(1);
+  const [filters, setFilters] = useState<ResultFilters>({});
   const pageSize = 10;
 
   const {
@@ -23,8 +26,9 @@ export const Profile: React.FC = () => {
     isLoading: isLoadingResults,
     isError: isErrorResults,
   } = useQuery({
-    queryKey: ['userTestResults', user?.id, currentPage],
-    queryFn: () => testResultsApi.getUserResultsPage(currentPage, pageSize),
+    queryKey: ['userTestResults', user?.id, currentPage, filters],
+    queryFn: () =>
+      testResultsApi.getUserResultsPage(currentPage, pageSize, filters),
     enabled: !!user?.id,
     staleTime: 5 * 60 * 1000,
   });
@@ -43,6 +47,13 @@ export const Profile: React.FC = () => {
   const { data: profileData } = useQuery({
     queryKey: ['userProfile', user?.id],
     queryFn: () => usersApi.getProfile(),
+    enabled: !!user,
+    staleTime: 5 * 60 * 1000,
+  });
+
+  const { data: progressData, isLoading: isLoadingProgress } = useQuery({
+    queryKey: ['userProgress', user?.id, 30],
+    queryFn: () => testResultsApi.getProgress(30),
     enabled: !!user,
     staleTime: 5 * 60 * 1000,
   });
@@ -66,7 +77,8 @@ export const Profile: React.FC = () => {
 
   const isLoading = isLoadingResults || isLoadingStats;
   const isError = isErrorResults || isErrorStats;
-  const hasNoTests = !isLoading && !isError && (!stats || stats.totalTests === 0);
+  const hasNoTests =
+    !isLoading && !isError && (!stats || stats.totalTests === 0);
 
   const handleShare = async () => {
     const url = window.location.href;
@@ -82,6 +94,11 @@ export const Profile: React.FC = () => {
     } catch {
       // user cancelled share
     }
+  };
+
+  const handleFiltersChange = (next: ResultFilters) => {
+    setFilters(next);
+    setCurrentPage(1);
   };
 
   if (!user) {
@@ -126,15 +143,13 @@ export const Profile: React.FC = () => {
                 <div className="lg:col-span-2 space-y-2">
                   <h2 className="text-lg font-semibold px-1">Progress</h2>
                   <p className="text-sm text-text/50 px-1 mb-3">
-                    30-day trends unlock after a few more tests. For now, your
-                    best numbers live above.
+                    Daily average WPM and accuracy over the last 30 days.
                   </p>
-                  <div className="bg-accent/10 rounded-xl p-6 min-h-[140px] flex items-center justify-center">
-                    <p className="text-sm text-text/40 text-center max-w-sm">
-                      Charts arrive with richer result metadata. Keep practicing
-                      — history is already saving.
-                    </p>
-                  </div>
+                  <ProfileProgressChart
+                    series={progressData?.series ?? []}
+                    isLoading={isLoadingProgress}
+                    days={30}
+                  />
                 </div>
               </div>
 
@@ -152,7 +167,9 @@ export const Profile: React.FC = () => {
                 pageSize={pageSize}
                 isFetching={isFetchingResults}
                 isLoading={isLoadingResults}
+                filters={filters}
                 onPageChange={setCurrentPage}
+                onFiltersChange={handleFiltersChange}
               />
             </>
           )}

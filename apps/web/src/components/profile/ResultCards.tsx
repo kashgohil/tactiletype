@@ -5,6 +5,12 @@ import { ChevronLeft, ChevronRight, LayoutGrid, List } from 'lucide-react';
 import React, { useState } from 'react';
 import { Skeleton } from '../ui/skeleton';
 
+export interface ResultFilters {
+  mode?: string;
+  testType?: string;
+  difficulty?: string;
+}
+
 interface ResultCardsProps {
   results: TestResult[];
   totalCount: number;
@@ -12,7 +18,9 @@ interface ResultCardsProps {
   pageSize: number;
   isFetching?: boolean;
   isLoading?: boolean;
+  filters?: ResultFilters;
   onPageChange: (page: number) => void;
+  onFiltersChange?: (filters: ResultFilters) => void;
 }
 
 function relativeTime(dateStr: string): string {
@@ -34,6 +42,16 @@ function relativeTime(dateStr: string): string {
 function ResultCard({ result }: { result: TestResult }) {
   const difficulty = result.testText?.difficulty;
   const language = result.testText?.language;
+  const modeLabel =
+    result.mode === 'timer'
+      ? result.modeTarget
+        ? `${result.modeTarget}s`
+        : 'timer'
+      : result.mode === 'words'
+        ? result.modeTarget
+          ? `${result.modeTarget} words`
+          : 'words'
+        : null;
 
   return (
     <article className="bg-accent/10 hover:bg-accent/15 transition-colors rounded-xl p-4 flex flex-col gap-3 border border-transparent hover:border-accent/20">
@@ -63,6 +81,16 @@ function ResultCard({ result }: { result: TestResult }) {
         <span className="text-xs text-text/50 font-mono">
           {formatTime(result.timeTaken)}
         </span>
+        {modeLabel && (
+          <span className="text-xs text-text/50 bg-primary/40 px-2 py-0.5 rounded-md">
+            {modeLabel}
+          </span>
+        )}
+        {result.testType && (
+          <span className="text-xs capitalize text-text/50 bg-primary/40 px-2 py-0.5 rounded-md">
+            {result.testType}
+          </span>
+        )}
         {difficulty && (
           <span className="text-xs capitalize text-text/50 bg-primary/40 px-2 py-0.5 rounded-md">
             {difficulty}
@@ -106,6 +134,9 @@ function ResultRow({ result }: { result: TestResult }) {
   );
 }
 
+const selectClass =
+  'h-8 rounded-md border border-accent/20 bg-transparent px-2 text-xs text-text/80';
+
 export const ResultCards: React.FC<ResultCardsProps> = ({
   results,
   totalCount,
@@ -113,34 +144,84 @@ export const ResultCards: React.FC<ResultCardsProps> = ({
   pageSize,
   isFetching,
   isLoading,
+  filters = {},
   onPageChange,
+  onFiltersChange,
 }) => {
   const [view, setView] = useState<'cards' | 'table'>('cards');
   const maxPage = Math.max(1, Math.ceil(totalCount / pageSize));
+
+  const updateFilter = (key: keyof ResultFilters, value: string) => {
+    onFiltersChange?.({
+      ...filters,
+      [key]: value || undefined,
+    });
+  };
 
   return (
     <section className="bg-accent/5 rounded-xl overflow-hidden">
       <div className="px-5 py-4 flex flex-wrap items-center justify-between gap-3">
         <h2 className="text-lg font-semibold">Recent activity</h2>
-        <div className="flex items-center gap-1 bg-accent/10 rounded-lg p-0.5">
-          <Button
-            size="sm"
-            variant={view === 'cards' ? 'default' : 'ghost'}
-            className="h-8"
-            onClick={() => setView('cards')}
-            aria-label="Card view"
-          >
-            <LayoutGrid className="size-4" />
-          </Button>
-          <Button
-            size="sm"
-            variant={view === 'table' ? 'default' : 'ghost'}
-            className="h-8"
-            onClick={() => setView('table')}
-            aria-label="Table view"
-          >
-            <List className="size-4" />
-          </Button>
+        <div className="flex flex-wrap items-center gap-2">
+          {onFiltersChange && (
+            <>
+              <select
+                className={selectClass}
+                value={filters.mode ?? ''}
+                onChange={(e) => updateFilter('mode', e.target.value)}
+                aria-label="Filter by mode"
+              >
+                <option value="">All modes</option>
+                <option value="timer">Timer</option>
+                <option value="words">Words</option>
+              </select>
+              <select
+                className={selectClass}
+                value={filters.testType ?? ''}
+                onChange={(e) => updateFilter('testType', e.target.value)}
+                aria-label="Filter by type"
+              >
+                <option value="">All types</option>
+                <option value="text">Text</option>
+                <option value="punctuation">Punctuation</option>
+                <option value="numbers">Numbers</option>
+                <option value="quotes">Quotes</option>
+                <option value="code">Code</option>
+                <option value="symbols">Symbols</option>
+              </select>
+              <select
+                className={selectClass}
+                value={filters.difficulty ?? ''}
+                onChange={(e) => updateFilter('difficulty', e.target.value)}
+                aria-label="Filter by difficulty"
+              >
+                <option value="">All difficulty</option>
+                <option value="easy">Easy</option>
+                <option value="medium">Medium</option>
+                <option value="hard">Hard</option>
+              </select>
+            </>
+          )}
+          <div className="flex items-center gap-1 bg-accent/10 rounded-lg p-0.5">
+            <Button
+              size="sm"
+              variant={view === 'cards' ? 'default' : 'ghost'}
+              className="h-8"
+              onClick={() => setView('cards')}
+              aria-label="Card view"
+            >
+              <LayoutGrid className="size-4" />
+            </Button>
+            <Button
+              size="sm"
+              variant={view === 'table' ? 'default' : 'ghost'}
+              className="h-8"
+              onClick={() => setView('table')}
+              aria-label="Table view"
+            >
+              <List className="size-4" />
+            </Button>
+          </div>
         </div>
       </div>
 
