@@ -49,15 +49,20 @@ export const Settings: React.FC = () => {
   }, [data]);
 
   const mutation = useMutation({
-    mutationFn: () =>
-      usersApi.updateProfile({
+    mutationFn: () => {
+      const countryCode = country.trim().toUpperCase();
+      if (countryCode && countryCode.length !== 2) {
+        throw new Error('Country must be a 2-letter ISO code (e.g. US).');
+      }
+      return usersApi.updateProfile({
         displayName: displayName.trim() || undefined,
         bio: bio.trim() || undefined,
-        country: country.trim().toUpperCase() || undefined,
+        country: countryCode || undefined,
         keyboard: keyboard || undefined,
         preferredLanguage,
         isPublic,
-      }),
+      });
+    },
     onSuccess: () => {
       setMessage({ type: 'ok', text: 'Profile saved.' });
       queryClient.invalidateQueries({ queryKey: ['userProfile', user?.id] });
