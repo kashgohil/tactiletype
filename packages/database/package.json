@@ -11,6 +11,7 @@
     "db:seed": "bun run src/seed.ts"
   },
   "dependencies": {
+    "@tactile/content": "workspace:*",
     "drizzle-orm": "^0.36.4",
     "postgres": "^3.4.5"
   },

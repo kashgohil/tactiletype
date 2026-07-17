@@ -252,7 +252,7 @@ Restart the API after changing OAuth env vars.
 | `bun run build` | Build API then web |
 | `bun run db:generate` | Generate Drizzle migrations from schema |
 | `bun run db:migrate` | Apply migrations |
-| `bun run db:seed` | Seed sample test texts |
+| `bun run db:seed` | Seed content packs (hundreds of practice units) into `test_texts` |
 | `bun run db:studio` | Open Drizzle Studio |
 
 ---

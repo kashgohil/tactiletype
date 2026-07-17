@@ -64,8 +64,8 @@ const Types: Record<
   },
   numbers: { id: "numbers", label: "Numbers", icon: Hash, available: true },
   quotes: { id: "quotes", label: "Quotes", icon: Quote, available: true },
-  code: { id: "code", label: "Code", icon: Braces, available: false },
-  symbols: { id: "symbols", label: "Symbols", icon: Sigma, available: false },
+  code: { id: "code", label: "Code", icon: Braces, available: true },
+  symbols: { id: "symbols", label: "Symbols", icon: Sigma, available: true },
 };
 
 const availableTypes = Object.values(Types).filter((t) => t.available !== false);

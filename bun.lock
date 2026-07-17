@@ -47,6 +47,7 @@
         "@radix-ui/react-separator": "^1.1.7",
         "@radix-ui/react-slot": "^1.2.3",
         "@radix-ui/react-tooltip": "^1.2.8",
+        "@tactile/content": "workspace:*",
         "@tactile/types": "workspace:*",
         "@tailwindcss/vite": "^4.1.11",
         "@tanstack/react-query": "^5.62.7",
@@ -83,10 +84,18 @@
         "vite": "^7.0.4",
       },
     },
+    "packages/content": {
+      "name": "@tactile/content",
+      "version": "0.0.0",
+      "devDependencies": {
+        "typescript": "^5.8.3",
+      },
+    },
     "packages/database": {
       "name": "@tactile/database",
       "version": "0.0.0",
       "dependencies": {
+        "@tactile/content": "workspace:*",
         "drizzle-orm": "^0.36.4",
         "postgres": "^3.4.5",
       },
@@ -393,6 +402,8 @@
     "@rollup/rollup-win32-ia32-msvc": ["@rollup/rollup-win32-ia32-msvc@4.50.1", "", { "os": "win32", "cpu": "ia32" }, "sha512-SXjv8JlbzKM0fTJidX4eVsH+Wmnp0/WcD8gJxIZyR6Gay5Qcsmdbi9zVtnbkGPG8v2vMR1AD06lGWy5FLMcG7A=="],
 
     "@rollup/rollup-win32-x64-msvc": ["@rollup/rollup-win32-x64-msvc@4.50.1", "", { "os": "win32", "cpu": "x64" }, "sha512-StxAO/8ts62KZVRAm4JZYq9+NqNsV7RvimNK+YM7ry//zebEH6meuugqW/P5OFUCjyQgui+9fUxT6d5NShvMvA=="],
+
+    "@tactile/content": ["@tactile/content@workspace:packages/content"],
 
     "@tactile/database": ["@tactile/database@workspace:packages/database"],
 

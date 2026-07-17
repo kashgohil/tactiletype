@@ -4,6 +4,10 @@ import type {
   TestMode,
   TestType,
 } from '@tactile/types';
+import {
+  CODE_SNIPPETS,
+  SYMBOL_LINES,
+} from '@tactile/content';
 import { COMMON_WORDS, HARD_WORDS, QUOTES } from './words';
 
 export interface TypingStats {
@@ -537,6 +541,22 @@ export function getRandomQuote(): string {
   }
 }
 
+export function getRandomCodeSnippet(): string {
+  const snippet =
+    CODE_SNIPPETS[Math.floor(Math.random() * CODE_SNIPPETS.length)];
+  return snippet.content.replace(/\n/g, ' ').replace(/\s+/g, ' ').trim();
+}
+
+export function getRandomSymbolsText(lineCount: number = 3): string {
+  const lines: string[] = [];
+  for (let i = 0; i < lineCount; i++) {
+    lines.push(
+      SYMBOL_LINES[Math.floor(Math.random() * SYMBOL_LINES.length)]
+    );
+  }
+  return lines.join(' ');
+}
+
 // Main function to initialize text based on type, mode, and difficulty
 export function initializeText(
   currentType: TestType,
@@ -548,6 +568,18 @@ export function initializeText(
   // For quotes, ignore currentMode and return a quote
   if (currentType === 'quotes') {
     return getRandomQuote();
+  }
+
+  if (currentType === 'code') {
+    return getRandomCodeSnippet();
+  }
+
+  if (currentType === 'symbols') {
+    const lines =
+      currentMode === 'timer'
+        ? Math.max(2, Math.ceil(timerDuration / 20))
+        : Math.max(2, Math.ceil(wordsCount / 25));
+    return getRandomSymbolsText(lines);
   }
 
   let wordCount: number;
