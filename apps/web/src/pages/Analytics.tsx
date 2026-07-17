@@ -186,10 +186,10 @@ export const Analytics: React.FC = () => {
   if (!user) {
     return (
       <div className="max-w-4xl mx-auto text-center py-12">
-        <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">
+        <h1 className="text-2xl font-bold text-text mb-4">
           Analytics Dashboard
         </h1>
-        <p className="text-gray-600 dark:text-gray-400">
+        <p className="text-text/60">
           Please log in to view your typing analytics.
         </p>
       </div>
@@ -329,10 +329,10 @@ export const Analytics: React.FC = () => {
   if (!dashboardData) {
     return (
       <div className="max-w-4xl mx-auto text-center py-12">
-        <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">
+        <h1 className="text-2xl font-bold text-text mb-4">
           Analytics Dashboard
         </h1>
-        <p className="text-gray-600 dark:text-gray-400">
+        <p className="text-text/60">
           No analytics data available. Complete some typing tests to see your
           progress!
         </p>
@@ -344,7 +344,7 @@ export const Analytics: React.FC = () => {
     <div className="pt-4 pb-8">
       <div className="flex items-center justify-end mb-8">
         <div className="flex items-center space-x-4">
-          <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+          <label className="text-sm font-medium text-text/60">
             Timeframe:
           </label>
           <Select
@@ -470,22 +470,22 @@ export const Analytics: React.FC = () => {
                   className="flex items-center justify-between p-3 bg-accent/10 rounded-lg"
                 >
                   <div className="flex items-center space-x-3">
-                    <div className="w-8 h-8 bg-red-200 rounded-lg flex items-center justify-center">
-                      <span className="font-mono font-bold text-red-600 dark:text-red-400">
+                    <div className="w-8 h-8 bg-destructive/20 rounded-lg flex items-center justify-center">
+                      <span className="font-mono font-bold text-destructive">
                         {char.character}
                       </span>
                     </div>
                     <div>
-                      <p className="font-medium text-gray-900 dark:text-white">
+                      <p className="font-medium text-text">
                         {char.errorCount} errors
                       </p>
-                      <p className="text-sm text-gray-600 dark:text-gray-400">
+                      <p className="text-sm text-text/60">
                         {char.errorRate.toFixed(1)}% error rate
                       </p>
                     </div>
                   </div>
                   <div className="text-right">
-                    <p className="text-sm text-gray-600 dark:text-gray-400">
+                    <p className="text-sm text-text/60">
                       {char.suggestions[0]}
                     </p>
                   </div>

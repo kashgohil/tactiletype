@@ -33,10 +33,10 @@ const getColorIntensity = (accuracy: number, hasData: boolean) => {
 
 const getTextColor = (accuracy: number, hasData: boolean) => {
   if (!hasData) {
-    return 'text-gray-500 dark:text-gray-400';
+    return 'text-gray-500';
   }
   if (accuracy >= 85) {
-    return 'text-gray-800 dark:text-gray-200';
+    return 'text-gray-800';
   }
   return 'text-white';
 };

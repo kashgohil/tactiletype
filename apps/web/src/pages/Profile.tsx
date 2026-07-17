@@ -150,8 +150,8 @@ export const Profile: React.FC = () => {
       <ProfileHero user={user} profile={profile} onShare={handleShare} />
 
       {isError && (
-        <div className="bg-red-500/10 border border-red-500/20 rounded-xl p-6 text-center">
-          <p className="text-red-700 dark:text-red-300">
+        <div className="bg-destructive/10 border border-destructive/30 rounded-xl p-6 text-center">
+          <p className="text-destructive">
             Failed to load profile data
           </p>
           <Button

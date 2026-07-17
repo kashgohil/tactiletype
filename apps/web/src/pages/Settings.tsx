@@ -1,5 +1,6 @@
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Skeleton } from '@/components/ui/skeleton';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Link } from '@tanstack/react-router';
 import { ArrowLeft, Save } from 'lucide-react';
@@ -110,7 +111,15 @@ export const Settings: React.FC = () => {
         </p>
 
         {isLoading ? (
-          <p className="text-sm text-text/40">Loading…</p>
+          <div className="space-y-4">
+            <Skeleton className="h-9 w-full" />
+            <Skeleton className="h-20 w-full" />
+            <div className="grid grid-cols-2 gap-3">
+              <Skeleton className="h-9 w-full" />
+              <Skeleton className="h-9 w-full" />
+            </div>
+            <Skeleton className="h-9 w-32" />
+          </div>
         ) : (
           <form
             className="space-y-4"
@@ -207,7 +216,7 @@ export const Settings: React.FC = () => {
             {message && (
               <p
                 className={`text-sm ${
-                  message.type === 'ok' ? 'text-green-600' : 'text-red-500'
+                  message.type === 'ok' ? 'text-accent' : 'text-destructive'
                 }`}
               >
                 {message.text}
@@ -248,8 +257,8 @@ export const Settings: React.FC = () => {
         </p>
       </section>
 
-      <section className="border border-red-500/20 rounded-xl p-6 space-y-3">
-        <h2 className="font-semibold text-lg text-red-600 dark:text-red-400">
+      <section className="border border-destructive/30 rounded-xl p-6 space-y-3">
+        <h2 className="font-semibold text-lg text-destructive">
           Session
         </h2>
         <Button

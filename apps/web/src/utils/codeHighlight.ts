@@ -115,16 +115,17 @@ export function codeTokenClass(token: CodeToken, status: string): string {
   // Soft hues only for untyped / current so correct trail stays high-contrast
   if (status === 'correct') {
     switch (token) {
+      // Mid-tone hues stay legible on both light and dark theme surfaces
       case 'keyword':
-        return 'text-sky-700 dark:text-sky-300';
+        return 'text-sky-500';
       case 'string':
-        return 'text-emerald-700 dark:text-emerald-300';
+        return 'text-emerald-500';
       case 'comment':
         return 'text-text/50 italic';
       case 'number':
-        return 'text-amber-700 dark:text-amber-300';
+        return 'text-amber-500';
       case 'punct':
-        return 'text-fuchsia-700 dark:text-fuchsia-300';
+        return 'text-fuchsia-500';
       default:
         return '';
     }
@@ -132,15 +133,15 @@ export function codeTokenClass(token: CodeToken, status: string): string {
   // pending / current
   switch (token) {
     case 'keyword':
-      return 'text-sky-600/50 dark:text-sky-400/40';
+      return 'text-sky-500/45';
     case 'string':
-      return 'text-emerald-600/50 dark:text-emerald-400/40';
+      return 'text-emerald-500/45';
     case 'comment':
       return 'text-text/25 italic';
     case 'number':
-      return 'text-amber-600/50 dark:text-amber-400/40';
+      return 'text-amber-500/45';
     case 'punct':
-      return 'text-fuchsia-600/45 dark:text-fuchsia-400/40';
+      return 'text-fuchsia-500/45';
     default:
       return '';
   }

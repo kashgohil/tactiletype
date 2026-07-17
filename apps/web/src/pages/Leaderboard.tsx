@@ -1,7 +1,8 @@
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
+import { cn } from '@/lib/utils';
 import { useQuery } from '@tanstack/react-query';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Medal } from 'lucide-react';
 import React, { useState } from 'react';
 import { leaderboardApi } from '../services/api';
 
@@ -30,17 +31,19 @@ export const Leaderboard: React.FC = () => {
   const leaderboard = leaderboardData?.leaderboard || [];
   const totalCount = leaderboardData?.totalCount || 0;
 
-  const getRankIcon = (rank: number) => {
-    switch (rank) {
-      case 1:
-        return '🥇';
-      case 2:
-        return '🥈';
-      case 3:
-        return '🥉';
-      default:
-        return `#${rank}`;
+  const renderRank = (rank: number) => {
+    if (rank <= 3) {
+      const tone = ['text-accent', 'text-text/55', 'text-text/40'][rank - 1];
+      return (
+        <span className="inline-flex items-center gap-1.5 font-mono font-semibold tabular-nums">
+          <Medal className={cn('size-4', tone)} />
+          {rank}
+        </span>
+      );
     }
+    return (
+      <span className="font-mono text-text/45 tabular-nums">#{rank}</span>
+    );
   };
 
   const getTimeframeLabel = (tf: string) => {
@@ -58,7 +61,7 @@ export const Leaderboard: React.FC = () => {
 
   return (
     <div className="py-8 pb-16">
-      <h1 className="text-4xl font-bold text-center mb-8 text-gray-900 dark:text-white">
+      <h1 className="text-4xl font-bold text-center mb-8 text-text">
         Leaderboard
       </h1>
 
@@ -138,8 +141,8 @@ export const Leaderboard: React.FC = () => {
 
       {/* Error State */}
       {error && (
-        <div className="bg-red-50 dark:bg-red-900 border border-red-200 dark:border-red-700 rounded-lg p-6 text-center">
-          <p className="text-red-800 dark:text-red-200">
+        <div className="bg-destructive/10 border border-destructive/30 rounded-lg p-6 text-center">
+          <p className="text-destructive">
             {error instanceof Error
               ? error.message
               : 'Failed to load leaderboard data'}
@@ -197,10 +200,8 @@ export const Leaderboard: React.FC = () => {
                 {leaderboard.map((entry, index) => (
                   <tr key={entry.userId} className={`hover:bg-accent/10`}>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="flex items-center">
-                        <span className="text-lg font-bold">
-                          {getRankIcon(index + 1)}
-                        </span>
+                      <div className="flex items-center text-lg">
+                        {renderRank(index + 1)}
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">

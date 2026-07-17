@@ -135,8 +135,8 @@ export const Multiplayer: React.FC = () => {
       </header>
 
       {(multiplayerState.error || actionError) && (
-        <div className="rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 flex justify-between gap-3">
-          <p className="text-sm text-red-700 dark:text-red-300">
+        <div className="rounded-xl border border-destructive/30 bg-destructive/10 px-4 py-3 flex justify-between gap-3">
+          <p className="text-sm text-destructive">
             {actionError || multiplayerState.error}
           </p>
           <Button
