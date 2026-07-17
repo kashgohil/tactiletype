@@ -152,30 +152,35 @@ userRoutes.get('/stats', authMiddleware, async (c) => {
   }
 });
 
-// Get public user profile by username
-userRoutes.get('/:username', async (c) => {
+// Public profile by username (honors isPublic; no email)
+userRoutes.get('/u/:username', async (c) => {
   try {
     const username = c.req.param('username');
 
-    const user = await db.query.users.findFirst({
+    const found = await db.query.users.findFirst({
       where: eq(users.username, username),
       with: {
         profile: true,
       },
+      columns: {
+        id: true,
+        username: true,
+        avatarUrl: true,
+        createdAt: true,
+      },
     });
 
-    if (!user) {
+    if (!found) {
       return c.json({ error: 'User not found' }, 404);
     }
 
-    // Check if profile is public
-    if (user.profile && !user.profile.isPublic) {
-      return c.json({ error: 'Profile is private' }, 403);
+    const isPublic = found.profile?.isPublic !== false;
+    if (!isPublic) {
+      return c.json({ error: 'This profile is private' }, 403);
     }
 
-    // Get user's test data for stats calculation
-    const userTests = await db.query.completedTests.findMany({
-      where: eq(completedTests.userId, user.id),
+    const allUserTests = await db.query.completedTests.findMany({
+      where: eq(completedTests.userId, found.id),
       columns: {
         wpm: true,
         accuracy: true,
@@ -184,26 +189,55 @@ userRoutes.get('/:username', async (c) => {
       },
     });
 
-    // Calculate stats using AnalyticsEngine for consistency
-    const stats = AnalyticsEngine.calculateUserStats(userTests);
+    const stats = AnalyticsEngine.calculateUserStats(allUserTests);
+
+    const recent = await db.query.completedTests.findMany({
+      where: eq(completedTests.userId, found.id),
+      orderBy: (t, { desc }) => [desc(t.completedAt)],
+      limit: 5,
+      columns: {
+        id: true,
+        wpm: true,
+        accuracy: true,
+        timeTaken: true,
+        title: true,
+        mode: true,
+        testType: true,
+        completedAt: true,
+      },
+    });
 
     return c.json({
       user: {
-        id: user.id,
-        username: user.username,
-        profile: user.profile,
-        createdAt: user.createdAt,
+        id: found.id,
+        username: found.username,
+        avatarUrl: found.avatarUrl,
+        createdAt: found.createdAt,
+        profile: found.profile
+          ? {
+              displayName: found.profile.displayName,
+              bio: found.profile.bio,
+              country: found.profile.country,
+              keyboard: found.profile.keyboard,
+              preferredLanguage: found.profile.preferredLanguage,
+            }
+          : null,
       },
-      stats: {
-        totalTests: stats.totalTests,
-        avgWpm: stats.avgWpm,
-        bestWpm: stats.bestWpm,
-        avgAccuracy: stats.avgAccuracy,
-      },
+      stats,
+      recentResults: recent.map((r) => ({
+        id: r.id,
+        wpm: parseFloat(String(r.wpm)),
+        accuracy: parseFloat(String(r.accuracy)),
+        timeTaken: r.timeTaken,
+        title: r.title,
+        mode: r.mode,
+        testType: r.testType,
+        completedAt: r.completedAt,
+      })),
     });
   } catch (error) {
-    console.error('Get public profile error:', error);
-    return c.json({ error: 'Failed to get user profile' }, 500);
+    console.error('Public profile error:', error);
+    return c.json({ error: 'Failed to get public profile' }, 500);
   }
 });
 

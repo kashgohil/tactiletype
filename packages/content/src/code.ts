@@ -103,4 +103,37 @@ function displayName(user: User): string {
   background: color-mix(in oklab, var(--accent) 10%, transparent);
 }`,
   },
+  {
+    title: 'Go HTTP handler',
+    language: 'go',
+    content: `func handleHealth(w http.ResponseWriter, r *http.Request) {
+  w.Header().Set("Content-Type", "application/json")
+  json.NewEncoder(w).Encode(map[string]string{"status": "ok"})
+}`,
+  },
+  {
+    title: 'Rust match result',
+    language: 'rust',
+    content: `match parse_config(&path) {
+  Ok(cfg) => run(cfg),
+  Err(e) => eprintln!("config error: {e}"),
+}`,
+  },
+  {
+    title: 'SQL upsert',
+    language: 'sql',
+    content: `INSERT INTO user_stats (user_id, best_wpm, updated_at)
+VALUES ($1, $2, NOW())
+ON CONFLICT (user_id) DO UPDATE
+SET best_wpm = GREATEST(user_stats.best_wpm, EXCLUDED.best_wpm),
+    updated_at = NOW();`,
+  },
+  {
+    title: 'Bash retry loop',
+    language: 'shell',
+    content: `for i in {1..5}; do
+  curl -fsS "$URL" && break
+  sleep $((i * 2))
+done`,
+  },
 ];

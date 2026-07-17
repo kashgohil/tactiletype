@@ -199,7 +199,7 @@ export const Settings: React.FC = () => {
               <span className="text-sm">
                 Public profile{' '}
                 <span className="text-text/40">
-                  (shareable when public profiles ship)
+                  (shareable at /u/{user.username})
                 </span>
               </span>
             </label>

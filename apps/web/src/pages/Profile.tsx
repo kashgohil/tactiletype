@@ -132,20 +132,8 @@ export const Profile: React.FC = () => {
   const hasNoTests =
     !isLoading && !isError && (!stats || stats.totalTests === 0);
 
-  const handleShare = async () => {
-    const url = window.location.href;
-    try {
-      if (navigator.share) {
-        await navigator.share({
-          title: `${user?.username} on TactileType`,
-          url,
-        });
-      } else {
-        await navigator.clipboard.writeText(url);
-      }
-    } catch {
-      // user cancelled share
-    }
+  const handleShare = () => {
+    window.location.href = `/u/${user?.username}`;
   };
 
   const handleFiltersChange = (next: ResultFilters) => {
