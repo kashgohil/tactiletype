@@ -1,11 +1,28 @@
 import api, { testResultsApi } from '@/services/api';
 import { mergeGuestResults } from '@/utils/guestResults';
 import type { AuthResponse, User } from '@tactile/types';
+import axios from 'axios';
 import React, { useEffect, useState } from 'react';
 import { AuthContext, type AuthContextType } from './context';
 
 interface AuthProviderProps {
   children: React.ReactNode;
+}
+
+function getApiErrorMessage(error: unknown, fallback: string): string {
+  if (axios.isAxiosError(error)) {
+    const data = error.response?.data;
+    if (
+      data &&
+      typeof data === 'object' &&
+      'error' in data &&
+      typeof (data as { error: unknown }).error === 'string'
+    ) {
+      return (data as { error: string }).error;
+    }
+  }
+  if (error instanceof Error) return error.message;
+  return fallback;
 }
 
 async function tryMergeGuestResults() {
@@ -64,11 +81,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const login = async (email: string, password: string) => {
     try {
-      const response = await api.post('/api/auth/login', {
-        data: { email, password },
-      });
+      // Axios post(url, body) — send fields at top level, not under `data`
+      const response = await api.post('/api/auth/login', { email, password });
 
-      const data: AuthResponse = await response.data;
+      const data: AuthResponse = response.data;
 
       setUser(data.user);
       setToken(data.token);
@@ -76,18 +92,21 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       await tryMergeGuestResults();
     } catch (error) {
       console.error('Login error:', error);
-      throw error;
+      throw new Error(getApiErrorMessage(error, 'Login failed'));
     }
   };
 
   const register = React.useCallback(
     async (email: string, username: string, password: string) => {
       try {
+        // Axios post(url, body) — send fields at top level, not under `data`
         const response = await api.post('/api/auth/register', {
-          data: { email, username, password },
+          email,
+          username,
+          password,
         });
 
-        const data: AuthResponse = await response.data;
+        const data: AuthResponse = response.data;
 
         setUser(data.user);
         setToken(data.token);
@@ -95,7 +114,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         await tryMergeGuestResults();
       } catch (error) {
         console.error('Registration error:', error);
-        throw error;
+        throw new Error(getApiErrorMessage(error, 'Registration failed'));
       }
     },
     []

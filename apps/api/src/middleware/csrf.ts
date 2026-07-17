@@ -11,12 +11,17 @@ export const csrfProtection = (): MiddlewareHandler => {
 
     const path = c.req.path;
 
-    // Skip CSRF for OAuth callbacks
-    if (path.includes('/callback')) {
+    // Skip CSRF for OAuth callbacks and unauthenticated auth bootstrap.
+    // Login/register cannot require a double-submit cookie the client does not have yet.
+    if (
+      path.includes('/callback') ||
+      path.endsWith('/auth/login') ||
+      path.endsWith('/auth/register')
+    ) {
       return next();
     }
 
-    let csrfToken =
+    const csrfToken =
       c.req.header('X-CSRF-Token') || c.req.header('X-XSRF-Token');
 
     if (!csrfToken) {
