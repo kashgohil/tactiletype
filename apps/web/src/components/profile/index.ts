@@ -4,5 +4,7 @@ export { MetricHierarchy } from './MetricHierarchy';
 export { ProfileEmptyState } from './ProfileEmptyState';
 export { ProfileHero } from './ProfileHero';
 export { ProfileProgressChart } from './ProfileProgressChart';
+export { RecommendedExerciseCard } from './RecommendedExercise';
 export { ResultCards } from './ResultCards';
 export type { ResultFilters } from './ResultCards';
+export { WeakSpotsPanel } from './WeakSpotsPanel';

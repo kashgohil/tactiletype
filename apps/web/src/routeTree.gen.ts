@@ -15,6 +15,7 @@ import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as RegisterRouteImport } from './routes/register'
 import { Route as ProfileRouteImport } from './routes/profile'
 import { Route as PrivacyRouteImport } from './routes/privacy'
+import { Route as PracticeRouteImport } from './routes/practice'
 import { Route as MultiplayerRouteImport } from './routes/multiplayer'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as LeaderboardRouteImport } from './routes/leaderboard'
@@ -51,6 +52,11 @@ const ProfileRoute = ProfileRouteImport.update({
 const PrivacyRoute = PrivacyRouteImport.update({
   id: '/privacy',
   path: '/privacy',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PracticeRoute = PracticeRouteImport.update({
+  id: '/practice',
+  path: '/practice',
   getParentRoute: () => rootRouteImport,
 } as any)
 const MultiplayerRoute = MultiplayerRouteImport.update({
@@ -96,6 +102,7 @@ export interface FileRoutesByFullPath {
   '/leaderboard': typeof LeaderboardRoute
   '/login': typeof LoginRoute
   '/multiplayer': typeof MultiplayerRoute
+  '/practice': typeof PracticeRoute
   '/privacy': typeof PrivacyRoute
   '/profile': typeof ProfileRoute
   '/register': typeof RegisterRoute
@@ -111,6 +118,7 @@ export interface FileRoutesByTo {
   '/leaderboard': typeof LeaderboardRoute
   '/login': typeof LoginRoute
   '/multiplayer': typeof MultiplayerRoute
+  '/practice': typeof PracticeRoute
   '/privacy': typeof PrivacyRoute
   '/profile': typeof ProfileRoute
   '/register': typeof RegisterRoute
@@ -127,6 +135,7 @@ export interface FileRoutesById {
   '/leaderboard': typeof LeaderboardRoute
   '/login': typeof LoginRoute
   '/multiplayer': typeof MultiplayerRoute
+  '/practice': typeof PracticeRoute
   '/privacy': typeof PrivacyRoute
   '/profile': typeof ProfileRoute
   '/register': typeof RegisterRoute
@@ -144,6 +153,7 @@ export interface FileRouteTypes {
     | '/leaderboard'
     | '/login'
     | '/multiplayer'
+    | '/practice'
     | '/privacy'
     | '/profile'
     | '/register'
@@ -159,6 +169,7 @@ export interface FileRouteTypes {
     | '/leaderboard'
     | '/login'
     | '/multiplayer'
+    | '/practice'
     | '/privacy'
     | '/profile'
     | '/register'
@@ -174,6 +185,7 @@ export interface FileRouteTypes {
     | '/leaderboard'
     | '/login'
     | '/multiplayer'
+    | '/practice'
     | '/privacy'
     | '/profile'
     | '/register'
@@ -190,6 +202,7 @@ export interface RootRouteChildren {
   LeaderboardRoute: typeof LeaderboardRoute
   LoginRoute: typeof LoginRoute
   MultiplayerRoute: typeof MultiplayerRoute
+  PracticeRoute: typeof PracticeRoute
   PrivacyRoute: typeof PrivacyRoute
   ProfileRoute: typeof ProfileRoute
   RegisterRoute: typeof RegisterRoute
@@ -241,6 +254,13 @@ declare module '@tanstack/react-router' {
       path: '/privacy'
       fullPath: '/privacy'
       preLoaderRoute: typeof PrivacyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/practice': {
+      id: '/practice'
+      path: '/practice'
+      fullPath: '/practice'
+      preLoaderRoute: typeof PracticeRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/multiplayer': {
@@ -302,6 +322,7 @@ const rootRouteChildren: RootRouteChildren = {
   LeaderboardRoute: LeaderboardRoute,
   LoginRoute: LoginRoute,
   MultiplayerRoute: MultiplayerRoute,
+  PracticeRoute: PracticeRoute,
   PrivacyRoute: PrivacyRoute,
   ProfileRoute: ProfileRoute,
   RegisterRoute: RegisterRoute,

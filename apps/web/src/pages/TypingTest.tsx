@@ -16,6 +16,7 @@ import {
 } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 import type { Difficulty, TestMode, TestType } from "@tactile/types";
+import { useSearch } from "@tanstack/react-router";
 import {
   ALargeSmall,
   AtSign,
@@ -41,6 +42,24 @@ import {
   initializeText,
   isNonPrintingKey,
 } from "../utils/typingEngine";
+
+type PracticeDrillPayload = {
+  content: string;
+  title: string;
+  exerciseKind?: string;
+  exercisePackId?: string;
+};
+
+function readPracticeDrill(): PracticeDrillPayload | null {
+  try {
+    const raw = sessionStorage.getItem("tactile_practice_drill");
+    if (!raw) return null;
+    sessionStorage.removeItem("tactile_practice_drill");
+    return JSON.parse(raw) as PracticeDrillPayload;
+  } catch {
+    return null;
+  }
+}
 
 const TimerOptions = [10, 15, 30, 60];
 const wordsOptions = [25, 50, 75, 100, 200];
@@ -80,16 +99,38 @@ const Modes: Record<
 
 export const TypingTest: React.FC = () => {
   const { user } = useAuth();
+  const search = useSearch({ strict: false }) as {
+    practice?: string;
+    type?: string;
+    mode?: string;
+    duration?: string;
+  };
+
+  const initialType = (["text", "punctuation", "numbers", "quotes", "code", "symbols"].includes(
+    search.type ?? "",
+  )
+    ? search.type
+    : "text") as TestType;
+  const initialMode = (search.mode === "words" ? "words" : "timer") as TestMode;
+  const initialDuration = search.duration
+    ? Number(search.duration) || TimerOptions[0]
+    : TimerOptions[0];
 
   const [wordsCount, setWordsCount] = useState(wordsOptions[0]);
-  const [timerDuration, setTimerDuration] = useState(TimerOptions[0]);
-  const [currentMode, setCurrentMode] = useState<TestMode>("timer");
-  const [currentType, setCurrentType] = useState<TestType>("text");
+  const [timerDuration, setTimerDuration] = useState(
+    TimerOptions.includes(initialDuration) ? initialDuration : TimerOptions[0],
+  );
+  const [currentMode, setCurrentMode] = useState<TestMode>(initialMode);
+  const [currentType, setCurrentType] = useState<TestType>(initialType);
   const [focused, setFocused] = useState(true);
   const [testText, setTestText] = useState("");
   const [currentTestText, setCurrentTestText] = useState<TestText | null>(null);
   const [difficulty, setDifficulty] = useState<Difficulty>("medium");
   const [engine, setEngine] = useState<TypingEngine | null>(null);
+  const [practiceMeta, setPracticeMeta] = useState<{
+    exerciseKind?: string;
+    exercisePackId?: string;
+  } | null>(null);
   const [stats, setStats] = useState<TypingStats>({
     wpm: 0,
     accuracy: 100,
@@ -110,27 +151,54 @@ export const TypingTest: React.FC = () => {
   });
   const [isTestActive, setIsTestActive] = useState(false);
   const [resultSubmitted, setResultSubmitted] = useState(false);
+  const practiceConsumed = useRef(false);
 
   const inputRef = useRef<HTMLInputElement | null>(null);
 
-  // Initialize test with generated text
+  // Initialize test with generated text (or practice drill once)
   const initializeTest = useCallback(
     (callback?: (engine: TypingEngine) => void) => {
-      const selectedText = initializeText(
-        currentType,
-        currentMode,
-        timerDuration,
-        wordsCount,
-        difficulty,
-      );
+      let selectedText: string;
+      let title = `${currentType} test - ${difficulty}`;
+      let meta: { exerciseKind?: string; exercisePackId?: string } | null =
+        null;
+
+      if (!practiceConsumed.current && search.practice === "1") {
+        const drill = readPracticeDrill();
+        if (drill?.content) {
+          practiceConsumed.current = true;
+          selectedText = drill.content;
+          title = drill.title;
+          meta = {
+            exerciseKind: drill.exerciseKind,
+            exercisePackId: drill.exercisePackId,
+          };
+          setPracticeMeta(meta);
+        } else {
+          selectedText = initializeText(
+            currentType,
+            currentMode,
+            timerDuration,
+            wordsCount,
+            difficulty,
+          );
+        }
+      } else {
+        selectedText = initializeText(
+          currentType,
+          currentMode,
+          timerDuration,
+          wordsCount,
+          difficulty,
+        );
+        setPracticeMeta(null);
+      }
 
       setTestText(selectedText);
 
-      // Create a temporary test text object for the UI
-      // This will be replaced with the actual saved test text when submitted
       const tempTestText: TestText = {
-        id: "temp-" + Date.now(), // Temporary ID until saved
-        title: `${currentType} test - ${difficulty}`,
+        id: "temp-" + Date.now(),
+        title,
         content: selectedText,
         language: "en",
         difficulty: difficulty,
@@ -139,7 +207,7 @@ export const TypingTest: React.FC = () => {
       };
 
       setCurrentTestText(tempTestText);
-      setResultSubmitted(false); // Reset submission flag for new test
+      setResultSubmitted(false);
 
       const newEngine = new TypingEngine(
         selectedText,
@@ -151,7 +219,14 @@ export const TypingTest: React.FC = () => {
 
       setEngine(newEngine);
     },
-    [currentType, currentMode, wordsCount, timerDuration, difficulty],
+    [
+      currentType,
+      currentMode,
+      wordsCount,
+      timerDuration,
+      difficulty,
+      search.practice,
+    ],
   );
 
   // Submit test result
@@ -181,6 +256,8 @@ export const TypingTest: React.FC = () => {
           testType: currentType,
           modeTarget:
             currentMode === "timer" ? timerDuration : wordsCount,
+          exerciseKind: practiceMeta?.exerciseKind,
+          exercisePackId: practiceMeta?.exercisePackId,
           // Test results data
           wpm: finalStats.wpm,
           accuracy: finalStats.accuracy,
@@ -218,6 +295,7 @@ export const TypingTest: React.FC = () => {
       currentType,
       timerDuration,
       wordsCount,
+      practiceMeta,
     ],
   );
 

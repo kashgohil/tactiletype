@@ -1,5 +1,15 @@
 export { CODE_SNIPPETS } from './code';
 export {
+  BOTTOM_ROW,
+  COMMON_BIGRAMS,
+  generateAccuracyChallenge,
+  generateBigramDrill,
+  generateKeyDrill,
+  generateWordDrill,
+  HOME_ROW,
+  TOP_ROW,
+} from './drills';
+export {
   buildAllPacks,
   buildWordPackItems,
   countPracticeUnits,

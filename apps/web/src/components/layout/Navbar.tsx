@@ -1,5 +1,13 @@
 import { Link } from '@tanstack/react-router';
-import { ChartPie, Crown, Gamepad2, Keyboard, LogIn, User } from 'lucide-react';
+import {
+  ChartPie,
+  Crown,
+  Dumbbell,
+  Gamepad2,
+  Keyboard,
+  LogIn,
+  User,
+} from 'lucide-react';
 import React from 'react';
 import { useAuth } from '../../contexts';
 import { ThemePicker } from '../ThemePicker';
@@ -34,6 +42,16 @@ export const Navbar: React.FC = () => {
                 </Link>
               </TooltipTrigger>
               <TooltipContent>Test</TooltipContent>
+            </Tooltip>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Link to="/practice">
+                  <Button variant="link" size="icon">
+                    <Dumbbell />
+                  </Button>
+                </Link>
+              </TooltipTrigger>
+              <TooltipContent>Practice</TooltipContent>
             </Tooltip>
             <Tooltip>
               <TooltipTrigger asChild>

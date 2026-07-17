@@ -4,14 +4,18 @@ import {
   MetricHierarchy,
   ProfileEmptyState,
   ProfileHero,
+  RecommendedExerciseCard,
   ResultCards,
+  WeakSpotsPanel,
   type ResultFilters,
 } from '@/components/profile';
 import { ProfileProgressChart } from '@/components/profile/ProfileProgressChart';
 import { Button } from '@/components/ui/button';
+import { buildRecommendation } from '@/utils/recommendations';
 import { useQuery } from '@tanstack/react-query';
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { useAuth } from '../contexts';
+import { analyticsApi } from '../services/analyticsApi';
 import { testResultsApi, usersApi } from '../services/api';
 
 export const Profile: React.FC = () => {
@@ -57,6 +61,24 @@ export const Profile: React.FC = () => {
     enabled: !!user,
     staleTime: 5 * 60 * 1000,
   });
+
+  const { data: errorAnalysis, isLoading: isLoadingErrors } = useQuery({
+    queryKey: ['userErrorAnalysis', user?.id],
+    queryFn: () => analyticsApi.getErrorAnalysis(),
+    enabled: !!user,
+    staleTime: 5 * 60 * 1000,
+  });
+
+  const recommendation = useMemo(
+    () =>
+      buildRecommendation({
+        errorAnalysis,
+        recentAvgAccuracy: statsData ? Number(statsData.avgAccuracy) : null,
+        currentStreak: statsData?.currentStreak ?? 0,
+        lastPracticeHoursAgo: null,
+      }),
+    [errorAnalysis, statsData]
+  );
 
   const currentYear = new Date().getFullYear();
   const testResults = testResultsData?.results || [];
@@ -132,6 +154,8 @@ export const Profile: React.FC = () => {
             <ProfileEmptyState variant="no-tests" />
           ) : (
             <>
+              <RecommendedExerciseCard recommendation={recommendation} />
+
               <div className="grid lg:grid-cols-3 gap-4 md:gap-6">
                 <div className="lg:col-span-1">
                   <GoalsPlaceholder
@@ -150,6 +174,23 @@ export const Profile: React.FC = () => {
                     isLoading={isLoadingProgress}
                     days={30}
                   />
+                </div>
+              </div>
+
+              <div className="grid lg:grid-cols-2 gap-4 md:gap-6">
+                <WeakSpotsPanel
+                  errorAnalysis={errorAnalysis}
+                  isLoading={isLoadingErrors}
+                />
+                <div className="bg-accent/10 rounded-xl p-5 md:p-6">
+                  <h2 className="text-lg font-semibold mb-2">Practice hub</h2>
+                  <p className="text-sm text-text/50 mb-4 leading-relaxed">
+                    Guided drills and content packs live on the Practice page —
+                    separate from free tests.
+                  </p>
+                  <Button asChild>
+                    <a href="/practice">Open Practice</a>
+                  </Button>
                 </div>
               </div>
 
