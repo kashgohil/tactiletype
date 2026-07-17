@@ -240,11 +240,11 @@ Surface as a single **Recommended next exercise** card on profile.
 
 | Item | Notes |
 |------|--------|
-| Clear typed vs untyped characters | Open item in `feedback.md` |
-| Test UI customizability | Caret, font size, hide live WPM, smooth caret, theme |
-| Optional sound / error feedback | Off by default |
-| Keyboard layout awareness | QWERTY / Colemak / Dvorak for heatmaps & drills |
-| Guest → account continuity | Keep last N local results; merge on signup |
+| Clear typed vs untyped characters | Done — high-contrast typed trail + underline |
+| Test UI customizability | Done — caret, font size, hide live WPM, smooth caret |
+| Optional sound / error feedback | Done — off by default (Web Audio beeps) |
+| Keyboard layout awareness | Done — QWERTY / Colemak / Dvorak in test prefs + drills |
+| Guest → account continuity | Done — last 20 local results; merge on login/register/OAuth |
 
 ### 6.2 P1 — Retention loop
 
