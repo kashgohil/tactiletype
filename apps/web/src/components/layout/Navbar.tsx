@@ -5,6 +5,7 @@ import {
   Crown,
   Dumbbell,
   Gamepad2,
+  Joystick,
   Keyboard,
   LogIn,
   User,
@@ -46,6 +47,16 @@ export const Navbar: React.FC = () => {
                 </Link>
               </TooltipTrigger>
               <TooltipContent>Test</TooltipContent>
+            </Tooltip>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Link to="/play">
+                  <Button variant="link" size="icon">
+                    <Joystick />
+                  </Button>
+                </Link>
+              </TooltipTrigger>
+              <TooltipContent>Play modes</TooltipContent>
             </Tooltip>
             <Tooltip>
               <TooltipTrigger asChild>
