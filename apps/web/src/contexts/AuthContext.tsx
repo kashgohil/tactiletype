@@ -1,10 +1,22 @@
-import api from '@/services/api';
+import api, { testResultsApi } from '@/services/api';
+import { mergeGuestResults } from '@/utils/guestResults';
 import type { AuthResponse, User } from '@tactile/types';
 import React, { useEffect, useState } from 'react';
 import { AuthContext, type AuthContextType } from './context';
 
 interface AuthProviderProps {
   children: React.ReactNode;
+}
+
+async function tryMergeGuestResults() {
+  try {
+    const n = await mergeGuestResults((data) => testResultsApi.submit(data));
+    if (n > 0) {
+      console.log(`Merged ${n} guest result(s) into account`);
+    }
+  } catch (err) {
+    console.error('Guest result merge failed:', err);
+  }
 }
 
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
@@ -54,6 +66,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       setUser(data.user);
       setToken(data.token);
       localStorage.setItem('auth_token', data.token);
+      await tryMergeGuestResults();
     } catch (error) {
       console.error('Login error:', error);
       throw error;
@@ -72,6 +85,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         setUser(data.user);
         setToken(data.token);
         localStorage.setItem('auth_token', data.token);
+        await tryMergeGuestResults();
       } catch (error) {
         console.error('Registration error:', error);
         throw error;
@@ -94,6 +108,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
         // Verify token and get user info
         await verifyToken(token);
+        await tryMergeGuestResults();
       } catch (error) {
         console.error('OAuth callback handling failed:', error);
         localStorage.removeItem('auth_token');

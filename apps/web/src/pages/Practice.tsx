@@ -5,8 +5,9 @@ import {
   generateBigramDrill,
   generateKeyDrill,
   generateWordDrill,
-  HOME_ROW,
 } from '@tactile/content';
+import { useTestPreferences } from '@/hooks/useTestPreferences';
+import { getHomeRow } from '@/utils/keyboardLayouts';
 import { useNavigate, useSearch } from '@tanstack/react-router';
 import {
   Braces,
@@ -97,6 +98,7 @@ function categoryIcon(category: string) {
 
 export const Practice: React.FC = () => {
   const navigate = useNavigate();
+  const { prefs } = useTestPreferences();
   // Search params typed loosely; route validates
   const search = useSearch({ strict: false }) as {
     drill?: string;
@@ -105,11 +107,12 @@ export const Practice: React.FC = () => {
   };
 
   const activeDrill = search.drill;
+  const layoutHome = getHomeRow(prefs.keyboardLayout);
 
   const drillPreview = useMemo(() => {
     if (!activeDrill) return null;
     if (activeDrill === 'keys') {
-      const keys = (search.keys || HOME_ROW.slice(0, 4)).split(/[,\s]+/);
+      const keys = (search.keys || layoutHome.slice(0, 4)).split(/[,\s]+/);
       return generateKeyDrill(keys, 40);
     }
     if (activeDrill === 'bigrams') {
@@ -125,7 +128,7 @@ export const Practice: React.FC = () => {
       return generateAccuracyChallenge(40);
     }
     return null;
-  }, [activeDrill, search.keys, search.words]);
+  }, [activeDrill, search.keys, search.words, layoutHome]);
 
   const startDrill = () => {
     if (!drillPreview) return;

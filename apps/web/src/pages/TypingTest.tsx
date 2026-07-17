@@ -1,5 +1,7 @@
 import { TimelineChart } from "@/components/analytics/TimelineChart";
 import { Stopwatch } from "@/components/stopwatch";
+import { LiveStats } from "@/components/test/LiveStats";
+import { TestPreferencesPanel } from "@/components/test/TestPreferencesPanel";
 import { Button } from "@/components/ui/button";
 import {
   Select,
@@ -14,6 +16,10 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import {
+  FONT_SIZE_CLASS,
+  useTestPreferences,
+} from "@/hooks/useTestPreferences";
 import { cn } from "@/lib/utils";
 import type { Difficulty, TestMode, TestType } from "@tactile/types";
 import { useSearch } from "@tanstack/react-router";
@@ -35,6 +41,12 @@ import { useAuth } from "../contexts";
 import { analyticsApi } from "../services/analyticsApi";
 import type { TestText } from "../services/api";
 import { testResultsApi } from "../services/api";
+import { saveGuestResult } from "../utils/guestResults";
+import {
+  playCompleteChime,
+  playErrorBeep,
+  playKeyClick,
+} from "../utils/testSounds";
 import type { TypingState, TypingStats } from "../utils/typingEngine";
 import {
   TypingEngine,
@@ -99,6 +111,7 @@ const Modes: Record<
 
 export const TypingTest: React.FC = () => {
   const { user } = useAuth();
+  const { prefs, setPrefs, resetPrefs } = useTestPreferences();
   const search = useSearch({ strict: false }) as {
     practice?: string;
     type?: string;
@@ -229,60 +242,57 @@ export const TypingTest: React.FC = () => {
     ],
   );
 
-  // Submit test result
+  // Submit test result (or stash for guests)
   const submitResult = useCallback(
     async (finalStats: TypingStats) => {
-      if (!user || !currentTestText || !engine || resultSubmitted) {
-        return; // Can't submit without user, test text, or engine, or if already submitted
+      if (!currentTestText || !engine || resultSubmitted) {
+        return;
       }
 
       setResultSubmitted(true);
 
+      if (prefs.soundEnabled || prefs.errorSoundEnabled) {
+        playCompleteChime();
+      }
+
+      const keystrokeEvents = engine.getKeystrokeEvents();
+      const keystrokeData = JSON.stringify(keystrokeEvents);
+      const payload = {
+        title: currentTestText.title,
+        content: currentTestText.content,
+        language: currentTestText.language,
+        difficulty: currentTestText.difficulty,
+        wordCount: currentTestText.wordCount,
+        mode: currentMode,
+        testType: currentType,
+        modeTarget: currentMode === "timer" ? timerDuration : wordsCount,
+        exerciseKind: practiceMeta?.exerciseKind,
+        exercisePackId: practiceMeta?.exercisePackId,
+        wpm: finalStats.wpm,
+        accuracy: finalStats.accuracy,
+        errors: finalStats.incorrectChars,
+        timeTaken: Math.max(1, finalStats.timeElapsed),
+        keystrokeData,
+      };
+
+      // Guest: keep last N results locally; merge on login/register
+      if (!user) {
+        saveGuestResult(payload);
+        return;
+      }
+
       try {
-        // Get detailed keystroke data for analytics
-        const keystrokeEvents = engine.getKeystrokeEvents();
-        const keystrokeData = JSON.stringify(keystrokeEvents);
+        const response = await testResultsApi.submit(payload);
 
-        // Submit test result with embedded test text data + session metadata
-        const response = await testResultsApi.submit({
-          // Test text data
-          title: currentTestText.title,
-          content: currentTestText.content,
-          language: currentTestText.language,
-          difficulty: currentTestText.difficulty,
-          wordCount: currentTestText.wordCount,
-          // Session metadata
-          mode: currentMode,
-          testType: currentType,
-          modeTarget:
-            currentMode === "timer" ? timerDuration : wordsCount,
-          exerciseKind: practiceMeta?.exerciseKind,
-          exercisePackId: practiceMeta?.exercisePackId,
-          // Test results data
-          wpm: finalStats.wpm,
-          accuracy: finalStats.accuracy,
-          errors: finalStats.incorrectChars,
-          timeTaken: finalStats.timeElapsed,
-          keystrokeData, // Include detailed keystroke data
-        });
-
-        console.log(
-          "Test result submitted successfully with embedded test text data",
-        );
-
-        // Process analytics data if submission was successful
         if (response.result?.id) {
           try {
             await analyticsApi.processTestResult(response.result.id);
-            console.log("Analytics processing initiated successfully");
           } catch (analyticsError) {
             console.error("Failed to process analytics:", analyticsError);
-            // Don't fail the entire submission if analytics processing fails
           }
         }
       } catch (error) {
         console.error("Failed to submit test result:", error);
-        // Reset the flag if submission failed so user can retry
         setResultSubmitted(false);
       }
     },
@@ -296,6 +306,8 @@ export const TypingTest: React.FC = () => {
       timerDuration,
       wordsCount,
       practiceMeta,
+      prefs.soundEnabled,
+      prefs.errorSoundEnabled,
     ],
   );
 
@@ -326,17 +338,33 @@ export const TypingTest: React.FC = () => {
         setIsTestActive(true);
       }
 
+      const errorsBefore = engine.getState().errors.size;
       engine.handleKeyPress(e.key);
+
+      if (e.key.length === 1) {
+        const errorsAfter = engine.getState().errors.size;
+        if (errorsAfter > errorsBefore) {
+          if (prefs.errorSoundEnabled) playErrorBeep();
+        } else if (prefs.soundEnabled) {
+          playKeyClick();
+        }
+      }
 
       // Check if test is complete
       if (engine.getState().isComplete && currentMode === "words") {
         setIsTestActive(false);
-        // Submit result if user is logged in
         const finalStats = engine.calculateStats();
         submitResult(finalStats);
       }
     },
-    [engine, isTestActive, currentMode, submitResult],
+    [
+      engine,
+      isTestActive,
+      currentMode,
+      submitResult,
+      prefs.soundEnabled,
+      prefs.errorSoundEnabled,
+    ],
   );
 
   // Initialize test on component mount
@@ -351,40 +379,104 @@ export const TypingTest: React.FC = () => {
     inputRef.current?.focus();
   }, [currentType, currentMode, timerDuration, wordsCount, difficulty]);
 
-  // Render character with appropriate styling
+  // Render character — clear typed vs untyped distinction
   const renderCharacter = (char: string, index: number) => {
     if (!engine) return char;
 
     const status = engine.getCharacterStatus(index);
-    let className = "relative ";
+    const hi = prefs.highContrastTyped;
 
+    let className = "relative inline-block ";
     switch (status) {
       case "correct":
-        className += "text-text bg-accent/50";
+        // Typed correct: full opacity + underline trail so progress is obvious
+        className += hi
+          ? "text-text opacity-100 border-b-2 border-accent/70"
+          : "text-text bg-accent/40";
         break;
       case "incorrect":
-        className += "text-rose-500";
+        className +=
+          "text-rose-500 bg-rose-500/15 border-b-2 border-rose-500/80";
         break;
       case "current":
-        className += "text-text/50";
+        className += hi ? "text-text/45" : "text-text/50";
         break;
       default:
-        className += "text-text/50";
+        // Untyped: dimmer, no underline
+        className += hi ? "text-text/35" : "text-text/50";
+    }
+
+    const isCaret = state.currentIndex === index && !state.isComplete;
+    const caretTransition = prefs.smoothCaret
+      ? { type: "spring" as const, stiffness: 500, damping: 35, mass: 0.4 }
+      : { duration: 0 };
+
+    let caretNode: React.ReactNode = null;
+    if (isCaret) {
+      const base =
+        "absolute pointer-events-none z-[1] " +
+        (prefs.smoothCaret ? "" : "animate-pulse ");
+      switch (prefs.caretStyle) {
+        case "block":
+          caretNode = (
+            <motion.div
+              layoutId="cursor"
+              transition={caretTransition}
+              className={cn(base, "inset-0 bg-accent/35 rounded-sm")}
+            />
+          );
+          break;
+        case "underline":
+          caretNode = (
+            <motion.div
+              layoutId="cursor"
+              transition={caretTransition}
+              className={cn(
+                base,
+                "left-0 right-0 bottom-0 h-0.5 bg-accent",
+              )}
+            />
+          );
+          break;
+        case "box":
+          caretNode = (
+            <motion.div
+              layoutId="cursor"
+              transition={caretTransition}
+              className={cn(
+                base,
+                "inset-0 border-2 border-accent rounded-sm",
+              )}
+            />
+          );
+          break;
+        case "line":
+        default:
+          caretNode = (
+            <motion.div
+              layoutId="cursor"
+              transition={caretTransition}
+              className={cn(
+                base,
+                "inset-y-0 left-0 w-0.5 bg-accent",
+              )}
+            />
+          );
+      }
     }
 
     return (
       <div
         key={index}
-        className={cn(className, "relative transition-colors duration-200")}
+        className={cn(
+          className,
+          prefs.smoothCaret
+            ? "transition-colors duration-150"
+            : "transition-none",
+        )}
       >
         {char === " " ? "\u00A0" : char}
-        {state.currentIndex === index ? (
-          <motion.div
-            layoutId="cursor"
-            transition={{ delay: 0, duration: 0.2 }}
-            className="absolute inset-0 border-l-3 border-accent animate-pulse"
-          />
-        ) : null}
+        {caretNode}
       </div>
     );
   };
@@ -436,29 +528,35 @@ export const TypingTest: React.FC = () => {
                       {engine?.getCompletedWords() || 0} / {wordsCount} words
                     </span>
                   )}
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={resetTest}
-                        className="absolute right-0"
-                      >
-                        <RotateCcw />
-                      </Button>
-                    </TooltipTrigger>
-                    <TooltipContent side="bottom">Refresh</TooltipContent>
-                  </Tooltip>
+                  <LiveStats stats={stats} hidden={prefs.hideLiveStats} />
+                  <div className="absolute right-0 flex items-center gap-1">
+                    <TestPreferencesPanel
+                      prefs={prefs}
+                      onChange={setPrefs}
+                      onReset={resetPrefs}
+                    />
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={resetTest}
+                        >
+                          <RotateCcw />
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent side="bottom">Refresh</TooltipContent>
+                    </Tooltip>
+                  </div>
                 </div>
               ) : (
                 <>
-                  <div className="flex items-center gap-2 h-9">
+                  <div className="flex items-center gap-2 h-9 flex-wrap">
                     {availableTypes.map(({ id, icon: Icon, label }) => (
-                      <Tooltip>
+                      <Tooltip key={id}>
                         <TooltipTrigger asChild>
                           <Button
                             variant="ghost"
-                            key={id}
                             onClick={() => {
                               setCurrentType(id);
                               inputRef.current?.focus();
@@ -474,11 +572,10 @@ export const TypingTest: React.FC = () => {
                     ))}
                     <Separator orientation="vertical" className="mx-4" />
                     {Object.values(Modes).map(({ id, icon: Icon, label }) => (
-                      <Tooltip>
+                      <Tooltip key={id}>
                         <TooltipTrigger asChild>
                           <Button
                             variant="ghost"
-                            key={id}
                             onClick={() => {
                               setCurrentMode(id);
                               inputRef.current?.focus();
@@ -539,6 +636,11 @@ export const TypingTest: React.FC = () => {
                     )}
                   </div>
                   <div className="flex items-center gap-2">
+                    <TestPreferencesPanel
+                      prefs={prefs}
+                      onChange={setPrefs}
+                      onReset={resetPrefs}
+                    />
                     <Select
                       value={difficulty}
                       onValueChange={(dif: Difficulty) => {
@@ -573,12 +675,16 @@ export const TypingTest: React.FC = () => {
             </div>
 
             <div
-              className="p-8 mt-4 mb-6 flex flex-wrap text-3xl leading-relaxed font-mono select-none outline-none relative max-h-[50vh] overflow-y-auto"
+              className={cn(
+                "p-8 mt-4 mb-6 flex flex-wrap leading-relaxed font-mono select-none outline-none relative max-h-[50vh] overflow-y-auto tracking-wide",
+                FONT_SIZE_CLASS[prefs.fontSize],
+              )}
               onKeyDown={handleKeyDown}
               onBlur={() => setFocused(false)}
               onFocus={() => setFocused(true)}
               tabIndex={0}
               ref={inputRef}
+              data-keyboard-layout={prefs.keyboardLayout}
             >
               <div
                 className={cn(
@@ -605,7 +711,7 @@ export const TypingTest: React.FC = () => {
               keystrokeEvents={state.keystrokeEvents}
               height={300}
             />
-            <div className="bg-accent/30 rounded-lg p-6 text-center">
+            <div className="bg-accent/30 rounded-lg p-6 text-center w-full max-w-2xl">
               <h2 className="text-2xl font-bold mb-4">Test Complete!</h2>
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                 <div>
@@ -629,6 +735,15 @@ export const TypingTest: React.FC = () => {
                   <div className="text-sm">Time taken</div>
                 </div>
               </div>
+              {!user && (
+                <p className="text-xs text-text/50 mt-4">
+                  Result saved on this device.{" "}
+                  <a href="/login" className="text-accent hover:underline">
+                    Log in
+                  </a>{" "}
+                  to sync to your profile.
+                </p>
+              )}
             </div>
 
             <Button onClick={resetTest}>Reset</Button>
