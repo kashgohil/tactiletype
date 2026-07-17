@@ -92,6 +92,12 @@ export const completedTests = pgTable(
     language: varchar('language', { length: 10 }).default('en'),
     difficulty: varchar('difficulty', { length: 20 }).default('medium'),
     wordCount: integer('word_count').notNull(),
+    // Session configuration metadata (nullable for legacy rows)
+    mode: varchar('mode', { length: 20 }).default('timer'), // timer | words
+    testType: varchar('test_type', { length: 30 }).default('text'), // text | punctuation | numbers | quotes | code | ...
+    modeTarget: integer('mode_target'), // timer seconds or word-count target
+    exercisePackId: varchar('exercise_pack_id', { length: 100 }),
+    exerciseKind: varchar('exercise_kind', { length: 50 }),
     // Test results data
     wpm: decimal('wpm', { precision: 5, scale: 2 }).notNull(),
     accuracy: decimal('accuracy', { precision: 5, scale: 2 }).notNull(),
@@ -107,6 +113,7 @@ export const completedTests = pgTable(
     ),
     index('completed_tests_wpm_idx').on(table.wpm),
     index('completed_tests_lang_diff_idx').on(table.language, table.difficulty),
+    index('completed_tests_mode_type_idx').on(table.mode, table.testType),
   ]
 );
 

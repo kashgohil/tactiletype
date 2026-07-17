@@ -68,6 +68,12 @@ export interface CompletedTest {
   language: string;
   difficulty: 'easy' | 'medium' | 'hard';
   wordCount: number;
+  // Session metadata
+  mode?: TestMode | string | null;
+  testType?: TestType | string | null;
+  modeTarget?: number | null;
+  exercisePackId?: string | null;
+  exerciseKind?: string | null;
   // Test results data
   wpm: number;
   accuracy: number;
@@ -89,6 +95,12 @@ export interface SubmitResultRequest {
   language: string;
   difficulty: 'easy' | 'medium' | 'hard';
   wordCount: number;
+  // Session metadata
+  mode?: TestMode | string;
+  testType?: TestType | string;
+  modeTarget?: number;
+  exercisePackId?: string;
+  exerciseKind?: string;
   // Test results data
   wpm: number;
   accuracy: number;
@@ -194,7 +206,13 @@ export type WSMessageType =
   | 'error';
 
 export type Difficulty = 'easy' | 'medium' | 'hard';
-export type TestType = 'text' | 'punctuation' | 'numbers' | 'quotes';
+export type TestType =
+  | 'text'
+  | 'punctuation'
+  | 'numbers'
+  | 'quotes'
+  | 'code'
+  | 'symbols';
 export type TestMode = 'timer' | 'words';
 
 export interface JoinRoomMessage extends WSMessage {
