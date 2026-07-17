@@ -44,53 +44,27 @@ tactile/
 
 ## 🛠️ Development Setup
 
+> **Full guide (humans + agents):** see **[setup.md](./setup.md)** for the complete, step-by-step local setup, env vars, DB seed, troubleshooting, and automation checklist.
+
 ### Prerequisites
 - [Bun](https://bun.sh/) (latest version)
 - [PostgreSQL](https://postgresql.org/) (v14+)
 - [Node.js](https://nodejs.org/) (v18+) - for some tooling compatibility
 
-### Installation
+### Quick start
 
-1. **Clone the repository**
-   ```bash
-   git clone <repository-url>
-   cd tactile
-   ```
-
-2. **Install dependencies**
-   ```bash
-   bun install
-   ```
-
-3. **Set up environment variables**
-   ```bash
-   # Backend environment
-   cp apps/api/.env.example apps/api/.env
-   # Edit apps/api/.env with your database credentials
-   
-   # Frontend environment
-   cp apps/web/.env.example apps/web/.env
-   ```
-
-4. **Set up the database**
-   ```bash
-   # Create PostgreSQL database
-   createdb tactile
-   
-   # Generate and run migrations
-   bun run db:generate
-   bun run db:migrate
-   ```
-
-5. **Start development servers**
-   ```bash
-   # Start both frontend and backend
-   bun run dev
-   
-   # Or start individually
-   bun run dev:api    # Backend only (port 3001)
-   bun run dev:web    # Frontend only (port 5173)
-   ```
+```bash
+bun install
+cp apps/api/.env.example apps/api/.env   # set JWT_SECRET at minimum
+cp apps/web/.env.example apps/web/.env
+createdb tactile                         # if it does not exist yet
+export DATABASE_URL=postgresql://localhost:5432/tactile
+bun run db:migrate
+bun run db:seed
+bun run dev
+# API: http://localhost:3001/api
+# Web: http://localhost:3002
+```
 
 ### Database Management
 
