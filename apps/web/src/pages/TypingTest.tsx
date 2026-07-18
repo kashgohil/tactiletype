@@ -960,7 +960,7 @@ export const TypingTest: React.FC = () => {
           >
             <TimelineChart
               keystrokeEvents={state.keystrokeEvents}
-              height={220}
+              height={240}
             />
             <ResultsSummary
               stats={stats}
