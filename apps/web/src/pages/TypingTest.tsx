@@ -192,8 +192,6 @@ export const TypingTest: React.FC = () => {
     keystrokeEvents: [],
   });
   const [isTestActive, setIsTestActive] = useState(false);
-  // The idle "front door" greeting shows until the very first keystroke of the session
-  const [firstArrival, setFirstArrival] = useState(true);
   const [resultSubmitted, setResultSubmitted] = useState(false);
   const [combo, setCombo] = useState<ComboState>(emptyCombo);
   const practiceConsumed = useRef(false);
@@ -415,7 +413,6 @@ export const TypingTest: React.FC = () => {
       e.preventDefault();
       if (!isTestActive && !isNonPrintingKey(e.key)) {
         setIsTestActive(true);
-        setFirstArrival(false);
       }
 
       const errorsBefore = engine.getState().errors.size;
@@ -688,7 +685,7 @@ export const TypingTest: React.FC = () => {
   };
 
   return (
-    <div className="h-full flex flex-col gap-4 items-center justify-center">
+    <div className="h-full flex flex-col gap-4 items-center justify-center pb-[10.4vh]">
       <CustomPasteModal
         open={pasteOpen}
         onClose={() => setPasteOpen(false)}
@@ -718,44 +715,11 @@ export const TypingTest: React.FC = () => {
           setTimeout(() => inputRef.current?.focus(), 50);
         }}
       />
-      <AnimatePresence>
-        {firstArrival && !isTestActive && !state.isComplete && (
-          <motion.div
-            key="front-door"
-            className="w-full max-w-2xl text-center overflow-hidden"
-            initial={
-              reducedMotion ? { opacity: 0 } : { opacity: 0, height: 0, y: -8 }
-            }
-            animate={
-              reducedMotion
-                ? { opacity: 1 }
-                : { opacity: 1, height: "auto", y: 0 }
-            }
-            exit={
-              reducedMotion
-                ? { opacity: 0 }
-                : { opacity: 0, height: 0, y: -8, marginBottom: 0 }
-            }
-            transition={uiTransition(reducedMotion, 0.4)}
-          >
-            <p className="font-mono text-xs uppercase tracking-[0.35em] text-text/40">
-              tactiletype
-            </p>
-            <h1 className="mt-3 text-display font-semibold text-text">
-              {user ? `Welcome back, ${user.username}.` : "Just start typing."}
-            </h1>
-            <p className="mt-2 text-base text-text/55 font-saira">
-              A free typing test that turns your misses into practice — the
-              passage below is live.
-            </p>
-          </motion.div>
-        )}
-      </AnimatePresence>
       <AnimatePresence mode="wait">
         {!state.isComplete ? (
           <motion.div
             key="typing-test"
-            className="w-full max-w-4xl mx-auto rounded-2xl border border-accent/20 bg-accent/10 overflow-hidden shadow-sm"
+            className="w-full max-w-6xl mx-auto rounded-2xl border border-accent/20 bg-accent/10 overflow-hidden shadow-sm"
             initial={panelMotion.initial}
             animate={panelMotion.animate}
             exit={panelMotion.exit}
@@ -766,7 +730,7 @@ export const TypingTest: React.FC = () => {
               }
             }}
           >
-            <div className="flex items-center justify-between gap-2 px-5 py-3.5 border-b border-accent/15 w-full">
+            <div className="flex items-center justify-between gap-2 px-5 py-3.5 w-full">
               {isTestActive ? (
                 <div className="h-9 text-xl flex items-center justify-center w-full gap-2 relative">
                   {currentMode === "timer" && state.startTime && (
@@ -973,14 +937,11 @@ export const TypingTest: React.FC = () => {
               >
                 <span
                   className={cn(
-                    "inline-flex items-center gap-2 rounded-full border border-accent/30 bg-primary/60 px-4 py-1.5 font-saira text-sm text-text/70",
+                    "font-saira text-sm text-text/70",
                     !reducedMotion && "animate-pulse",
                   )}
                 >
-                  <kbd className="rounded border border-accent/40 bg-accent/15 px-1.5 py-0.5 font-mono text-xs text-text">
-                    click
-                  </kbd>
-                  or press any key to start
+                  click or press any key to start
                 </span>
               </div>
 
