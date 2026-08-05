@@ -66,6 +66,7 @@ import {
   isNonPrintingKey,
 } from "../utils/typingEngine";
 import { recordFromKeystrokes, recordKeyAttempt } from "../utils/weakKeys";
+import { toast } from "sonner";
 
 type CaretBox = { x: number; y: number; w: number; h: number };
 
@@ -308,20 +309,32 @@ export const TypingTest: React.FC = () => {
         return;
       }
 
-      try {
-        const response = await testResultsApi.submit(payload);
+      const send = async (): Promise<void> => {
+        try {
+          const response = await testResultsApi.submit(payload);
 
-        if (response.result?.id) {
-          try {
-            await analyticsApi.processTestResult(response.result.id);
-          } catch (analyticsError) {
-            console.error("Failed to process analytics:", analyticsError);
+          if (response.result?.id) {
+            try {
+              await analyticsApi.processTestResult(response.result.id);
+            } catch (analyticsError) {
+              console.error("Failed to process analytics:", analyticsError);
+            }
           }
+        } catch (error) {
+          console.error("Failed to submit test result:", error);
+          setResultSubmitted(false);
+          // A fixed id keeps a burst of failures to a single toast, and the run
+          // is recoverable from here — the stats are still in hand.
+          toast.error("Result not saved", {
+            id: "test-result-submit-failed",
+            description:
+              "We could not reach the server. This run is missing from your history.",
+            action: { label: "Retry", onClick: () => void send() },
+          });
         }
-      } catch (error) {
-        console.error("Failed to submit test result:", error);
-        setResultSubmitted(false);
-      }
+      };
+
+      await send();
     },
     [
       user,

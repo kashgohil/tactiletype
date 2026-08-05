@@ -1,11 +1,34 @@
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { Toaster } from '@/components/ui/sonner';
+import {
+  MutationCache,
+  QueryClient,
+  QueryClientProvider,
+} from '@tanstack/react-query';
 import { RouterProvider, createRouter } from '@tanstack/react-router';
+import { isAxiosError } from 'axios';
+import { toast } from 'sonner';
 import { AuthProvider, ThemeProvider } from './contexts';
 
 // Import the generated route tree
 import { routeTree } from './routeTree.gen';
 
+function describeError(error: unknown): string {
+  if (isAxiosError(error)) {
+    const message = error.response?.data?.error;
+    if (typeof message === 'string') return message;
+    if (!error.response) return 'Could not reach the server.';
+  }
+  return error instanceof Error ? error.message : 'Something went wrong.';
+}
+
 const queryClient = new QueryClient({
+  // Every write gets a voice by default. A mutation that wants its own wording
+  // can still add onError — this runs alongside it, not instead of it.
+  mutationCache: new MutationCache({
+    onError: (error) => {
+      toast.error("That didn't save", { description: describeError(error) });
+    },
+  }),
   defaultOptions: {
     queries: {
       retry: 1,
@@ -30,6 +53,7 @@ function App() {
       <ThemeProvider>
         <AuthProvider>
           <RouterProvider router={router} />
+          <Toaster />
         </AuthProvider>
       </ThemeProvider>
     </QueryClientProvider>

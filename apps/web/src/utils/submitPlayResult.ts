@@ -9,6 +9,7 @@ import {
 } from '@/utils/dailyRun';
 import type { PlayModeId } from '@/utils/playModes';
 import { savePlayBest } from '@/utils/playModes';
+import { toast } from 'sonner';
 
 export interface PlayResultPayload {
   modeId: PlayModeId;
@@ -91,5 +92,10 @@ export async function submitPlayResult(
     }
   } catch (err) {
     console.error('Failed to submit play result:', err);
+    toast.error('Run not saved', {
+      id: 'play-result-submit-failed',
+      description:
+        'We could not reach the server. Your local best is kept, but this run is missing from your history.',
+    });
   }
 }
