@@ -3,7 +3,7 @@ import { Google } from '@/assets/google';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { usePrefersReducedMotion } from '@/hooks/usePrefersReducedMotion';
-import { fadeEnter } from '@/lib/motion';
+import { authCardEnter } from '@/lib/motion';
 import api from '@/services/api';
 import { Link, useNavigate } from '@tanstack/react-router';
 import { motion } from 'motion/react';
@@ -18,7 +18,7 @@ export const Register: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [isOAuthLoading, setIsOAuthLoading] = useState<string | null>(null);
   const reducedMotion = usePrefersReducedMotion();
-  const fade = fadeEnter(reducedMotion);
+  const card = authCardEnter(reducedMotion);
 
   const { register } = useAuth();
   const navigate = useNavigate();
@@ -55,67 +55,72 @@ export const Register: React.FC = () => {
 
   return (
     <motion.div
-      initial={fade.initial}
-      animate={fade.animate}
-      exit={fade.exit}
-      transition={fade.transition}
-      className="max-w-md w-full my-auto mx-auto bg-surface border border-line rounded-2xl shadow-sm p-8"
+      initial={card.initial}
+      animate={card.animate}
+      exit={card.exit}
+      transition={card.transition}
+      className="max-w-md w-full my-auto mx-auto bg-surface rounded-lg shadow-md p-8"
     >
-      <div className="flex flex-col items-center gap-2 mb-8">
+      <h1 className="flex items-center justify-center gap-2 text-2xl font-bold text-center mb-8">
         <img
           src="/tactiletype-256x256.png"
           alt="tactiletype"
-          height={40}
-          width={40}
+          height={36}
+          width={36}
         />
-        <h1 className="text-2xl font-semibold">Create your account</h1>
-        <p className="text-sm text-text/50">
-          Track progress, unlock insights, climb the board.
-        </p>
-      </div>
+        <span>tactiletype</span>
+      </h1>
 
       {error && (
-        <div className="bg-destructive/10 border border-destructive/30 text-destructive text-sm px-4 py-3 rounded-md mb-4">
+        <div className="bg-destructive/10 border border-destructive/40 text-destructive px-4 py-3 rounded mb-4">
           {error}
         </div>
       )}
 
-      <form onSubmit={handleSubmit} className="space-y-3">
-        <Input
-          type="email"
-          id="email"
-          placeholder="Email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          required
-          className="h-11"
-        />
-        <Input
-          type="text"
-          id="username"
-          placeholder="Username"
-          value={username}
-          onChange={(e) => setUsername(e.target.value)}
-          required
-          className="h-11"
-        />
-        <Input
-          type="password"
-          id="password"
-          placeholder="Password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          required
-          minLength={6}
-          className="h-11"
-        />
+      <form onSubmit={handleSubmit} className="space-y-2">
+        <div>
+          <Input
+            type="email"
+            id="email"
+            placeholder="Email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            required
+            className="w-full px-3 py-2"
+          />
+        </div>
+
+        <div>
+          <Input
+            type="text"
+            id="username"
+            placeholder="Username"
+            value={username}
+            onChange={(e) => setUsername(e.target.value)}
+            required
+            className="w-full px-3 py-2"
+          />
+        </div>
+
+        <div>
+          <Input
+            type="password"
+            id="password"
+            placeholder="Password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required
+            minLength={6}
+            className="w-full px-3 py-2"
+          />
+        </div>
+
         <Button
           type="submit"
           disabled={isLoading}
-          size="lg"
-          className="w-full font-semibold"
+          className="w-full font-semibold py-2 px-4 rounded-md transition-colors"
         >
-          {isLoading ? 'Creating account…' : 'Create Account'}
+          {isLoading ? 'Creating account...' : 'Create Account'}
         </Button>
       </form>
 
@@ -124,8 +129,8 @@ export const Register: React.FC = () => {
           <div className="absolute inset-0 flex items-center">
             <span className="w-full border-t border-line" />
           </div>
-          <div className="relative flex justify-center text-xs uppercase tracking-wider">
-            <span className="px-3 bg-surface text-text/40">Or sign up with</span>
+          <div className="relative flex justify-center text-sm">
+            <span className="px-2 bg-surface text-muted">Or sign up with</span>
           </div>
         </div>
 
@@ -134,7 +139,7 @@ export const Register: React.FC = () => {
             onClick={() => handleOAuthLogin('google')}
             disabled={isOAuthLoading !== null}
             variant="outline"
-            className="w-full gap-2"
+            className="w-full flex items-center justify-center gap-2 py-2 px-4 border border-line rounded-md hover:bg-surface-2 transition-colors"
           >
             {isOAuthLoading === 'google' ? (
               <div className="w-4 h-4 border-2 border-line border-t-accent rounded-full animate-spin" />
@@ -148,7 +153,7 @@ export const Register: React.FC = () => {
             onClick={() => handleOAuthLogin('github')}
             disabled={isOAuthLoading !== null}
             variant="outline"
-            className="w-full gap-2"
+            className="w-full flex items-center justify-center gap-2 py-2 px-4 border border-line rounded-md hover:bg-surface-2 transition-colors"
           >
             {isOAuthLoading === 'github' ? (
               <div className="w-4 h-4 border-2 border-line border-t-accent rounded-full animate-spin" />
@@ -160,11 +165,13 @@ export const Register: React.FC = () => {
         </div>
       </div>
 
-      <div className="mt-6 text-center text-sm text-text/60">
-        Already have an account?{' '}
-        <Link to="/login" className="text-accent hover:underline font-medium">
-          Log in
-        </Link>
+      <div className="mt-6 text-center">
+        <p>
+          Already have an account?{' '}
+          <Link to="/login" className="text-accent hover:underline font-medium">
+            Log in
+          </Link>
+        </p>
       </div>
     </motion.div>
   );
