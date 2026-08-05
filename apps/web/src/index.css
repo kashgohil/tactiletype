@@ -42,7 +42,6 @@
 @theme {
   --font-saira: 'Saira', sans-serif;
   --font-sans: 'Saira', ui-sans-serif, system-ui, sans-serif;
-  --font-mono: 'IBM Plex Mono', ui-monospace, 'SF Mono', Menlo, monospace;
 
   /* Deliberate type scale — geometric, ~1.2 minor-third steps */
   --text-hero: 4.5rem;
