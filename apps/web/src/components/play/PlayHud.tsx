@@ -62,7 +62,7 @@ export function PlayShell({
 
   return (
     <motion.div
-      className="pt-2 pb-12 max-w-3xl mx-auto space-y-6"
+      className="pt-2 pb-12 max-w-5xl mx-auto space-y-6"
       initial={reduced ? false : { opacity: 0, transform: 'translateY(6px)' }}
       animate={{ opacity: 1, transform: 'translateY(0px)' }}
       transition={uiTransition(reduced, 0.22)}
@@ -142,7 +142,7 @@ export function PlayResultCard({
 
   return (
     <motion.div
-      className="rounded-2xl border border-accent/20 bg-accent/8 p-7 sm:p-9 space-y-7 text-center"
+      className="rounded-lg bg-accent/30 p-8 sm:p-10 space-y-7 text-center"
       initial={
         reduced ? false : { opacity: 0, transform: 'translateY(10px) scale(0.98)' }
       }
@@ -178,7 +178,7 @@ export function PlayResultCard({
         )}
       </div>
 
-      <div className="flex flex-wrap justify-center gap-6 sm:gap-10 py-2 border-y border-accent/12">
+      <div className="flex flex-wrap justify-center gap-6 sm:gap-10 py-4 border-y border-text/10">
         {stats.map((s, i) => (
           <motion.div
             key={s.label}
@@ -209,9 +209,9 @@ export function PlayResultCard({
           Other modes
         </Button>
       </div>
-      <p className="text-[11px] font-mono text-text/35">
+      <p className="text-[11px] font-mono text-text/45">
         press{' '}
-        <kbd className="rounded border border-accent/25 bg-accent/10 px-1.5 py-0.5 text-text/55">
+        <kbd className="rounded border border-text/20 bg-text/8 px-1.5 py-0.5 text-text/65">
           enter
         </kbd>{' '}
         to retry
