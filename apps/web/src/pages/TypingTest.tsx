@@ -15,12 +15,9 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { TypingSurface } from "@/components/test/TypingSurface";
 import { usePrefersReducedMotion } from "@/hooks/usePrefersReducedMotion";
-import {
-  FONT_SIZE_CLASS,
-  useTestPreferences,
-} from "@/hooks/useTestPreferences";
-import { cn } from "@/lib/utils";
+import { useTestPreferences } from "@/hooks/useTestPreferences";
 import type { Difficulty, TestMode, TestType } from "@tactile/types";
 import { useSearch } from "@tanstack/react-router";
 import {
@@ -39,7 +36,6 @@ import { AnimatePresence, motion } from "motion/react";
 import React, {
   useCallback,
   useEffect,
-  useLayoutEffect,
   useMemo,
   useRef,
   useState,
@@ -48,10 +44,7 @@ import { useAuth } from "../contexts";
 import { analyticsApi } from "../services/analyticsApi";
 import type { TestText } from "../services/api";
 import { testResultsApi } from "../services/api";
-import {
-  codeTokenClass,
-  tokenizeCodeChars,
-} from "../utils/codeHighlight";
+import { tokenizeCodeChars } from "../utils/codeHighlight";
 import { saveGuestResult } from "../utils/guestResults";
 import { ResultsSummary } from "@/components/test/ResultsSummary";
 import {
@@ -67,8 +60,6 @@ import {
 } from "../utils/typingEngine";
 import { recordFromKeystrokes, recordKeyAttempt } from "../utils/weakKeys";
 import { toast } from "sonner";
-
-type CaretBox = { x: number; y: number; w: number; h: number };
 
 type PracticeDrillPayload = {
   content: string;
@@ -130,7 +121,6 @@ export const TypingTest: React.FC = () => {
   const { user } = useAuth();
   const { prefs } = useTestPreferences();
   const reducedMotion = usePrefersReducedMotion();
-  const smoothCaret = prefs.smoothCaret && !reducedMotion;
   const search = useSearch({ strict: false }) as {
     practice?: string;
     type?: string;
@@ -156,7 +146,6 @@ export const TypingTest: React.FC = () => {
   );
   const [currentMode, setCurrentMode] = useState<TestMode>(initialMode);
   const [currentType, setCurrentType] = useState<TestType>(initialType);
-  const [focused, setFocused] = useState(true);
   const [testText, setTestText] = useState("");
   const [currentTestText, setCurrentTestText] = useState<TestText | null>(null);
   const [difficulty, setDifficulty] = useState<Difficulty>("medium");
@@ -192,7 +181,6 @@ export const TypingTest: React.FC = () => {
   const bestComputedRef = useRef(false);
 
   const inputRef = useRef<HTMLDivElement | null>(null);
-  const [caretBox, setCaretBox] = useState<CaretBox | null>(null);
 
   // Initialize test with generated text (or practice drill once)
   const initializeTest = useCallback(
@@ -462,131 +450,6 @@ export const TypingTest: React.FC = () => {
     [currentType, testText],
   );
 
-  // Render character — clear typed vs untyped distinction (+ soft code tints)
-  const renderCharacter = (char: string, index: number) => {
-    if (!engine) return char;
-
-    const status = engine.getCharacterStatus(index);
-    const hi = prefs.highContrastTyped;
-    const token = codeTokens?.[index];
-
-    let className = "relative ";
-    switch (status) {
-      case "correct":
-        // No fill behind typed characters — the colour shift alone marks them.
-        className += hi
-          ? "text-text opacity-100 border-b-2 border-accent/70"
-          : "text-text";
-        break;
-      case "incorrect":
-        className += hi
-          ? "text-rose-500 bg-rose-500/15 border-b-2 border-rose-500/80"
-          : "text-rose-500";
-        break;
-      case "current":
-        className += hi ? "text-text/45" : "text-text/50";
-        break;
-      default:
-        className += hi ? "text-text/35" : "text-text/50";
-    }
-
-    if (token && status !== "incorrect") {
-      const tint = codeTokenClass(token, status);
-      if (tint) {
-        // Replace generic text color with token tint for code mode
-        className = className
-          .replace(/text-text(\/\d+)?/g, "")
-          .replace(/opacity-100/g, "")
-          .trim();
-        className += " " + tint;
-        if (status === "correct" && hi) {
-          className += " border-b-2 border-accent/70";
-        }
-      }
-    }
-
-    return (
-      <div
-        key={index}
-        data-char-index={index}
-        className={cn(
-          className,
-          smoothCaret
-            ? "transition-colors duration-200"
-            : "transition-none",
-        )}
-      >
-        {char === " " ? "\u00A0" : char}
-      </div>
-    );
-  };
-
-  function text() {
-    let counter = 0;
-    const chunks = testText.split(" ");
-    return chunks.map((word, wordIndex) => {
-      return (
-        <div className="flex items-center" key={wordIndex}>
-          {word.split("").map((char) => {
-            return renderCharacter(char, counter++);
-          })}
-          {wordIndex < chunks.length - 1 && renderCharacter(" ", counter++)}
-        </div>
-      );
-    });
-  }
-
-  // Single GPU caret: measure active char and retarget transform (not layoutId).
-  useLayoutEffect(() => {
-    if (state.isComplete || !testText) {
-      setCaretBox(null);
-      return;
-    }
-    const container = inputRef.current;
-    if (!container) return;
-
-    const measure = () => {
-      const el = container.querySelector(
-        `[data-char-index="${state.currentIndex}"]`,
-      ) as HTMLElement | null;
-      if (!el) {
-        setCaretBox(null);
-        return;
-      }
-      const cRect = container.getBoundingClientRect();
-      const eRect = el.getBoundingClientRect();
-      const style = getComputedStyle(container);
-      const borderLeft = parseFloat(style.borderLeftWidth) || 0;
-      const borderTop = parseFloat(style.borderTopWidth) || 0;
-      setCaretBox({
-        x: eRect.left - cRect.left - borderLeft + container.scrollLeft,
-        y: eRect.top - cRect.top - borderTop + container.scrollTop,
-        w: Math.max(eRect.width, 1),
-        h: Math.max(eRect.height, 1),
-      });
-    };
-
-    measure();
-    const ro = new ResizeObserver(measure);
-    ro.observe(container);
-    container.addEventListener("scroll", measure, { passive: true });
-    return () => {
-      ro.disconnect();
-      container.removeEventListener("scroll", measure);
-    };
-  }, [
-    state.currentIndex,
-    state.isComplete,
-    testText,
-    prefs.fontSize,
-    prefs.caretStyle,
-    focused,
-  ]);
-
-  const caretTransition = smoothCaret
-    ? { type: "spring" as const, stiffness: 500, damping: 35, mass: 0.4 }
-    : { duration: 0 };
-
   // The January panel drifted up as it settled; keep that, minus the travel
   // when the user asked for reduced motion.
   const panelMotion = reducedMotion
@@ -612,58 +475,6 @@ export const TypingTest: React.FC = () => {
         animate: { opacity: 1, y: "-20%" },
         exit: { opacity: 0, y: 20 },
       };
-
-  const renderCaret = () => {
-    if (!caretBox || state.isComplete) return null;
-    const style = prefs.caretStyle;
-    // The January caret pulsed while it moved — keep both.
-    const pulse = !reducedMotion ? "animate-pulse" : "";
-
-    let className = "absolute top-0 left-0 pointer-events-none z-[1] ";
-    let size: React.CSSProperties = {};
-
-    switch (style) {
-      case "block":
-        className += cn("bg-accent/35 rounded-sm", pulse);
-        size = { width: caretBox.w, height: caretBox.h };
-        break;
-      case "underline":
-        className += "bg-accent h-0.5";
-        size = {
-          width: caretBox.w,
-          height: 2,
-          // sit on the baseline of the glyph box
-          // transform already places top-left; nudge down
-        };
-        break;
-      case "box":
-        className += cn("border-2 border-accent rounded-sm", pulse);
-        size = { width: caretBox.w, height: caretBox.h };
-        break;
-      case "line":
-      default:
-        className += cn("bg-accent", pulse);
-        size = { width: 3, height: caretBox.h };
-        break;
-    }
-
-    const y =
-      style === "underline" ? caretBox.y + caretBox.h - 2 : caretBox.y;
-
-    return (
-      <motion.div
-        aria-hidden
-        className={className}
-        style={size}
-        initial={false}
-        animate={{
-          transform: `translate3d(${caretBox.x}px, ${y}px, 0)`,
-        }}
-        transition={caretTransition}
-        data-allow-transform-motion=""
-      />
-    );
-  };
 
   return (
     <div className="h-full flex flex-col gap-4 items-center justify-center">
@@ -864,37 +675,14 @@ export const TypingTest: React.FC = () => {
               )}
             </div>
 
-            <div
-              className={cn(
-                // This is a wrapping flex container: each word is a flex line,
-                // so the vertical space between lines is row-gap, not
-                // line-height. gap-y-* is the knob for it.
-                "p-8 mt-4 mb-6 flex flex-wrap gap-y-4 leading-loose font-mono select-none outline-none relative max-h-[50vh] overflow-y-auto",
-                FONT_SIZE_CLASS[prefs.fontSize],
-              )}
+            <TypingSurface
+              text={testText}
+              getStatus={(i) => engine?.getCharacterStatus(i) ?? "pending"}
+              caretIndex={state.isComplete ? null : state.currentIndex}
               onKeyDown={handleKeyDown}
-              onBlur={() => setFocused(false)}
-              onFocus={() => setFocused(true)}
-              tabIndex={0}
-              ref={inputRef}
-              role="textbox"
-              aria-label="Typing test area"
-              aria-multiline="true"
-              data-keyboard-layout={prefs.keyboardLayout}
-            >
-              <div
-                className={cn(
-                  "absolute inset-0 flex items-center justify-center transition-all delay-300 text-center backdrop-blur-none opacity-0 z-1 pointer-events-none",
-                  !focused && "backdrop-blur-sm opacity-100",
-                )}
-                aria-hidden={focused}
-              >
-                Click here to focus
-              </div>
-
-              {text()}
-              {renderCaret()}
-            </div>
+              surfaceRef={inputRef}
+              codeTokens={codeTokens}
+            />
           </motion.div>
         ) : (
           <motion.div
