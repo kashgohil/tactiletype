@@ -113,6 +113,7 @@ export class WebSocketService {
 	private isAuthenticated = false;
 	private authToken: string | null = null;
 	private wsUrl: string;
+	private connecting: Promise<void> | null = null;
 
 	constructor(wsUrl: string) {
 		this.wsUrl = wsUrl;
@@ -120,16 +121,31 @@ export class WebSocketService {
 
 	// Connection management — resolves after authenticate succeeds
 	connect(token: string): Promise<void> {
-		return new Promise((resolve, reject) => {
-			if (
-				this.ws &&
-				this.ws.readyState === WebSocket.OPEN &&
-				this.isAuthenticated
-			) {
-				resolve();
-				return;
-			}
+		if (
+			this.ws &&
+			this.ws.readyState === WebSocket.OPEN &&
+			this.isAuthenticated
+		) {
+			return Promise.resolve();
+		}
 
+		// A socket already opening owns the handshake. Without this, a second
+		// caller (StrictMode's double effect, or two components mounting at once)
+		// replaces this.ws mid-handshake and the first socket's authenticate is
+		// sent into the void — "Cannot send message: WebSocket not connected".
+		if (this.connecting) {
+			return this.connecting;
+		}
+
+		this.connecting = this.openSocket(token).finally(() => {
+			this.connecting = null;
+		});
+
+		return this.connecting;
+	}
+
+	private openSocket(token: string): Promise<void> {
+		return new Promise((resolve, reject) => {
 			this.authToken = token;
 			this.setStatus("connecting");
 
@@ -297,6 +313,10 @@ export class WebSocketService {
 	// Message handling
 	private handleMessage(message: WSMessage): void {
 		switch (message.type) {
+			// Server's greeting on socket open, ahead of authentication
+			case "connected":
+				break;
+
 			case "authenticated":
 				this.isAuthenticated = true;
 				console.log("WebSocket authenticated");
