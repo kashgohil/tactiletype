@@ -1,5 +1,5 @@
 import { VITE_API_URL } from '@/constants';
-import { getCsrfTokenFromCookie } from '@/utils/csrf';
+import { ensureCsrfToken } from '@/utils/csrf';
 import type { MultiplayerRoomWithDetails, TestText } from '@tactile/types';
 
 export interface CreateRoomRequest {
@@ -77,8 +77,16 @@ function authHeaders(): HeadersInit {
   const token = localStorage.getItem('auth_token');
   return {
     'Content-Type': 'application/json',
-    'X-CSRF-Token': getCsrfTokenFromCookie() || '',
     ...(token ? { Authorization: `Bearer ${token}` } : {}),
+  };
+}
+
+// Writes carry the double-submit CSRF token; reads are exempt server-side, so
+// they must not trigger a token fetch just to browse rooms.
+async function writeHeaders(): Promise<HeadersInit> {
+  return {
+    ...authHeaders(),
+    'X-CSRF-Token': (await ensureCsrfToken()) ?? '',
   };
 }
 
@@ -97,7 +105,7 @@ class MultiplayerApiService {
   async createRoom(request: CreateRoomRequest): Promise<CreateRoomResponse> {
     const response = await fetch(`${VITE_API_URL}/api/multiplayer/rooms`, {
       method: 'POST',
-      headers: authHeaders(),
+      headers: await writeHeaders(),
       credentials: 'include',
       body: JSON.stringify(request),
     });
@@ -140,7 +148,7 @@ class MultiplayerApiService {
       `${VITE_API_URL}/api/multiplayer/rooms/${roomId}/join`,
       {
         method: 'POST',
-        headers: authHeaders(),
+        headers: await writeHeaders(),
         credentials: 'include',
         body: JSON.stringify({ spectate: !!options?.spectate }),
       }
@@ -152,7 +160,7 @@ class MultiplayerApiService {
   async leaveRoom(roomId: string): Promise<void> {
     const response = await fetch(
       `${VITE_API_URL}/api/multiplayer/rooms/${roomId}/leave`,
-      { method: 'POST', headers: authHeaders(), credentials: 'include' }
+      { method: 'POST', headers: await writeHeaders(), credentials: 'include' }
     );
     await handle(response);
   }

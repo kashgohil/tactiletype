@@ -182,6 +182,13 @@ authRoutes.post('/logout', (c) => {
   return c.json({ message: 'Logged out successfully' });
 });
 
+// Issue a fresh CSRF cookie. The client calls this before a write when it has no
+// token yet, and again if a write is rejected because the cookie expired.
+authRoutes.get('/csrf', (c) => {
+  const token = setCsrfCookie(c);
+  return c.json({ token });
+});
+
 // OAuth routes
 authRoutes.get('/sso/:provider', async (c) => {
   const provider = c.req.param('provider');

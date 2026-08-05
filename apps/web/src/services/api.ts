@@ -1,14 +1,22 @@
 import { VITE_API_URL } from '@/constants';
-import { getCsrfTokenFromCookie } from '@/utils/csrf';
+import { ensureCsrfToken, refreshCsrfToken } from '@/utils/csrf';
 import type { Difficulty } from '@tactile/types';
-import axios from 'axios';
+import axios, { AxiosHeaders, type InternalAxiosRequestConfig } from 'axios';
 
 const api = axios.create({
   baseURL: VITE_API_URL,
+  // The API is a separate origin, so without this the csrf-token cookie is
+  // neither stored nor sent and every write is rejected with 403.
+  withCredentials: true,
 });
 
+const SAFE_METHODS = new Set(['get', 'head', 'options']);
+
+const needsCsrf = (config: InternalAxiosRequestConfig): boolean =>
+  !SAFE_METHODS.has((config.method ?? 'get').toLowerCase());
+
 // Add auth token to requests if available
-api.interceptors.request.use((config) => {
+api.interceptors.request.use(async (config) => {
   const token = localStorage.getItem('auth_token');
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
@@ -16,8 +24,36 @@ api.interceptors.request.use((config) => {
   if (!config.headers['Content-Type']) {
     config.headers['Content-Type'] = 'application/json';
   }
-  config.headers['X-CSRF-Token'] = getCsrfTokenFromCookie() || '';
+  if (needsCsrf(config)) {
+    config.headers['X-CSRF-Token'] = (await ensureCsrfToken()) ?? '';
+  }
   return config;
+});
+
+// A cookie that expired mid-session should cost one silent retry, not a lost result.
+api.interceptors.response.use(undefined, async (error) => {
+  const config = error?.config as
+    | (InternalAxiosRequestConfig & { _csrfRetried?: boolean })
+    | undefined;
+
+  const isCsrfRejection =
+    error?.response?.status === 403 &&
+    typeof error.response.data?.error === 'string' &&
+    error.response.data.error.includes('CSRF');
+
+  if (!config || config._csrfRetried || !isCsrfRejection) {
+    throw error;
+  }
+
+  const token = await refreshCsrfToken();
+  if (!token) {
+    throw error;
+  }
+
+  config._csrfRetried = true;
+  config.headers = AxiosHeaders.from(config.headers);
+  config.headers.set('X-CSRF-Token', token);
+  return api.request(config);
 });
 
 export interface TestText {
