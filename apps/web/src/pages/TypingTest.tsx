@@ -1,8 +1,6 @@
 import { TimelineChart } from "@/components/analytics/TimelineChart";
 import { Stopwatch } from "@/components/stopwatch";
 import { CustomPasteModal } from "@/components/test/CustomPasteModal";
-import { LiveStats } from "@/components/test/LiveStats";
-import { TestPreferencesPanel } from "@/components/test/TestPreferencesPanel";
 import { Button } from "@/components/ui/button";
 import {
   Select,
@@ -29,7 +27,6 @@ import {
   ALargeSmall,
   AtSign,
   Braces,
-  ClipboardPaste,
   Hash,
   Quote,
   RotateCcw,
@@ -38,7 +35,6 @@ import {
   WholeWord,
   type LucideIcon,
 } from "lucide-react";
-import { uiTransition } from "@/lib/motion";
 import { AnimatePresence, motion } from "motion/react";
 import React, {
   useCallback,
@@ -57,19 +53,12 @@ import {
   tokenizeCodeChars,
 } from "../utils/codeHighlight";
 import { saveGuestResult } from "../utils/guestResults";
-import { computeConsistency } from "../utils/consistency";
 import { ResultsSummary } from "@/components/test/ResultsSummary";
 import {
   playCompleteChime,
   playErrorBeep,
   playKeyClick,
 } from "../utils/testSounds";
-import {
-  breakCombo,
-  emptyCombo,
-  updateComboOnWordBoundary,
-  type ComboState,
-} from "../utils/combo";
 import type { TypingState, TypingStats } from "../utils/typingEngine";
 import {
   TypingEngine,
@@ -120,8 +109,10 @@ const Types: Record<
   },
   numbers: { id: "numbers", label: "Numbers", icon: Hash, available: true },
   quotes: { id: "quotes", label: "Quotes", icon: Quote, available: true },
-  code: { id: "code", label: "Code", icon: Braces, available: true },
-  symbols: { id: "symbols", label: "Symbols", icon: Sigma, available: true },
+  // Reachable via ?type=code / ?type=symbols and the play modes, but kept out
+  // of the toolbar so it matches the four-type row.
+  code: { id: "code", label: "Code", icon: Braces, available: false },
+  symbols: { id: "symbols", label: "Symbols", icon: Sigma, available: false },
 };
 
 const availableTypes = Object.values(Types).filter((t) => t.available !== false);
@@ -136,7 +127,7 @@ const Modes: Record<
 
 export const TypingTest: React.FC = () => {
   const { user } = useAuth();
-  const { prefs, setPrefs, resetPrefs } = useTestPreferences();
+  const { prefs } = useTestPreferences();
   const reducedMotion = usePrefersReducedMotion();
   const smoothCaret = prefs.smoothCaret && !reducedMotion;
   const search = useSearch({ strict: false }) as {
@@ -193,13 +184,10 @@ export const TypingTest: React.FC = () => {
   });
   const [isTestActive, setIsTestActive] = useState(false);
   const [resultSubmitted, setResultSubmitted] = useState(false);
-  const [combo, setCombo] = useState<ComboState>(emptyCombo);
   const practiceConsumed = useRef(false);
 
-  // Personal-best + consistency, computed once per completed test
-  const [previousBest, setPreviousBest] = useState<number | null>(null);
-  const [isNewBest, setIsNewBest] = useState(false);
-  const [consistency, setConsistency] = useState(100);
+  // Personal best is still tracked for the record even though the results
+  // card no longer surfaces it.
   const bestComputedRef = useRef(false);
 
   const inputRef = useRef<HTMLDivElement | null>(null);
@@ -365,14 +353,10 @@ export const TypingTest: React.FC = () => {
   const resetTest = useCallback(() => {
     initializeTest((engine) => engine.reset());
     setIsTestActive(false);
-    setCombo(emptyCombo());
-    setPreviousBest(null);
-    setIsNewBest(false);
-    setConsistency(100);
     bestComputedRef.current = false;
   }, [initializeTest]);
 
-  // When a test completes: resolve the personal best + consistency exactly once
+  // When a test completes: record the personal best exactly once
   useEffect(() => {
     if (!state.isComplete) {
       bestComputedRef.current = false;
@@ -383,14 +367,10 @@ export const TypingTest: React.FC = () => {
 
     const stored = Number(localStorage.getItem("tactile-best-wpm"));
     const prev = Number.isFinite(stored) && stored > 0 ? stored : null;
-    setPreviousBest(prev);
-    const newBest = prev === null || stats.wpm > prev;
-    setIsNewBest(newBest);
-    if (newBest) {
+    if (prev === null || stats.wpm > prev) {
       localStorage.setItem("tactile-best-wpm", String(stats.wpm));
     }
-    setConsistency(computeConsistency(state.keystrokeEvents));
-  }, [state.isComplete, state.keystrokeEvents, stats.wpm]);
+  }, [state.isComplete, stats.wpm]);
 
   // On the results screen, Enter starts the next test (Monkeytype muscle memory)
   useEffect(() => {
@@ -429,24 +409,8 @@ export const TypingTest: React.FC = () => {
         }
         if (madeError) {
           if (prefs.errorSoundEnabled) playErrorBeep();
-          setCombo((c) => breakCombo(c));
         } else if (prefs.soundEnabled) {
           playKeyClick();
-        }
-
-        // Word boundary: space or finished text → update combo
-        const st = engine.getState();
-        const justTypedSpace = e.key === " ";
-        const finished = st.isComplete;
-        if ((justTypedSpace || finished) && !madeError) {
-          setCombo((c) =>
-            updateComboOnWordBoundary(
-              text,
-              st.currentIndex,
-              st.errors,
-              c,
-            ),
-          );
         }
       }
 
@@ -493,16 +457,18 @@ export const TypingTest: React.FC = () => {
     const hi = prefs.highContrastTyped;
     const token = codeTokens?.[index];
 
-    let className = "relative inline-block ";
+    let className = "relative ";
     switch (status) {
       case "correct":
+        // No fill behind typed characters — the colour shift alone marks them.
         className += hi
           ? "text-text opacity-100 border-b-2 border-accent/70"
-          : "text-text bg-accent/40";
+          : "text-text";
         break;
       case "incorrect":
-        className +=
-          "text-rose-500 bg-rose-500/15 border-b-2 border-rose-500/80";
+        className += hi
+          ? "text-rose-500 bg-rose-500/15 border-b-2 border-rose-500/80"
+          : "text-rose-500";
         break;
       case "current":
         className += hi ? "text-text/45" : "text-text/50";
@@ -527,18 +493,18 @@ export const TypingTest: React.FC = () => {
     }
 
     return (
-      <span
+      <div
         key={index}
         data-char-index={index}
         className={cn(
           className,
           smoothCaret
-            ? "transition-colors duration-150"
+            ? "transition-colors duration-200"
             : "transition-none",
         )}
       >
         {char === " " ? "\u00A0" : char}
-      </span>
+      </div>
     );
   };
 
@@ -608,35 +574,37 @@ export const TypingTest: React.FC = () => {
     ? { type: "spring" as const, stiffness: 500, damping: 35, mass: 0.4 }
     : { duration: 0 };
 
+  // The January panel drifted up as it settled; keep that, minus the travel
+  // when the user asked for reduced motion.
   const panelMotion = reducedMotion
     ? {
         initial: false as const,
-        animate: { opacity: 1, transform: "translateY(0px)" },
-        exit: { opacity: 1, transform: "translateY(0px)" },
+        animate: { opacity: 1, y: 0 },
+        exit: { opacity: 1, y: 0 },
       }
     : {
-        initial: { opacity: 0, transform: "translateY(8px)" },
-        animate: { opacity: 1, transform: "translateY(0px)" },
-        exit: { opacity: 0, transform: "translateY(-8px)" },
+        initial: { opacity: 0, y: 0 },
+        animate: { opacity: 1, y: -50 },
+        exit: { opacity: 0, y: -60 },
       };
 
   const resultsMotion = reducedMotion
     ? {
         initial: false as const,
-        animate: { opacity: 1, transform: "translateY(0px)" },
+        animate: { opacity: 1, y: 0 },
         exit: { opacity: 1 },
       }
     : {
-        initial: { opacity: 0, transform: "translateY(12px)" },
-        animate: { opacity: 1, transform: "translateY(0px)" },
-        exit: { opacity: 0, transform: "translateY(8px)" },
+        initial: { opacity: 0, y: 20 },
+        animate: { opacity: 1, y: "-20%" },
+        exit: { opacity: 0, y: 20 },
       };
 
   const renderCaret = () => {
     if (!caretBox || state.isComplete) return null;
     const style = prefs.caretStyle;
-    const pulse =
-      !smoothCaret && !reducedMotion ? "animate-pulse" : "";
+    // The January caret pulsed while it moved — keep both.
+    const pulse = !reducedMotion ? "animate-pulse" : "";
 
     let className = "absolute top-0 left-0 pointer-events-none z-[1] ";
     let size: React.CSSProperties = {};
@@ -661,8 +629,8 @@ export const TypingTest: React.FC = () => {
         break;
       case "line":
       default:
-        className += cn("w-0.5 bg-accent", pulse);
-        size = { width: 2, height: caretBox.h };
+        className += cn("bg-accent", pulse);
+        size = { width: 3, height: caretBox.h };
         break;
     }
 
@@ -685,7 +653,7 @@ export const TypingTest: React.FC = () => {
   };
 
   return (
-    <div className="h-full flex flex-col gap-4 items-center justify-center pb-[10.4vh]">
+    <div className="h-full flex flex-col gap-4 items-center justify-center">
       <CustomPasteModal
         open={pasteOpen}
         onClose={() => setPasteOpen(false)}
@@ -719,18 +687,22 @@ export const TypingTest: React.FC = () => {
         {!state.isComplete ? (
           <motion.div
             key="typing-test"
-            className="w-full max-w-6xl mx-auto rounded-2xl border border-accent/20 bg-accent/10 overflow-hidden shadow-sm"
+            className="bg-accent/30 rounded-lg w-full"
             initial={panelMotion.initial}
             animate={panelMotion.animate}
             exit={panelMotion.exit}
-            transition={uiTransition(reducedMotion, 0.22)}
+            transition={{
+              duration: reducedMotion ? 0 : 0.3,
+              ease: "easeInOut",
+            }}
+            data-allow-transform-motion=""
             onAnimationComplete={() => {
               if (!state.isComplete && !isTestActive) {
                 inputRef.current?.focus();
               }
             }}
           >
-            <div className="flex items-center justify-between gap-2 px-5 py-3.5 w-full">
+            <div className="flex items-center justify-between p-8 rounded-lg gap-2 w-full">
               {isTestActive ? (
                 <div className="h-9 text-xl flex items-center justify-center w-full gap-2 relative">
                   {currentMode === "timer" && state.startTime && (
@@ -745,34 +717,23 @@ export const TypingTest: React.FC = () => {
                       {engine?.getCompletedWords() || 0} / {wordsCount} words
                     </span>
                   )}
-                  <LiveStats
-                    stats={stats}
-                    hidden={prefs.hideLiveStats}
-                    combo={combo}
-                  />
-                  <div className="absolute right-0 flex items-center gap-1">
-                    <TestPreferencesPanel
-                      prefs={prefs}
-                      onChange={setPrefs}
-                      onReset={resetPrefs}
-                    />
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={resetTest}
-                        >
-                          <RotateCcw />
-                        </Button>
-                      </TooltipTrigger>
-                      <TooltipContent side="bottom">Refresh</TooltipContent>
-                    </Tooltip>
-                  </div>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={resetTest}
+                        className="absolute right-0"
+                      >
+                        <RotateCcw />
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent side="bottom">Refresh</TooltipContent>
+                  </Tooltip>
                 </div>
               ) : (
                 <>
-                  <div className="flex items-center gap-2 h-9 flex-wrap">
+                  <div className="flex items-center gap-2 h-9">
                     {availableTypes.map(({ id, icon: Icon, label }) => (
                       <Tooltip key={id}>
                         <TooltipTrigger asChild>
@@ -857,26 +818,6 @@ export const TypingTest: React.FC = () => {
                     )}
                   </div>
                   <div className="flex items-center gap-2">
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => setPasteOpen(true)}
-                          aria-label="Custom paste"
-                        >
-                          <ClipboardPaste />
-                        </Button>
-                      </TooltipTrigger>
-                      <TooltipContent side="bottom">
-                        Custom paste
-                      </TooltipContent>
-                    </Tooltip>
-                    <TestPreferencesPanel
-                      prefs={prefs}
-                      onChange={setPrefs}
-                      onReset={resetPrefs}
-                    />
                     <Select
                       value={difficulty}
                       onValueChange={(dif: Difficulty) => {
@@ -912,7 +853,10 @@ export const TypingTest: React.FC = () => {
 
             <div
               className={cn(
-                "px-8 py-10 flex flex-wrap leading-relaxed font-mono select-none outline-none relative max-h-[50vh] overflow-y-auto tracking-wide rounded-b-2xl focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-accent/30",
+                // This is a wrapping flex container: each word is a flex line,
+                // so the vertical space between lines is row-gap, not
+                // line-height. gap-y-* is the knob for it.
+                "p-8 mt-4 mb-6 flex flex-wrap gap-y-4 leading-loose font-mono select-none outline-none relative max-h-[50vh] overflow-y-auto",
                 FONT_SIZE_CLASS[prefs.fontSize],
               )}
               onKeyDown={handleKeyDown}
@@ -927,22 +871,12 @@ export const TypingTest: React.FC = () => {
             >
               <div
                 className={cn(
-                  "absolute inset-0 flex flex-col items-center justify-center gap-3 text-center z-[2] pointer-events-none",
-                  !focused && "backdrop-blur-sm",
-                  focused ? "opacity-0" : "opacity-100",
-                  !reducedMotion &&
-                    "transition-opacity duration-150 ease-[cubic-bezier(0.23,1,0.32,1)]",
+                  "absolute inset-0 flex items-center justify-center transition-all delay-300 text-center backdrop-blur-none opacity-0 z-1 pointer-events-none",
+                  !focused && "backdrop-blur-sm opacity-100",
                 )}
                 aria-hidden={focused}
               >
-                <span
-                  className={cn(
-                    "font-saira text-sm text-text/70",
-                    !reducedMotion && "animate-pulse",
-                  )}
-                >
-                  click or press any key to start
-                </span>
+                Click here to focus
               </div>
 
               {text()}
@@ -956,22 +890,17 @@ export const TypingTest: React.FC = () => {
             animate={resultsMotion.animate}
             exit={resultsMotion.exit}
             className="flex flex-col gap-4 items-center w-full"
-            transition={uiTransition(reducedMotion, 0.22)}
+            transition={{
+              duration: reducedMotion ? 0 : 0.3,
+              ease: "easeInOut",
+            }}
+            data-allow-transform-motion=""
           >
             <TimelineChart
               keystrokeEvents={state.keystrokeEvents}
-              height={240}
+              height={300}
             />
-            <ResultsSummary
-              stats={stats}
-              bestCombo={combo.best}
-              consistency={consistency}
-              previousBest={previousBest}
-              isNewBest={isNewBest}
-              isGuest={!user}
-              reducedMotion={reducedMotion}
-              onRestart={resetTest}
-            />
+            <ResultsSummary stats={stats} onRestart={resetTest} />
           </motion.div>
         )}
       </AnimatePresence>
