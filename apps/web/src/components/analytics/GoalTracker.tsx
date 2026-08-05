@@ -132,7 +132,7 @@ export const GoalTracker: React.FC<GoalTrackerProps> = ({
         >
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div>
-              <label className="block text-sm font-medium text-text/60 mb-1">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                 Goal Type
               </label>
               <Select
@@ -164,7 +164,7 @@ export const GoalTracker: React.FC<GoalTrackerProps> = ({
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-text/60 mb-1">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                 Target Value
               </label>
               <Input
@@ -182,7 +182,7 @@ export const GoalTracker: React.FC<GoalTrackerProps> = ({
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-text/60 mb-1">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                 Target Date (Optional)
               </label>
               <DatePicker
@@ -221,11 +221,11 @@ export const GoalTracker: React.FC<GoalTrackerProps> = ({
             return (
               <div
                 key={goal.id}
-                className={`p-4 rounded-lg border-2 ${
+                className={`p-4 rounded-lg border-2 transition-all ${
                   isAchieved
-                    ? 'border-accent/30 bg-accent/10'
+                    ? 'border-green-200 bg-green-50 dark:border-green-800 dark:bg-green-900/20'
                     : isExpired
-                      ? 'border-destructive/30 bg-destructive/10'
+                      ? 'border-red-200 bg-red-50 dark:border-red-800 dark:bg-red-900/20'
                       : 'border-primary bg-primary'
                 }`}
               >
@@ -245,7 +245,7 @@ export const GoalTracker: React.FC<GoalTrackerProps> = ({
 
                   <div className="flex items-center space-x-2">
                     {isAchieved && (
-                      <div className="text-xl">
+                      <div className="text-green-600 dark:text-green-400 text-xl">
                         <Trophy className="text-accent" />
                       </div>
                     )}
@@ -276,11 +276,11 @@ export const GoalTracker: React.FC<GoalTrackerProps> = ({
                 <div className="flex items-center justify-between text-sm">
                   <div>
                     {isAchieved ? (
-                      <span className="text-accent font-medium flex items-center">
+                      <span className="text-green-600 dark:text-green-400 font-medium flex items-center">
                         <PartyPopper /> Goal Achieved!
                       </span>
                     ) : isExpired ? (
-                      <span className="text-destructive font-medium flex items-center">
+                      <span className="text-red-600 dark:text-red-400 font-medium flex items-center">
                         <Timer /> Goal Expired
                       </span>
                     ) : goal.targetDate ? (

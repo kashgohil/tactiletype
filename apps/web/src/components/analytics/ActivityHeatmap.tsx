@@ -223,7 +223,7 @@ export const ActivityHeatmap: React.FC<ActivityHeatmapProps> = ({
               return (
                 <div key={weekIndex} className="flex-1 text-center">
                   {monthToShow !== null && (
-                    <span className="text-xs text-text/50">
+                    <span className="text-xs text-gray-500">
                       {monthLabels[monthToShow]}
                     </span>
                   )}
@@ -254,7 +254,7 @@ export const ActivityHeatmap: React.FC<ActivityHeatmapProps> = ({
                       <TooltipTrigger>
                         <div
                           className={cn(
-                            'w-6 h-6 rounded-sm cursor-pointer transition-colors duration-150 ease',
+                            'w-6 h-6 rounded-sm cursor-pointer transition-all duration-200',
                             getActivityClassName(
                               day.count,
                               heatmapData.maxCount
@@ -283,7 +283,7 @@ export const ActivityHeatmap: React.FC<ActivityHeatmapProps> = ({
 
       {/* Legend */}
       <div className="flex items-center justify-center mt-6 space-x-2 text-sm">
-        <span className="text-text/55">Less</span>
+        <span className="text-gray-600">Less</span>
         {Array.from({ length: 5 }, (_, i) => (
           <div
             key={i}
@@ -296,7 +296,7 @@ export const ActivityHeatmap: React.FC<ActivityHeatmapProps> = ({
             )}
           />
         ))}
-        <span className="text-text/55">More</span>
+        <span className="text-gray-600">More</span>
       </div>
     </div>
   );

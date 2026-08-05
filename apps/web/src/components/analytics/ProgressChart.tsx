@@ -202,9 +202,9 @@ export const ProgressChart: React.FC<ProgressChartProps> = ({
       case 'improving':
         return 'text-green-600';
       case 'declining':
-        return 'text-destructive';
+        return 'text-red-600';
       default:
-        return 'text-text/60';
+        return 'text-gray-600';
     }
   };
 
@@ -227,7 +227,7 @@ export const ProgressChart: React.FC<ProgressChartProps> = ({
         <Line data={data} options={options} />
       </div>
 
-      <div className="mt-4 text-sm text-center text-text/60">
+      <div className="mt-4 text-sm text-center text-gray-600">
         <span className="capitalize">{chart.timeframe}</span> trend over the
         last {chart.data.length} data points
       </div>
