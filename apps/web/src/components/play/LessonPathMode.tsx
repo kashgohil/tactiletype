@@ -1,10 +1,13 @@
+import { PlayResultCard, PlayShell } from '@/components/play/PlayHud';
 import {
-  PlayHud,
-  PlayResultCard,
-  PlayShell,
-  PlayStat,
-  TypedChars,
-} from '@/components/play/PlayHud';
+  Kbd,
+  PanelHint,
+  PlayTestPanel,
+} from '@/components/play/PlayTestPanel';
+import {
+  TypingSurface,
+  type CharStatus,
+} from '@/components/test/TypingSurface';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts';
 import { cn } from '@/lib/utils';
@@ -395,53 +398,60 @@ export const LessonPathMode: React.FC = () => {
 
   if (!lesson) return null;
 
+  const charStatus = (i: number): CharStatus => {
+    if (i < typed.length) return errors.has(i) ? 'incorrect' : 'correct';
+    if (i === typed.length) return 'current';
+    return 'pending';
+  };
+
+  const stats = [
+    {
+      label: 'WPM',
+      value: phase === 'running' ? liveWpm : '—',
+      accent: true,
+    },
+    {
+      label: 'Accuracy',
+      value: typed.length
+        ? `${accuracyOf(Math.max(0, correctCount), incorrectCount)}%`
+        : '—',
+    },
+    lesson.mechanic === 'char_streak'
+      ? { label: 'Streak', value: `${streak}/${lesson.streakTarget}` }
+      : { label: 'Progress', value: `${typed.length}/${text.length}` },
+  ];
+  if (lesson.mechanic === 'no_backspace') {
+    stats.push({ label: 'Backspace', value: 'off' });
+  }
+
   return (
     <PlayShell modeId="lesson-path" title={lesson.title} subtitle={lesson.passRule} onExit={() => setPhase('map')}>
-      <PlayHud>
-        <PlayStat label="WPM" value={phase === 'running' ? liveWpm : '—'} accent />
-        <PlayStat
-          label="Accuracy"
-          value={
-            typed.length
-              ? `${accuracyOf(Math.max(0, correctCount), incorrectCount)}%`
-              : '—'
-          }
-        />
-        {lesson.mechanic === 'char_streak' ? (
-          <PlayStat label="Streak" value={`${streak}/${lesson.streakTarget}`} />
-        ) : (
-          <PlayStat label="Progress" value={`${typed.length}/${text.length}`} />
-        )}
-        {lesson.mechanic === 'no_backspace' && (
-          <PlayStat label="Backspace" value="OFF" />
-        )}
-      </PlayHud>
-
-      <div
-        ref={focusRef}
-        tabIndex={0}
-        role="textbox"
-        aria-label={`Lesson: ${lesson.title}`}
-        onKeyDown={onKeyDown}
-        onClick={() => focusRef.current?.focus()}
-        className="outline-none rounded-2xl border border-accent/20 bg-primary/40 p-6 sm:p-8 min-h-[180px] cursor-text focus:border-accent/50"
+      <PlayTestPanel
+        stats={stats}
+        meter={text.length ? typed.length / text.length : 0}
+        meterActive={phase === 'running'}
+        onRestart={() => openLesson(lesson)}
+        actions={
+          <Button variant="ghost" size="sm" onClick={() => setPhase('map')}>
+            Path map
+          </Button>
+        }
       >
-        <TypedChars text={text} typed={typed} showCursor />
+        <TypingSurface
+          text={text}
+          getStatus={charStatus}
+          caretIndex={typed.length}
+          onKeyDown={onKeyDown}
+          surfaceRef={focusRef}
+          ariaLabel={`Lesson: ${lesson.title}`}
+          trailingAnchor
+        />
         {phase === 'ready' && (
-          <p className="mt-6 text-center text-sm text-text/40">
-            Type to begin · {lesson.subtitle}
-          </p>
+          <PanelHint>
+            <Kbd>type</Kbd> to begin · {lesson.subtitle}
+          </PanelHint>
         )}
-      </div>
-
-      <div className="flex justify-center gap-2">
-        <Button variant="outline" size="sm" onClick={() => openLesson(lesson)}>
-          Restart lesson
-        </Button>
-        <Button variant="ghost" size="sm" onClick={() => setPhase('map')}>
-          Path map
-        </Button>
-      </div>
+      </PlayTestPanel>
     </PlayShell>
   );
 };

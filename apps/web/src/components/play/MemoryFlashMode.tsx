@@ -1,9 +1,10 @@
+import { PlayResultCard, PlayShell } from '@/components/play/PlayHud';
 import {
-  PlayHud,
-  PlayResultCard,
-  PlayShell,
-  PlayStat,
-} from '@/components/play/PlayHud';
+  Kbd,
+  PanelHint,
+  PlayTestPanel,
+} from '@/components/play/PlayTestPanel';
+import { TypingSurface } from '@/components/test/TypingSurface';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts';
 import { isNonPrintingKey } from '@/utils/typingEngine';
@@ -227,108 +228,118 @@ export const MemoryFlashMode: React.FC = () => {
       subtitle="Memorize the phrase, then type it blind. Builds chunking."
       onExit={exit}
     >
-      <PlayHud>
-        <PlayStat label="Round" value={`${round}/${TOTAL_ROUNDS}`} accent />
-        <PlayStat label="Avg so far" value={roundScores.length ? `${avgSoFar}%` : '—'} />
-        <PlayStat
-          label="Phase"
-          value={
-            phase === 'ready'
-              ? 'Ready'
-              : phase === 'flash'
-                ? 'Memorize'
-                : phase === 'type'
-                  ? 'Type'
-                  : 'Result'
-          }
-        />
-      </PlayHud>
-
-      {phase === 'ready' && (
-        <div className="rounded-2xl border border-accent/20 bg-primary/40 p-10 text-center space-y-4">
-          <p className="text-text/60 max-w-md mx-auto leading-relaxed">
-            A phrase flashes on screen, then disappears. Type it from memory.
-            {TOTAL_ROUNDS} rounds — phrases get longer each time.
-          </p>
-          <Button
-            size="lg"
-            onClick={() => {
-              setRound(1);
-              startRound(1);
-            }}
-          >
-            Start session
-          </Button>
-        </div>
-      )}
-
-      {phase === 'flash' && (
-        <div className="rounded-2xl border border-violet-500/30 bg-violet-500/5 p-10 space-y-6">
-          <div className="h-1.5 rounded-full bg-accent/15 overflow-hidden">
-            <div
-              className="h-full bg-violet-400 rounded-full transition-[width] duration-75"
-              style={{ width: `${Math.round(flashLeft * 100)}%` }}
-            />
+      <PlayTestPanel
+        stats={[
+          { label: 'Round', value: `${round}/${TOTAL_ROUNDS}`, accent: true },
+          {
+            label: 'Avg so far',
+            value: roundScores.length ? `${avgSoFar}%` : '—',
+          },
+          {
+            label: 'Phase',
+            value:
+              phase === 'ready'
+                ? 'Ready'
+                : phase === 'flash'
+                  ? 'Memorize'
+                  : phase === 'type'
+                    ? 'Type'
+                    : 'Result',
+          },
+        ]}
+        meter={phase === 'flash' ? flashLeft : null}
+        meterActive={phase === 'flash'}
+        actions={
+          phase === 'ready' ? (
+            <Button
+              size="sm"
+              onClick={() => {
+                setRound(1);
+                startRound(1);
+              }}
+            >
+              Start session
+            </Button>
+          ) : phase === 'round-result' ? (
+            <Button
+              size="sm"
+              onClick={() => {
+                const next = round + 1;
+                setRound(next);
+                startRound(next);
+              }}
+            >
+              Next round
+            </Button>
+          ) : undefined
+        }
+        onRestart={phase === 'ready' ? undefined : reset}
+      >
+        {phase === 'ready' && (
+          <div className="px-8 pb-10 pt-1 text-center">
+            <p className="text-text/60 max-w-md mx-auto leading-relaxed">
+              A phrase flashes on screen, then disappears. Type it back from
+              memory. {TOTAL_ROUNDS} rounds — the phrases get longer each time.
+            </p>
           </div>
-          <p className="text-center text-xs uppercase tracking-widest text-violet-300/70">
-            Memorize
-          </p>
-          <p className="font-mono text-xl sm:text-2xl text-center leading-relaxed text-text">
-            {phrase}
-          </p>
-        </div>
-      )}
+        )}
 
-      {phase === 'type' && (
-        <div
-          ref={focusRef}
-          tabIndex={0}
-          role="textbox"
-          aria-label="Type the memorized phrase"
-          onKeyDown={onKeyDown}
-          onClick={() => focusRef.current?.focus()}
-          className="outline-none rounded-2xl border border-accent/20 bg-primary/40 p-10 min-h-[200px] cursor-text focus:border-accent/50 space-y-4"
-        >
-          <p className="text-center text-xs uppercase tracking-widest text-text/40">
-            Type from memory · Enter to submit early
-          </p>
-          <p className="font-mono text-xl sm:text-2xl text-center leading-relaxed min-h-[2.5em]">
-            {typed.length === 0 && (
-              <span className="text-text/25">Start typing what you remember…</span>
-            )}
-            {typed.split('').map((ch, i) => (
-              <span key={i} className="text-text border-b border-accent/40">
-                {ch === ' ' ? '\u00A0' : ch}
-              </span>
-            ))}
-            <span className="inline-block w-0.5 h-6 bg-accent align-middle animate-pulse ml-0.5" />
-          </p>
-          <p className="text-center text-xs text-text/30">
-            {typed.length} chars · target was ~{phrase.split(/\s+/).length} words
-          </p>
-        </div>
-      )}
+        {phase === 'flash' && (
+          <>
+            <TypingSurface
+              text={phrase}
+              getStatus={() => 'correct'}
+              caretIndex={null}
+              surfaceRef={focusRef}
+              ariaLabel="Phrase to memorize"
+              interactive={false}
+              center
+            />
+            <PanelHint>Memorize — it hides when the rail empties</PanelHint>
+          </>
+        )}
 
-      {phase === 'round-result' && (
-        <div className="rounded-2xl border border-accent/25 bg-accent/10 p-10 text-center space-y-4">
-          <p className="text-xs uppercase tracking-widest text-text/40">Round {round}</p>
-          <p className="text-4xl font-bold font-mono">{lastRoundAcc}%</p>
-          <p className="text-sm text-text/50 font-mono max-w-lg mx-auto">{phrase}</p>
-          <p className="text-sm text-text/40">
-            You typed:{' '}
-            <span className="text-text/70 font-mono">{typed || '(empty)'}</span>
-          </p>
-          <Button
-            onClick={() => {
-              const next = round + 1;
-              setRound(next);
-              startRound(next);
-            }}
-          >
-            Next round
-          </Button>
-        </div>
-      )}
+        {phase === 'type' && (
+          <>
+            <TypingSurface
+              text={typed}
+              typed={typed}
+              caretIndex={typed.length}
+              onKeyDown={onKeyDown}
+              surfaceRef={focusRef}
+              ariaLabel="Type the memorized phrase"
+              center
+              trailingAnchor
+              className="min-h-[9rem] py-12"
+            />
+            <PanelHint>
+              {typed.length === 0 ? (
+                <>
+                  Type what you remember · <Kbd>enter</Kbd> to submit
+                </>
+              ) : (
+                <>
+                  {typed.length} chars · target was ~
+                  {phrase.split(/\s+/).length} words · <Kbd>enter</Kbd> to submit
+                </>
+              )}
+            </PanelHint>
+          </>
+        )}
+
+        {phase === 'round-result' && (
+          <div className="px-8 pb-9 pt-1 text-center space-y-3">
+            <p className="text-5xl font-bold font-mono tabular-nums">
+              {lastRoundAcc}%
+            </p>
+            <p className="font-mono text-text/70 max-w-lg mx-auto">{phrase}</p>
+            <p className="text-sm text-text/45">
+              You typed:{' '}
+              <span className="text-text/70 font-mono">{typed || '(empty)'}</span>
+            </p>
+          </div>
+        )}
+      </PlayTestPanel>
     </PlayShell>
   );
 };
