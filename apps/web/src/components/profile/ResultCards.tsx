@@ -114,21 +114,21 @@ function ResultCard({ result }: { result: TestResult }) {
 
 function ResultRow({ result }: { result: TestResult }) {
   return (
-    <tr className="hover:bg-accent/5 border-b border-accent/10 last:border-0">
-      <td className="px-4 py-3 text-sm whitespace-nowrap">
-        {relativeTime(result.completedAt)}
+    <tr className="hover:bg-accent/5">
+      <td className="px-6 py-4 whitespace-nowrap text-sm">
+        {new Date(result.completedAt).toLocaleDateString()}
       </td>
-      <td className="px-4 py-3 text-sm font-mono font-medium text-accent">
+      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-accent">
         {Math.round(Number(result.wpm))}
       </td>
-      <td className="px-4 py-3 text-sm font-mono">
+      <td className="px-6 py-4 whitespace-nowrap text-sm">
         {Number(result.accuracy).toFixed(1)}%
       </td>
-      <td className="px-4 py-3 text-sm font-mono">
+      <td className="px-6 py-4 whitespace-nowrap text-sm">
         {formatTime(result.timeTaken)}
       </td>
-      <td className="px-4 py-3 text-sm text-text/50 max-w-[200px] truncate">
-        {result.testText?.title || result.testText?.content || 'Custom text'}
+      <td className="px-6 py-4 text-sm text-text/50 max-w-xs truncate">
+        {result.testText?.content || 'Custom Text'}
       </td>
     </tr>
   );
@@ -148,7 +148,7 @@ export const ResultCards: React.FC<ResultCardsProps> = ({
   onPageChange,
   onFiltersChange,
 }) => {
-  const [view, setView] = useState<'cards' | 'table'>('cards');
+  const [view, setView] = useState<'cards' | 'table'>('table');
   const maxPage = Math.max(1, Math.ceil(totalCount / pageSize));
 
   const updateFilter = (key: keyof ResultFilters, value: string) => {
@@ -159,9 +159,9 @@ export const ResultCards: React.FC<ResultCardsProps> = ({
   };
 
   return (
-    <section className="bg-accent/5 rounded-xl overflow-hidden">
-      <div className="px-5 py-4 flex flex-wrap items-center justify-between gap-3">
-        <h2 className="text-lg font-semibold">Recent activity</h2>
+    <section className="bg-accent/10 rounded-lg overflow-hidden">
+      <div className="px-6 py-4 flex flex-wrap items-center justify-between gap-3">
+        <h3 className="text-lg font-semibold">Recent Test Results</h3>
         <div className="flex flex-wrap items-center gap-2">
           {onFiltersChange && (
             <>
@@ -232,8 +232,8 @@ export const ResultCards: React.FC<ResultCardsProps> = ({
           ))}
         </div>
       ) : results.length === 0 && !isFetching ? (
-        <p className="px-5 pb-6 text-sm text-text/50 text-center">
-          No results on this page.
+        <p className="px-6 py-8 text-center text-text/50">
+          No test results found for this page
         </p>
       ) : view === 'cards' ? (
         <div className="grid sm:grid-cols-2 gap-3 px-5 pb-5">
@@ -246,24 +246,34 @@ export const ResultCards: React.FC<ResultCardsProps> = ({
           )}
         </div>
       ) : (
-        <div className="overflow-x-auto px-1 pb-2">
+        <div className="overflow-x-auto">
           <table className="w-full">
-            <thead>
-              <tr className="text-left text-xs text-text/50 uppercase tracking-wider border-b border-accent/15">
-                <th className="px-4 py-2 font-medium">When</th>
-                <th className="px-4 py-2 font-medium">WPM</th>
-                <th className="px-4 py-2 font-medium">Accuracy</th>
-                <th className="px-4 py-2 font-medium">Time</th>
-                <th className="px-4 py-2 font-medium">Test</th>
+            <thead className="bg-accent/20">
+              <tr>
+                <th className="px-6 py-3 text-left text-xs font-medium text-text/50 uppercase tracking-wider">
+                  Date
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-text/50 uppercase tracking-wider">
+                  WPM
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-text/50 uppercase tracking-wider">
+                  Accuracy
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-text/50 uppercase tracking-wider">
+                  Time
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-text/50 uppercase tracking-wider">
+                  Test
+                </th>
               </tr>
             </thead>
-            <tbody>
+            <tbody className="divide-y divide-accent/20">
               {results.map((result, index) =>
                 result.id ? (
                   <ResultRow key={result.id} result={result} />
                 ) : (
                   <tr key={`sk-${index}`}>
-                    <td colSpan={5} className="px-4 py-3">
+                    <td colSpan={5} className="px-6 py-4">
                       <Skeleton className="h-4 w-full" />
                     </td>
                   </tr>
@@ -275,34 +285,47 @@ export const ResultCards: React.FC<ResultCardsProps> = ({
       )}
 
       {totalCount > 0 && (
-        <div className="px-5 py-4 border-t border-accent/15 flex flex-wrap items-center justify-between gap-3">
-          <p className="text-sm text-text/50">
-            Showing {(currentPage - 1) * pageSize + 1}–
-            {(currentPage - 1) * pageSize + results.length} of {totalCount}
-            {isFetching && <span className="ml-1">(loading…)</span>}
-          </p>
-          <div className="flex items-center gap-1">
-            <Button
-              size="icon"
-              variant="ghost"
-              disabled={currentPage === 1 || isFetching}
-              onClick={() => onPageChange(Math.max(1, currentPage - 1))}
-              aria-label="Previous page"
-            >
-              <ChevronLeft />
-            </Button>
-            <span className="text-sm text-text/60 px-2 font-mono">
-              {currentPage} / {maxPage}
-            </span>
-            <Button
-              size="icon"
-              variant="ghost"
-              disabled={currentPage >= maxPage || isFetching}
-              onClick={() => onPageChange(Math.min(maxPage, currentPage + 1))}
-              aria-label="Next page"
-            >
-              <ChevronRight />
-            </Button>
+        <div className="px-6 py-4 border-t border-accent/20">
+          <div className="flex items-center justify-between">
+            <div className="text-sm text-text/50">
+              Showing {(currentPage - 1) * pageSize + 1} to{' '}
+              {(currentPage - 1) * pageSize + results.length} of {totalCount}{' '}
+              results
+              {isFetching && <span className="ml-2">(Loading...)</span>}
+            </div>
+            <div className="flex items-center space-x-2">
+              <Button
+                size="icon"
+                variant="ghost"
+                disabled={currentPage === 1 || isFetching}
+                onClick={() => onPageChange(Math.max(1, currentPage - 1))}
+                aria-label="Previous page"
+              >
+                <ChevronLeft />
+              </Button>
+
+              {Array.from({ length: maxPage }, (_, i) => i + 1).map((page) => (
+                <Button
+                  key={page}
+                  size="sm"
+                  onClick={() => onPageChange(page)}
+                  disabled={isFetching}
+                  variant={currentPage === page ? 'default' : 'secondary'}
+                >
+                  {page}
+                </Button>
+              ))}
+
+              <Button
+                size="icon"
+                variant="ghost"
+                disabled={currentPage >= maxPage || isFetching}
+                onClick={() => onPageChange(Math.min(maxPage, currentPage + 1))}
+                aria-label="Next page"
+              >
+                <ChevronRight />
+              </Button>
+            </div>
           </div>
         </div>
       )}
