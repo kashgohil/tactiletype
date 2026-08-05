@@ -1,11 +1,10 @@
+import { PlayResultCard, PlayShell } from '@/components/play/PlayHud';
 import {
-  PlayHud,
-  PlayResultCard,
-  PlayShell,
-  PlayStat,
-  TypedChars,
-} from '@/components/play/PlayHud';
-import { Button } from '@/components/ui/button';
+  Kbd,
+  PanelHint,
+  PlayTestPanel,
+} from '@/components/play/PlayTestPanel';
+import { TypingSurface } from '@/components/test/TypingSurface';
 import { useAuth } from '@/contexts';
 import { generateKeyDrill, TOP_1000_WORDS, uniqueWords } from '@tactile/content';
 import { isNonPrintingKey } from '@/utils/typingEngine';
@@ -286,47 +285,51 @@ export const WeakStormMode: React.FC = () => {
         )}
       </div>
 
-      <PlayHud>
-        <PlayStat label="Cleared" value={cleared} accent />
-        <PlayStat label="Level" value={level} />
-        <PlayStat label="Combo" value={combo} />
-        <PlayStat label="Lives" value={lives} />
-      </PlayHud>
-
-      <div className="h-1.5 rounded-full bg-accent/12 overflow-hidden">
-        <div
-          className={`h-full rounded-full transition-[width] duration-75 ease-linear ${
-            timeLeft < 0.25 && phase === 'running' ? 'bg-rose-400' : 'bg-rose-400/75'
-          }`}
-          style={{
-            width: `${Math.round(timeLeft * 100)}%`,
-            opacity: phase === 'running' ? 1 : 0.35,
-          }}
-        />
-      </div>
-
-      <div
-        ref={focusRef}
-        tabIndex={0}
-        role="textbox"
-        aria-label="Weak storm typing area"
-        onKeyDown={onKeyDown}
-        onClick={() => focusRef.current?.focus()}
-        className="outline-none rounded-2xl border border-rose-500/20 bg-primary/35 p-10 sm:p-14 min-h-[220px] flex flex-col items-center justify-center cursor-text transition-[border-color,box-shadow] duration-150 ease-[cubic-bezier(0.23,1,0.32,1)] focus-visible:border-rose-400/45 focus-visible:shadow-[0_0_0_3px_rgba(244,63,94,0.08)]"
+      <PlayTestPanel
+        stats={[
+          { label: 'Cleared', value: cleared, accent: true },
+          { label: 'Level', value: level },
+          { label: 'Combo', value: combo },
+          {
+            label: 'Lives',
+            value: lives,
+            tone: lives <= 1 ? 'danger' : 'default',
+          },
+          {
+            label: 'Left',
+            value:
+              phase === 'running'
+                ? `${Math.ceil((timeLeft * timeLimitMs(level)) / 1000)}s`
+                : '—',
+            tone: timeLeft < 0.25 && phase === 'running' ? 'danger' : 'default',
+          },
+        ]}
+        meter={timeLeft}
+        meterTone="danger"
+        meterActive={phase === 'running'}
+        onRestart={reset}
       >
-        <p className="text-[10px] uppercase tracking-[0.2em] text-text/35 mb-4">
-          {phase === 'ready' ? 'Type to start adaptive storm' : 'Hit the weak keys'}
-        </p>
-        <div className="text-center scale-110 sm:scale-125">
-          <TypedChars text={word} typed={typed} showCursor />
-        </div>
-      </div>
-
-      <div className="flex justify-center">
-        <Button variant="outline" size="sm" onClick={reset}>
-          Restart
-        </Button>
-      </div>
+        <TypingSurface
+          text={word}
+          typed={typed}
+          caretIndex={typed.length}
+          onKeyDown={onKeyDown}
+          surfaceRef={focusRef}
+          ariaLabel="Weak storm typing area"
+          center
+          trailingAnchor
+          className="min-h-[9rem] py-12"
+        />
+        <PanelHint>
+          {phase === 'ready' ? (
+            <>
+              <Kbd>type</Kbd> to start — every word is aimed at your weak keys
+            </>
+          ) : (
+            'Hit the weak keys'
+          )}
+        </PanelHint>
+      </PlayTestPanel>
     </PlayShell>
   );
 };
