@@ -39,26 +39,6 @@ export function PlayStat({
   );
 }
 
-export function PlayHud({
-  children,
-  className,
-}: {
-  children: React.ReactNode;
-  className?: string;
-}) {
-  return (
-    <div
-      className={cn(
-        'flex flex-wrap items-center justify-center gap-5 sm:gap-10 py-3.5 px-4 rounded-2xl',
-        'bg-accent/8 border border-accent/12 backdrop-blur-sm',
-        className
-      )}
-    >
-      {children}
-    </div>
-  );
-}
-
 export function PlayShell({
   title,
   subtitle,
@@ -237,80 +217,5 @@ export function PlayResultCard({
         to retry
       </p>
     </motion.div>
-  );
-}
-
-/** Character line for mode UIs — correct / wrong / pending. */
-export function TypedChars({
-  text,
-  typed,
-  showCursor,
-  className,
-}: {
-  text: string;
-  typed: string;
-  showCursor?: boolean;
-  className?: string;
-}) {
-  return (
-    <p
-      className={cn(
-        'font-mono text-xl sm:text-2xl leading-relaxed break-words tracking-wide',
-        className
-      )}
-    >
-      {text.split('').map((ch, i) => {
-        let cls = 'text-text/30';
-        if (i < typed.length) {
-          cls =
-            typed[i] === ch
-              ? 'text-text border-b border-accent/55'
-              : 'text-rose-400 bg-rose-500/12 rounded-[2px]';
-        } else if (i === typed.length && showCursor) {
-          cls =
-            'text-text/55 bg-accent/30 rounded-[2px] shadow-[inset_0_0_0_1px_rgba(var(--accent-rgb,255,255,255),0.15)]';
-        }
-        return (
-          <span key={i} className={cn(cls, 'inline-block transition-colors duration-75')}>
-            {ch === ' ' ? '\u00A0' : ch}
-          </span>
-        );
-      })}
-    </p>
-  );
-}
-
-/** Shared typing surface chrome for arcade modes */
-export function PlayTypingSurface({
-  children,
-  onKeyDown,
-  surfaceRef,
-  className,
-  focusedHint,
-}: {
-  children: React.ReactNode;
-  onKeyDown: (e: React.KeyboardEvent) => void;
-  surfaceRef: React.RefObject<HTMLDivElement | null>;
-  className?: string;
-  focusedHint?: string;
-}) {
-  return (
-    <div
-      ref={surfaceRef}
-      tabIndex={0}
-      role="textbox"
-      aria-label={focusedHint ?? 'Typing area'}
-      onKeyDown={onKeyDown}
-      onClick={() => surfaceRef.current?.focus()}
-      className={cn(
-        'outline-none rounded-2xl border border-accent/18 bg-primary/35 p-8 sm:p-10',
-        'min-h-[200px] cursor-text',
-        'transition-[border-color,box-shadow] duration-150 ease-[cubic-bezier(0.23,1,0.32,1)]',
-        'focus-visible:border-accent/45 focus-visible:shadow-[0_0_0_3px_rgba(128,128,128,0.12)]',
-        className
-      )}
-    >
-      {children}
-    </div>
   );
 }
