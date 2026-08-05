@@ -22,7 +22,7 @@ app.use(
   cors({
     origin: [FRONTEND_URL],
     allowHeaders: ['Content-Type', 'Authorization', 'X-CSRF-Token'],
-    allowMethods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowMethods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
     credentials: true,
   })
 );
