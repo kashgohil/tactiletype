@@ -1,10 +1,9 @@
+import { PlayResultCard, PlayShell } from '@/components/play/PlayHud';
+import { PanelHint, PlayTestPanel } from '@/components/play/PlayTestPanel';
 import {
-  PlayHud,
-  PlayResultCard,
-  PlayShell,
-  PlayStat,
-} from '@/components/play/PlayHud';
-import { Button } from '@/components/ui/button';
+  TypingSurface,
+  type CharStatus,
+} from '@/components/test/TypingSurface';
 import { useAuth } from '@/contexts';
 import { cn } from '@/lib/utils';
 import { isNonPrintingKey } from '@/utils/typingEngine';
@@ -210,19 +209,20 @@ export const GhostRaceMode: React.FC = () => {
   const progressPlayer = passage.length ? index / passage.length : 0;
   const progressGhost = passage.length ? ghostIndex / passage.length : 0;
 
+  // The race advances past mistakes, so status comes from the error set rather
+  // than a diff against what was typed.
+  const charStatus = (i: number): CharStatus => {
+    if (i < index) return errors.has(i) ? 'incorrect' : 'correct';
+    if (i === index) return 'current';
+    return 'pending';
+  };
+
   return (
     <PlayShell modeId="ghost-race"
       title="Ghost Race"
       subtitle="Stay ahead of the pace caret. Beat the ghost to win."
       onExit={exit}
     >
-      <PlayHud>
-        <PlayStat label="You" value={phase === 'racing' ? liveWpm : '—'} accent />
-        <PlayStat label="Ghost" value={`${pace} WPM`} />
-        <PlayStat label="Progress" value={`${Math.round(progressPlayer * 100)}%`} />
-        <PlayStat label="Lead" value={index - ghostIndex} />
-      </PlayHud>
-
       {phase === 'ready' && !isDaily && (
         <div className="flex flex-wrap items-center justify-center gap-2">
           <span className="text-xs text-text/40 uppercase tracking-wider mr-1">Ghost pace</span>
@@ -249,68 +249,57 @@ export const GhostRaceMode: React.FC = () => {
         </p>
       )}
 
-      {/* Dual progress track */}
-      <div className="space-y-2 px-1">
-        <div className="relative h-3 rounded-full bg-accent/10 overflow-hidden">
+      <PlayTestPanel
+        stats={[
+          {
+            label: 'You',
+            value: phase === 'racing' ? liveWpm : '\u2014',
+            accent: true,
+          },
+          { label: 'Ghost', value: pace },
+          { label: 'Progress', value: `${Math.round(progressPlayer * 100)}%` },
+          {
+            label: 'Lead',
+            value: index - ghostIndex,
+            tone: index < ghostIndex ? 'danger' : 'default',
+          },
+        ]}
+        meter={progressPlayer}
+        meterActive={phase === 'racing'}
+        onRestart={() => reset()}
+      >
+        {/* Ghost's position on the same rail as your fill */}
+        <div className="mx-8 -mt-1 h-1 relative">
           <div
-            className="absolute inset-y-0 left-0 bg-accent/70 rounded-full transition-[width] duration-75"
-            style={{ width: `${progressPlayer * 100}%` }}
-          />
-          <div
-            className="absolute top-1/2 -translate-y-1/2 w-2.5 h-2.5 rounded-full bg-sky-400 shadow-[0_0_8px_rgba(56,189,248,0.7)] transition-[left] duration-75"
-            style={{ left: `calc(${progressGhost * 100}% - 5px)` }}
+            className="absolute top-1/2 -translate-y-1/2 size-2 rounded-full bg-sky-400 shadow-[0_0_8px_rgba(56,189,248,0.7)] transition-[left] duration-75"
+            style={{ left: `calc(${progressGhost * 100}% - 4px)` }}
             title="Ghost"
           />
         </div>
-        <div className="flex justify-between text-[10px] uppercase tracking-wider text-text/35">
-          <span>You (fill)</span>
-          <span>Ghost (dot)</span>
-        </div>
-      </div>
 
-      <div
-        ref={focusRef}
-        tabIndex={0}
-        role="textbox"
-        aria-label="Ghost race typing area"
-        onKeyDown={onKeyDown}
-        onClick={() => focusRef.current?.focus()}
-        className="outline-none rounded-2xl border border-accent/18 bg-primary/35 p-6 sm:p-8 min-h-[180px] cursor-text relative transition-[border-color,box-shadow] duration-150 ease-[cubic-bezier(0.23,1,0.32,1)] focus-visible:border-accent/45 focus-visible:shadow-[0_0_0_3px_rgba(128,128,128,0.1)]"
-      >
-        <p className="font-mono text-lg sm:text-xl leading-relaxed flex flex-wrap">
-          {passage.split('').map((ch, i) => {
-            let cls = 'text-text/35';
-            if (i < index) {
-              cls = errors.has(i)
-                ? 'text-rose-500 bg-rose-500/15'
-                : 'text-text border-b border-accent/40';
-            } else if (i === index) {
-              cls = 'text-text/60 bg-accent/30';
-            }
-            // Ghost caret mark
-            const isGhost = i === ghostIndex && phase === 'racing';
-            return (
-              <span
-                key={i}
-                className={cn(cls, isGhost && 'outline outline-1 outline-sky-400/80 rounded-sm')}
-              >
-                {ch === ' ' ? '\u00A0' : ch}
-              </span>
-            );
-          })}
-        </p>
+        <TypingSurface
+          text={passage}
+          getStatus={charStatus}
+          caretIndex={index}
+          onKeyDown={onKeyDown}
+          surfaceRef={focusRef}
+          ariaLabel="Ghost race typing area"
+          markers={
+            phase === 'racing'
+              ? [
+                  {
+                    index: ghostIndex,
+                    className: 'bg-sky-400 border-sky-400',
+                    title: 'Ghost',
+                  },
+                ]
+              : undefined
+          }
+        />
         {phase === 'ready' && (
-          <p className="mt-6 text-center text-sm text-text/40">
-            Pick a pace, then type to race the ghost
-          </p>
+          <PanelHint>Pick a pace, then type to race the ghost</PanelHint>
         )}
-      </div>
-
-      <div className="flex justify-center">
-        <Button variant="outline" size="sm" onClick={() => reset()}>
-          Restart
-        </Button>
-      </div>
+      </PlayTestPanel>
     </PlayShell>
   );
 };
