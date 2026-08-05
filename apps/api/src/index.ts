@@ -68,7 +68,7 @@ app.notFound((c) => {
   return c.json({ error: 'Not Found' }, 404);
 });
 
-const port = Number(PORT) || 3001;
+const port = Number(PORT) || 3021;
 
 console.log(`tactiletype API Server running on port ${port}`);
 console.log(`WebSocket available at ws://localhost:${port}/ws`);

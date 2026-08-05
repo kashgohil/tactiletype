@@ -62,8 +62,8 @@ export DATABASE_URL=postgresql://localhost:5432/tactile
 bun run db:migrate
 bun run db:seed
 bun run dev
-# API: http://localhost:3001/api
-# Web: http://localhost:3002
+# API: http://localhost:3021/api
+# Web: http://localhost:3020
 ```
 
 ### Database Management
@@ -157,7 +157,7 @@ bun run db:studio
 ```env
 DATABASE_URL=postgresql://localhost:5432/tactile
 JWT_SECRET=your-super-secret-jwt-key
-PORT=3001
+PORT=3021
 NODE_ENV=development
 
 # OAuth Configuration (Optional)
@@ -165,13 +165,13 @@ GOOGLE_CLIENT_ID=your-google-client-id
 GOOGLE_CLIENT_SECRET=your-google-client-secret
 GITHUB_CLIENT_ID=your-github-client-id
 GITHUB_CLIENT_SECRET=your-github-client-secret
-BASE_URL=http://localhost:3001
-FRONTEND_URL=http://localhost:5173
+BASE_URL=http://localhost:3021
+FRONTEND_URL=http://localhost:3020
 ```
 
 ### Frontend (`apps/web/.env`)
 ```env
-VITE_API_URL=http://localhost:3001
+VITE_API_URL=http://localhost:3021
 ```
 
 ## 🔒 Security Features
@@ -213,7 +213,7 @@ Tactile supports OAuth authentication with Google and GitHub. To enable OAuth:
 3. Enable the Google+ API
 4. Create OAuth 2.0 credentials
 5. Add authorized redirect URIs:
-   - `http://localhost:3001/api/auth/callback/google` (development)
+   - `http://localhost:3021/api/auth/callback/google` (development)
    - `https://yourdomain.com/api/auth/callback/google` (production)
 6. Set `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET` in your `.env` file
 
@@ -221,7 +221,7 @@ Tactile supports OAuth authentication with Google and GitHub. To enable OAuth:
 1. Go to [GitHub Developer Settings](https://github.com/settings/developers)
 2. Create a new OAuth App
 3. Set Authorization callback URL:
-   - `http://localhost:3001/api/auth/callback/github` (development)
+   - `http://localhost:3021/api/auth/callback/github` (development)
    - `https://yourdomain.com/api/auth/callback/github` (production)
 4. Set `GITHUB_CLIENT_ID` and `GITHUB_CLIENT_SECRET` in your `.env` file
 

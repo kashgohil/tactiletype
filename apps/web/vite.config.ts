@@ -8,6 +8,9 @@ import { defineConfig } from "vite";
 export default defineConfig({
 	server: {
 		port: 3020,
+		// The API sits on the very next port, so Vite's default "try the next one"
+		// behaviour would quietly serve the web app from the API's port. Fail instead.
+		strictPort: true,
 		proxy: {
 			"/api": { changeOrigin: true, target: "http://localhost:3021" },
 		},

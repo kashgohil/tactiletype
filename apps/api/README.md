@@ -50,7 +50,7 @@ Edit `apps/api/.env` with your production values:
 # Required
 DATABASE_URL=postgresql://user:password@db-host:5432/database
 JWT_SECRET=your-secure-jwt-secret
-PORT=3001
+PORT=3021
 
 # OAuth (if using social login)
 GITHUB_CLIENT_ID=your-github-client-id
@@ -137,7 +137,7 @@ server {
     server_name your-domain.com;
 
     location / {
-        proxy_pass http://localhost:3001;
+        proxy_pass http://localhost:3021;
         proxy_http_version 1.1;
         proxy_set_header Upgrade $http_upgrade;
         proxy_set_header Connection 'upgrade';
@@ -201,7 +201,7 @@ git pull origin main
 
 ```bash
 # Check if API is responding
-curl http://localhost:3001/api
+curl http://localhost:3021/api
 
 # Check container status
 ./apps/api/deploy.sh status
@@ -214,7 +214,7 @@ curl http://localhost:3001/api
 1. **Port already in use**
 
    ```bash
-   sudo netstat -tulpn | grep :3001
+   sudo netstat -tulpn | grep :3021
    # Kill process or change port in .env
    ```
 

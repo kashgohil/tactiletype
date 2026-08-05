@@ -266,7 +266,7 @@ authRoutes.get('/sso/:provider/callback', async (c) => {
     const token = await oauthProvider.generateJWT(user);
 
     // Redirect to frontend with token
-    const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
+    const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3020';
     const redirectUrl = new URL('/auth/sso/callback', frontendUrl);
     redirectUrl.searchParams.set('token', token);
     redirectUrl.searchParams.set('isNew', isNew.toString());
