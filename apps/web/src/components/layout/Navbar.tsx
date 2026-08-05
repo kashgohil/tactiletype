@@ -8,6 +8,7 @@ import {
   Joystick,
   Keyboard,
   LogIn,
+  Settings2,
   User,
 } from 'lucide-react';
 import React from 'react';
@@ -122,6 +123,16 @@ export const Navbar: React.FC = () => {
                 <TooltipContent>Profile</TooltipContent>
               </Tooltip>
             )}
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Link to="/settings">
+                  <Button variant="link" size="icon">
+                    <Settings2 />
+                  </Button>
+                </Link>
+              </TooltipTrigger>
+              <TooltipContent>Settings</TooltipContent>
+            </Tooltip>
             {!user && (
               <Tooltip>
                 <TooltipTrigger asChild>

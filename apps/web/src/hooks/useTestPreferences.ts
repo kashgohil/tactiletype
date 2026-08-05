@@ -16,7 +16,10 @@ export interface TestPreferences {
   highContrastTyped: boolean;
 }
 
-const STORAGE_KEY = 'tactile-test-preferences';
+// Bumped with the design restore: values saved under the old key carry the
+// previous design's defaults (high-contrast typed chars, non-default font
+// sizes) and would silently override the restored look.
+const STORAGE_KEY = 'tactile-test-preferences-v2';
 
 export const DEFAULT_TEST_PREFERENCES: TestPreferences = {
   caretStyle: 'line',
@@ -26,7 +29,7 @@ export const DEFAULT_TEST_PREFERENCES: TestPreferences = {
   soundEnabled: false,
   errorSoundEnabled: false,
   keyboardLayout: 'qwerty',
-  highContrastTyped: true,
+  highContrastTyped: false,
 };
 
 function load(): TestPreferences {

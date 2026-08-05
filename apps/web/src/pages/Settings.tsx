@@ -1,3 +1,4 @@
+import { TypingPreferencesSection } from '@/components/test/TypingPreferencesSection';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -76,13 +77,26 @@ export const Settings: React.FC = () => {
     },
   });
 
+  // Typing preferences are device-local, so guests get them too — only the
+  // account/profile sections need a login.
   if (!user) {
     return (
-      <div className="text-center py-16">
-        <p className="text-text/50 mb-4">Please log in to edit settings.</p>
-        <Button asChild>
-          <Link to="/login">Log in</Link>
-        </Button>
+      <div className="pt-2 pb-10 max-w-xl mx-auto space-y-8">
+        <div>
+          <h1 className="text-2xl font-bold">Settings</h1>
+          <p className="text-sm text-text/50">Typing preferences</p>
+        </div>
+
+        <TypingPreferencesSection />
+
+        <section className="bg-accent/10 rounded-xl p-6 text-center space-y-3">
+          <p className="text-text/50">
+            Log in to edit your profile and account details.
+          </p>
+          <Button asChild>
+            <Link to="/login">Log in</Link>
+          </Button>
+        </section>
       </div>
     );
   }
@@ -98,10 +112,12 @@ export const Settings: React.FC = () => {
         <div>
           <h1 className="text-2xl font-bold">Settings</h1>
           <p className="text-sm text-text/50">
-            Private account details and profile fields
+            Typing preferences, private account details and profile fields
           </p>
         </div>
       </div>
+
+      <TypingPreferencesSection />
 
       {/* Public-facing profile fields */}
       <section className="bg-accent/10 rounded-xl p-6 space-y-4">
