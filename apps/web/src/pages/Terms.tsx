@@ -3,13 +3,13 @@ import React from 'react';
 export const Terms: React.FC = () => {
   return (
     <div className="max-w-4xl mx-auto px-4 py-8">
-      <h1 className="text-4xl font-bold text-text mb-8">
+      <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-8">
         Terms of Service
       </h1>
 
-      <div className="space-y-8 text-text/60">
+      <div className="space-y-8 text-gray-700 dark:text-gray-300">
         <section>
-          <h2 className="text-2xl font-semibold text-text mb-4">
+          <h2 className="text-2xl font-semibold text-gray-900 dark:text-white mb-4">
             1. Acceptance of Terms
           </h2>
           <p>
@@ -19,7 +19,7 @@ export const Terms: React.FC = () => {
         </section>
 
         <section>
-          <h2 className="text-2xl font-semibold text-text mb-4">
+          <h2 className="text-2xl font-semibold text-gray-900 dark:text-white mb-4">
             2. Description of Service
           </h2>
           <p>TactileType is a typing test platform that provides:</p>
@@ -32,7 +32,7 @@ export const Terms: React.FC = () => {
         </section>
 
         <section>
-          <h2 className="text-2xl font-semibold text-text mb-4">
+          <h2 className="text-2xl font-semibold text-gray-900 dark:text-white mb-4">
             3. User Accounts
           </h2>
           <p>
@@ -43,7 +43,7 @@ export const Terms: React.FC = () => {
         </section>
 
         <section>
-          <h2 className="text-2xl font-semibold text-text mb-4">
+          <h2 className="text-2xl font-semibold text-gray-900 dark:text-white mb-4">
             4. User Conduct
           </h2>
           <p>You agree not to:</p>
@@ -56,7 +56,7 @@ export const Terms: React.FC = () => {
         </section>
 
         <section>
-          <h2 className="text-2xl font-semibold text-text mb-4">
+          <h2 className="text-2xl font-semibold text-gray-900 dark:text-white mb-4">
             5. Intellectual Property
           </h2>
           <p>
@@ -67,7 +67,7 @@ export const Terms: React.FC = () => {
         </section>
 
         <section>
-          <h2 className="text-2xl font-semibold text-text mb-4">
+          <h2 className="text-2xl font-semibold text-gray-900 dark:text-white mb-4">
             6. Data Privacy
           </h2>
           <p>
@@ -78,7 +78,7 @@ export const Terms: React.FC = () => {
         </section>
 
         <section>
-          <h2 className="text-2xl font-semibold text-text mb-4">
+          <h2 className="text-2xl font-semibold text-gray-900 dark:text-white mb-4">
             7. Termination
           </h2>
           <p>
@@ -89,7 +89,7 @@ export const Terms: React.FC = () => {
         </section>
 
         <section>
-          <h2 className="text-2xl font-semibold text-text mb-4">
+          <h2 className="text-2xl font-semibold text-gray-900 dark:text-white mb-4">
             8. Disclaimer
           </h2>
           <p>
@@ -101,7 +101,7 @@ export const Terms: React.FC = () => {
         </section>
 
         <section>
-          <h2 className="text-2xl font-semibold text-text mb-4">
+          <h2 className="text-2xl font-semibold text-gray-900 dark:text-white mb-4">
             9. Limitation of Liability
           </h2>
           <p>
@@ -112,7 +112,7 @@ export const Terms: React.FC = () => {
         </section>
 
         <section>
-          <h2 className="text-2xl font-semibold text-text mb-4">
+          <h2 className="text-2xl font-semibold text-gray-900 dark:text-white mb-4">
             10. Governing Law
           </h2>
           <p>
@@ -123,7 +123,7 @@ export const Terms: React.FC = () => {
         </section>
 
         <section>
-          <h2 className="text-2xl font-semibold text-text mb-4">
+          <h2 className="text-2xl font-semibold text-gray-900 dark:text-white mb-4">
             11. Changes to Terms
           </h2>
           <p>
@@ -134,7 +134,7 @@ export const Terms: React.FC = () => {
         </section>
 
         <section>
-          <h2 className="text-2xl font-semibold text-text mb-4">
+          <h2 className="text-2xl font-semibold text-gray-900 dark:text-white mb-4">
             12. Contact Us
           </h2>
           <p>
@@ -143,8 +143,8 @@ export const Terms: React.FC = () => {
           </p>
         </section>
 
-        <div className="mt-12 pt-8 border-t border-line">
-          <p className="text-sm text-text/45">
+        <div className="mt-12 pt-8 border-t border-gray-200 dark:border-gray-700">
+          <p className="text-sm text-gray-500 dark:text-gray-400">
             Last updated: August 28, 2025
           </p>
         </div>

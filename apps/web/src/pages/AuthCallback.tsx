@@ -1,6 +1,4 @@
 import { useAuth } from '@/contexts';
-import { usePrefersReducedMotion } from '@/hooks/usePrefersReducedMotion';
-import { fadeEnter } from '@/lib/motion';
 import { useNavigate, useSearch } from '@tanstack/react-router';
 import { motion } from 'motion/react';
 import React, { useEffect, useState } from 'react';
@@ -10,8 +8,6 @@ export const AuthCallback: React.FC = () => {
   const { handleOAuthCallback } = useAuth();
   const navigate = useNavigate();
   const search = useSearch({ from: '/auth/sso/callback' });
-  const reducedMotion = usePrefersReducedMotion();
-  const fade = fadeEnter(reducedMotion);
 
   useEffect(() => {
     const handleCallback = async () => {
@@ -56,11 +52,11 @@ export const AuthCallback: React.FC = () => {
   if (error) {
     return (
       <motion.div
-        initial={fade.initial}
-        animate={fade.animate}
-        exit={fade.exit}
-        transition={fade.transition}
-        className="max-w-md w-full my-auto mx-auto bg-surface rounded-lg shadow-md p-8"
+        initial={{ opacity: 0, y: '-30%' }}
+        animate={{ opacity: 1, y: '-40%' }}
+        exit={{ opacity: 0, y: -40 }}
+        transition={{ duration: 0.3, ease: 'easeInOut' }}
+        className="max-w-md w-full my-auto mx-auto bg-white dark:bg-gray-800 rounded-lg shadow-md p-8"
       >
         <h1 className="flex items-center justify-center gap-2 text-2xl font-bold text-center mb-8">
           <img
@@ -72,14 +68,14 @@ export const AuthCallback: React.FC = () => {
           <span>tactiletype</span>
         </h1>
 
-        <div className="bg-destructive/10 border border-destructive/30 text-destructive px-4 py-3 rounded mb-4">
+        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
           <h2 className="font-semibold mb-2">Authentication Error</h2>
           <p>{error}</p>
         </div>
 
         <button
           onClick={() => navigate({ to: '/login' })}
-          className="w-full bg-accent text-on-accent hover:bg-accent/90 font-semibold py-2 px-4 rounded-md transition-colors"
+          className="w-full bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded-md transition-colors"
         >
           Back to Login
         </button>
@@ -89,11 +85,11 @@ export const AuthCallback: React.FC = () => {
 
   return (
     <motion.div
-      initial={fade.initial}
-      animate={fade.animate}
-      exit={fade.exit}
-      transition={fade.transition}
-      className="max-w-md w-full my-auto mx-auto bg-surface rounded-lg shadow-md p-8"
+      initial={{ opacity: 0, y: '-30%' }}
+      animate={{ opacity: 1, y: '-40%' }}
+      exit={{ opacity: 0, y: -40 }}
+      transition={{ duration: 0.3, ease: 'easeInOut' }}
+      className="max-w-md w-full my-auto mx-auto bg-white dark:bg-gray-800 rounded-lg shadow-md p-8"
     >
       <h1 className="flex items-center justify-center gap-2 text-2xl font-bold text-center mb-8">
         <img
@@ -107,10 +103,10 @@ export const AuthCallback: React.FC = () => {
 
       <div className="text-center">
         <div className="mb-4">
-          <div className="w-8 h-8 border-4 border-accent border-t-transparent rounded-full animate-spin mx-auto"></div>
+          <div className="w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto"></div>
         </div>
         <h2 className="text-xl font-semibold mb-2">Completing Sign In</h2>
-        <p className="text-text/60">
+        <p className="text-gray-600 dark:text-gray-400">
           Please wait while we finish setting up your account...
         </p>
       </div>
