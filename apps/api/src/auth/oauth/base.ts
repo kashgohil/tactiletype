@@ -1,7 +1,7 @@
 import { db, oauthAccounts, users } from '@tactile/database';
 import { eq } from 'drizzle-orm';
-import { sign } from 'hono/jwt';
 import { CSRFProtection } from '../../utils/csrf';
+import { signAccessToken } from '../tokens';
 
 export interface OAuthUser {
   id: string;
@@ -16,6 +16,7 @@ export interface DatabaseUser {
   username: string;
   passwordHash: string | null;
   avatarUrl: string | null;
+  tokenVersion: number;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -147,6 +148,7 @@ export abstract class BaseOAuthProvider implements OAuthProvider {
         username: users.username,
         passwordHash: users.passwordHash,
         avatarUrl: users.avatarUrl,
+        tokenVersion: users.tokenVersion,
         createdAt: users.createdAt,
         updatedAt: users.updatedAt,
       });
@@ -166,15 +168,6 @@ export abstract class BaseOAuthProvider implements OAuthProvider {
   }
 
   async generateJWT(user: DatabaseUser): Promise<string> {
-    const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key';
-    return await sign(
-      {
-        userId: user.id,
-        email: user.email,
-        username: user.username,
-        exp: Math.floor(Date.now() / 1000) + 60 * 60 * 24 * 7, // 7 days
-      },
-      JWT_SECRET
-    );
+    return await signAccessToken(user);
   }
 }

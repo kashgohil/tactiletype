@@ -11,6 +11,8 @@ export interface AuthContextType {
     password: string
   ) => Promise<void>;
   logout: () => void;
+  /** Revokes this user's tokens on every device, then logs out locally */
+  logoutEverywhere: () => Promise<void>;
   handleOAuthCallback: (token: string) => Promise<void>;
   isLoading: boolean;
 }

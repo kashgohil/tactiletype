@@ -6,6 +6,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Link } from '@tanstack/react-router';
 import { ArrowLeft, Save } from 'lucide-react';
 import React, { useEffect, useState } from 'react';
+import { toast } from 'sonner';
 import { useAuth } from '../contexts';
 import { usersApi } from '../services/api';
 
@@ -19,7 +20,7 @@ const KEYBOARD_OPTIONS = [
 ];
 
 export const Settings: React.FC = () => {
-  const { user, logout } = useAuth();
+  const { user, logout, logoutEverywhere } = useAuth();
   const queryClient = useQueryClient();
 
   const { data, isLoading } = useQuery({
@@ -34,6 +35,7 @@ export const Settings: React.FC = () => {
   const [keyboard, setKeyboard] = useState('QWERTY');
   const [preferredLanguage, setPreferredLanguage] = useState('en');
   const [isPublic, setIsPublic] = useState(true);
+  const [signingOutEverywhere, setSigningOutEverywhere] = useState(false);
   const [message, setMessage] = useState<{ type: 'ok' | 'err'; text: string } | null>(
     null
   );
@@ -274,18 +276,40 @@ export const Settings: React.FC = () => {
       </section>
 
       <section className="border border-destructive/30 rounded-xl p-6 space-y-3">
-        <h2 className="font-semibold text-lg text-destructive">
-          Session
-        </h2>
-        <Button
-          variant="destructive"
-          onClick={() => {
-            logout();
-            window.location.href = '/';
-          }}
-        >
-          Log out
-        </Button>
+        <h2 className="font-semibold text-lg text-destructive">Session</h2>
+        <p className="text-xs text-text/40">
+          You stay signed in as long as you keep coming back. After a month away,
+          you'll be asked to log in again.
+        </p>
+        <div className="flex flex-wrap gap-2">
+          <Button
+            variant="destructive"
+            onClick={() => {
+              logout();
+              window.location.href = '/';
+            }}
+          >
+            Log out
+          </Button>
+          <Button
+            variant="ghost"
+            disabled={signingOutEverywhere}
+            onClick={async () => {
+              setSigningOutEverywhere(true);
+              try {
+                await logoutEverywhere();
+                window.location.href = '/';
+              } catch {
+                setSigningOutEverywhere(false);
+                toast.error('Could not sign out other devices');
+              }
+            }}
+          >
+            {signingOutEverywhere
+              ? 'Signing out...'
+              : 'Log out on all devices'}
+          </Button>
+        </div>
       </section>
     </div>
   );

@@ -8,8 +8,7 @@ import {
   testTexts,
 } from '@tactile/database';
 import { and, eq } from 'drizzle-orm';
-import { verify } from 'hono/jwt';
-import { JWT_SECRET } from '../constants';
+import { verifyAccessToken } from '../auth/tokens';
 import { ConnectionManager } from './connectionManager';
 import type {
   ChatMessagePayload,
@@ -166,10 +165,7 @@ class MultiplayerHub {
         this.sendError(connectionId, 'Token required');
         return;
       }
-      const payload = (await verify(token, JWT_SECRET)) as {
-        userId: string;
-        username?: string;
-      };
+      const payload = await verifyAccessToken(token);
       const ok = this.manager.authenticateConnection(
         connectionId,
         payload.userId,

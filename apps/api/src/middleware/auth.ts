@@ -1,5 +1,4 @@
-import { verify } from 'hono/jwt';
-import { JWT_SECRET } from '../constants';
+import { verifyAccessToken } from '../auth/tokens';
 
 /**
  * Required auth middleware
@@ -16,7 +15,7 @@ export const authMiddleware = async (c: any, next: any) => {
     }
 
     const token = authHeader.substring(7);
-    const payload = await verify(token, JWT_SECRET);
+    const payload = await verifyAccessToken(token);
 
     c.set('user', payload);
     await next();

@@ -58,6 +58,14 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
       const data = response.data;
       setUser(data.user);
+
+      // The API slides the session forward on every verify, so keeping the
+      // returned token is what makes a returning user stay logged in
+      // indefinitely. Dropping it here would reinstate a fixed expiry.
+      if (data.token) {
+        setToken(data.token);
+        localStorage.setItem('auth_token', data.token);
+      }
     } catch (error) {
       console.error('Token verification failed:', error);
       localStorage.removeItem('auth_token');
@@ -126,6 +134,16 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     localStorage.removeItem('auth_token');
   }, []);
 
+  // Bumps the user's token generation server-side, which invalidates every
+  // token they hold — this device included.
+  const logoutEverywhere = React.useCallback(async () => {
+    try {
+      await api.post('/api/auth/logout-all');
+    } finally {
+      logout();
+    }
+  }, [logout]);
+
   const handleOAuthCallback = React.useCallback(
     async (token: string) => {
       try {
@@ -151,6 +169,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     login,
     register,
     logout,
+    logoutEverywhere,
     handleOAuthCallback,
     isLoading,
   };

@@ -2,8 +2,8 @@ import { zValidator } from '@hono/zod-validator';
 import { completedTests, db, userProfiles, users } from '@tactile/database';
 import { eq } from 'drizzle-orm';
 import { Hono } from 'hono';
-import { verify } from 'hono/jwt';
 import { z } from 'zod';
+import { authMiddleware } from '../middleware/auth';
 import { AnalyticsEngine } from '../utils/analyticsEngine';
 
 type Variables = {
@@ -15,27 +15,6 @@ type Variables = {
 };
 
 const userRoutes = new Hono<{ Variables: Variables }>();
-
-const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key';
-
-// Middleware to verify JWT token
-const authMiddleware = async (c: any, next: any) => {
-  try {
-    const authHeader = c.req.header('Authorization');
-
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      return c.json({ error: 'No token provided' }, 401);
-    }
-
-    const token = authHeader.substring(7);
-    const payload = await verify(token, JWT_SECRET);
-
-    c.set('user', payload);
-    await next();
-  } catch (error) {
-    return c.json({ error: 'Invalid token' }, 401);
-  }
-};
 
 // Profile update schema
 const updateProfileSchema = z.object({

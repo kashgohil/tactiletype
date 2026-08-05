@@ -3,10 +3,14 @@ import { db, users } from '@tactile/database';
 import bcrypt from 'bcryptjs';
 import { eq } from 'drizzle-orm';
 import { Hono } from 'hono';
-import { sign, verify } from 'hono/jwt';
 import { z } from 'zod';
 import { OAuthProviderFactory } from '../auth/oauth';
-import { JWT_SECRET } from '../constants';
+import {
+  revokeAllTokens,
+  signAccessToken,
+  verifyAccessToken,
+} from '../auth/tokens';
+import { authMiddleware } from '../middleware/auth';
 import { setCsrfCookie } from '../middleware/csrf';
 
 const authRoutes = new Hono().basePath('/auth');
@@ -57,6 +61,7 @@ authRoutes.post('/register', zValidator('json', registerSchema), async (c) => {
         id: users.id,
         email: users.email,
         username: users.username,
+        tokenVersion: users.tokenVersion,
         createdAt: users.createdAt,
       });
 
@@ -64,16 +69,7 @@ authRoutes.post('/register', zValidator('json', registerSchema), async (c) => {
       return c.json({ error: 'Failed to create user' }, 500);
     }
 
-    // Generate JWT token
-    const token = await sign(
-      {
-        userId: newUser.id,
-        email: newUser.email,
-        username: newUser.username,
-        exp: Math.floor(Date.now() / 1000) + 60 * 60 * 24 * 7, // 7 days
-      },
-      JWT_SECRET
-    );
+    const token = await signAccessToken(newUser);
 
     setCsrfCookie(c);
 
@@ -109,16 +105,7 @@ authRoutes.post('/login', zValidator('json', loginSchema), async (c) => {
       return c.json({ error: 'Invalid credentials' }, 401);
     }
 
-    // Generate JWT token
-    const token = await sign(
-      {
-        userId: user.id,
-        email: user.email,
-        username: user.username,
-        exp: Math.floor(Date.now() / 1000) + 60 * 60 * 24 * 7, // 7 days
-      },
-      JWT_SECRET
-    );
+    const token = await signAccessToken(user);
 
     setCsrfCookie(c);
 
@@ -148,10 +135,10 @@ authRoutes.get('/me', async (c) => {
     }
 
     const token = authHeader.substring(7);
-    const payload = await verify(token, JWT_SECRET);
+    const payload = await verifyAccessToken(token);
 
     const user = await db.query.users.findFirst({
-      where: eq(users.id, payload.userId as string),
+      where: eq(users.id, payload.userId),
       with: {
         profile: true,
       },
@@ -163,7 +150,13 @@ authRoutes.get('/me', async (c) => {
 
     setCsrfCookie(c);
 
+    // Slide the session forward. This runs on every app load, so a user who
+    // keeps showing up is never logged out; the window only elapses for someone
+    // who stays away for the full ACCESS_TOKEN_TTL.
+    const refreshedToken = await signAccessToken(user);
+
     return c.json({
+      token: refreshedToken,
       user: {
         id: user.id,
         email: user.email,
@@ -180,6 +173,18 @@ authRoutes.get('/me', async (c) => {
 
 authRoutes.post('/logout', (c) => {
   return c.json({ message: 'Logged out successfully' });
+});
+
+// Invalidate every token this user holds, on every device, including the caller's.
+authRoutes.post('/logout-all', authMiddleware, async (c) => {
+  try {
+    const payload = c.get('user') as { userId: string };
+    await revokeAllTokens(payload.userId);
+    return c.json({ message: 'Signed out on all devices' });
+  } catch (error) {
+    console.error('Failed to revoke tokens:', error);
+    return c.json({ error: 'Failed to sign out other devices' }, 500);
+  }
 });
 
 // Issue a fresh CSRF cookie. The client calls this before a write when it has no
