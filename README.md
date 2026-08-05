@@ -131,12 +131,14 @@ bun run db:studio
 ### Authentication
 - `POST /api/auth/register` - User registration (CSRF protected)
 - `POST /api/auth/login` - User login (CSRF protected)
-- `GET /api/auth/me` - Get current user (sets CSRF cookie)
-- `POST /api/auth/logout` - User logout (CSRF protected)
-- `GET /api/auth/google` - Initiate Google OAuth (with state protection)
-- `GET /api/auth/github` - Initiate GitHub OAuth (with state protection)
-- `GET /api/auth/callback/google` - Google OAuth callback (state validated)
-- `GET /api/auth/callback/github` - GitHub OAuth callback (state validated)
+- `GET /api/auth/me` - Get current user; sets the CSRF cookie and slides the session forward by re-issuing the access token
+- `GET /api/auth/csrf` - Issue a fresh CSRF cookie, for a client whose cookie expired mid-session
+- `POST /api/auth/logout` - User logout (client-side; CSRF protected)
+- `POST /api/auth/logout-all` - Revoke every access token for the user, on all devices including the caller's
+- `GET /api/auth/sso/google` - Initiate Google OAuth (with state protection)
+- `GET /api/auth/sso/github` - Initiate GitHub OAuth (with state protection)
+- `GET /api/auth/sso/google/callback` - Google OAuth callback (state validated)
+- `GET /api/auth/sso/github/callback` - GitHub OAuth callback (state validated)
 
 ### Users
 - `GET /api/users/profile` - Get user profile
@@ -213,23 +215,23 @@ Tactile supports OAuth authentication with Google and GitHub. To enable OAuth:
 3. Enable the Google+ API
 4. Create OAuth 2.0 credentials
 5. Add authorized redirect URIs:
-   - `http://localhost:3021/api/auth/callback/google` (development)
-   - `https://yourdomain.com/api/auth/callback/google` (production)
+   - `http://localhost:3021/api/auth/sso/google/callback` (development)
+   - `https://yourdomain.com/api/auth/sso/google/callback` (production)
 6. Set `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET` in your `.env` file
 
 ### GitHub OAuth Setup
 1. Go to [GitHub Developer Settings](https://github.com/settings/developers)
 2. Create a new OAuth App
 3. Set Authorization callback URL:
-   - `http://localhost:3021/api/auth/callback/github` (development)
-   - `https://yourdomain.com/api/auth/callback/github` (production)
+   - `http://localhost:3021/api/auth/sso/github/callback` (development)
+   - `https://yourdomain.com/api/auth/sso/github/callback` (production)
 4. Set `GITHUB_CLIENT_ID` and `GITHUB_CLIENT_SECRET` in your `.env` file
 
 ### OAuth API Endpoints
-- `GET /api/auth/google` - Initiate Google OAuth
-- `GET /api/auth/github` - Initiate GitHub OAuth
-- `GET /api/auth/callback/google` - Google OAuth callback
-- `GET /api/auth/callback/github` - GitHub OAuth callback
+- `GET /api/auth/sso/google` - Initiate Google OAuth
+- `GET /api/auth/sso/github` - Initiate GitHub OAuth
+- `GET /api/auth/sso/google/callback` - Google OAuth callback
+- `GET /api/auth/sso/github/callback` - GitHub OAuth callback
 
 ## 🧪 Testing
 

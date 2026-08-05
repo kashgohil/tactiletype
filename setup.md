@@ -230,14 +230,14 @@ Email/password auth works without OAuth. To enable social login:
 
 1. [Google Cloud Console](https://console.cloud.google.com/) → OAuth 2.0 Client
 2. Authorized redirect URI (dev):  
-   `http://localhost:3021/api/auth/callback/google`
+   `http://localhost:3021/api/auth/sso/google/callback`
 3. Set `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET` in `apps/api/.env`
 
 ### GitHub
 
 1. [GitHub → Developer settings → OAuth Apps](https://github.com/settings/developers)
 2. Authorization callback URL (dev):  
-   `http://localhost:3021/api/auth/callback/github`
+   `http://localhost:3021/api/auth/sso/github/callback`
 3. Set `GITHUB_CLIENT_ID` and `GITHUB_CLIENT_SECRET` in `apps/api/.env`
 
 Restart the API after changing OAuth env vars.
@@ -304,7 +304,7 @@ Use this checklist when setting up on a **new machine** or in a **fresh clone**:
 | `Failed to start server. Is port 3021 in use?` | Port taken | `lsof -nP -iTCP:3021 -sTCP:LISTEN` then free port or change `PORT` |
 | Vite starts on a port other than 3020 | 3020 taken | Free 3020, or set Vite `server.port` and update `FRONTEND_URL`. Do not let it land on 3021 — that is the API |
 | CORS errors in browser | `FRONTEND_URL` ≠ actual web origin | Align `FRONTEND_URL` with the URL in the browser |
-| OAuth redirect fails | Wrong callback URL or missing secrets | Match provider console to `BASE_URL` + `/api/auth/callback/...` |
+| OAuth redirect fails | Wrong callback URL or missing secrets | Match provider console to `BASE_URL` + `/api/auth/sso/<provider>/callback` exactly — providers require a character-for-character match |
 | Empty test list | Seed not run | `bun run db:seed` |
 | `bun: command not found` | Bun not installed / shell not reloaded | Install Bun; open new terminal or source profile |
 
