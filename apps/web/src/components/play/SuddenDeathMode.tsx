@@ -1,11 +1,13 @@
+import { PlayResultCard, PlayShell } from '@/components/play/PlayHud';
 import {
-  PlayHud,
-  PlayResultCard,
-  PlayShell,
-  PlayStat,
-  TypedChars,
-} from '@/components/play/PlayHud';
-import { Button } from '@/components/ui/button';
+  Kbd,
+  PanelHint,
+  PlayTestPanel,
+} from '@/components/play/PlayTestPanel';
+import {
+  TypingSurface,
+  type CharStatus,
+} from '@/components/test/TypingSurface';
 import { useAuth } from '@/contexts';
 import { cn } from '@/lib/utils';
 import { isNonPrintingKey } from '@/utils/typingEngine';
@@ -24,6 +26,8 @@ type Phase = 'ready' | 'running' | 'dead';
 
 const STREAM_SIZE = 80;
 const REFILL_AT = 30;
+/** Words per rendered window — the passage only re-flows on this boundary. */
+const WINDOW = 12;
 
 function wpmFrom(correctChars: number, startMs: number | null, endMs: number): number {
   if (!startMs) return 0;
@@ -180,7 +184,7 @@ export const SuddenDeathMode: React.FC = () => {
         const cleared = wordsCleared + 1;
         setWordsCleared(cleared);
         setTyped('');
-        let nextIndex = wordIndex + 1;
+        const nextIndex = wordIndex + 1;
         let nextWords = words;
         if (nextIndex >= words.length - REFILL_AT) {
           nextWords = [...words, ...pickWords(STREAM_SIZE, 'medium')];
@@ -223,8 +227,23 @@ export const SuddenDeathMode: React.FC = () => {
     );
   }
 
-  // Visible window of upcoming words
-  const upcoming = words.slice(wordIndex, wordIndex + 8);
+  // Render a window of the stream instead of just the current word, so the
+  // caret travels through a passage like the main test. The window only
+  // advances every WINDOW words, so the text doesn't re-flow on every clear.
+  const windowStart = Math.floor(wordIndex / WINDOW) * WINDOW;
+  const stream = words.slice(windowStart, windowStart + WINDOW * 3).join(' ');
+  const offset =
+    words.slice(windowStart, wordIndex).join(' ').length +
+    (wordIndex > windowStart ? 1 : 0);
+
+  const charStatus = (i: number): CharStatus => {
+    if (i < offset) return 'correct';
+    const local = i - offset;
+    if (local < typed.length) {
+      return typed[local] === stream[i] ? 'correct' : 'incorrect';
+    }
+    return local === typed.length ? 'current' : 'pending';
+  };
 
   return (
     <PlayShell
@@ -233,13 +252,6 @@ export const SuddenDeathMode: React.FC = () => {
       subtitle="One wrong key ends the run. Type clean — survive."
       onExit={exit}
     >
-      <PlayHud>
-        <PlayStat label="Words" value={wordsCleared} accent />
-        <PlayStat label="WPM" value={phase === 'running' ? liveWpm : '—'} />
-        <PlayStat label="Lives" value={lives} />
-        <PlayStat label="Mode" value={livesMode === 1 ? 'Hardcore' : '3 lives'} />
-      </PlayHud>
-
       {phase === 'ready' && !isDaily && (
         <div className="flex flex-wrap items-center justify-center gap-2">
           <span className="text-xs text-text/40 uppercase tracking-wider mr-1">Difficulty</span>
@@ -269,36 +281,33 @@ export const SuddenDeathMode: React.FC = () => {
         </p>
       )}
 
-      <div
-        ref={focusRef}
-        tabIndex={0}
-        role="textbox"
-        aria-label="Sudden death typing area"
-        onKeyDown={onKeyDown}
-        onClick={() => focusRef.current?.focus()}
-        className="outline-none rounded-2xl border border-accent/18 bg-primary/35 p-8 sm:p-10 min-h-[200px] cursor-text transition-[border-color,box-shadow] duration-150 ease-[cubic-bezier(0.23,1,0.32,1)] focus-visible:border-accent/45 focus-visible:shadow-[0_0_0_3px_rgba(128,128,128,0.1)]"
+      <PlayTestPanel
+        stats={[
+          { label: 'Words', value: wordsCleared, accent: true },
+          { label: 'WPM', value: phase === 'running' ? liveWpm : '—' },
+          {
+            label: 'Lives',
+            value: lives,
+            tone: lives <= 1 ? 'danger' : 'default',
+          },
+          { label: 'Mode', value: livesMode === 1 ? 'Hardcore' : '3 lives' },
+        ]}
+        onRestart={() => reset()}
       >
-        <div className="mb-6">
-          <TypedChars text={currentWord} typed={typed} showCursor />
-        </div>
-        <p className="font-mono text-base text-text/30 leading-relaxed">
-          {upcoming.slice(1).join(' ')}
-        </p>
+        <TypingSurface
+          text={stream}
+          getStatus={charStatus}
+          caretIndex={offset + typed.length}
+          onKeyDown={onKeyDown}
+          surfaceRef={focusRef}
+          ariaLabel="Sudden death typing area"
+        />
         {phase === 'ready' && (
-          <p className="mt-8 text-center text-sm text-text/40">
-            <kbd className="rounded border border-accent/25 bg-accent/10 px-1.5 py-0.5 font-mono text-xs text-text/55 mr-1.5">
-              type
-            </kbd>
-            to start — first mistake kills
-          </p>
+          <PanelHint>
+            <Kbd>type</Kbd> to start — the first mistake ends the run
+          </PanelHint>
         )}
-      </div>
-
-      <div className="flex justify-center">
-        <Button variant="outline" size="sm" onClick={() => reset()}>
-          Restart
-        </Button>
-      </div>
+      </PlayTestPanel>
     </PlayShell>
   );
 };
