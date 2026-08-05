@@ -30,22 +30,6 @@ const ICONS: Record<PlayModeId, LucideIcon> = {
   'weak-storm': Flame,
 };
 
-const ACCENT_RING: Record<string, string> = {
-  rose: 'hover:border-rose-400/35 hover:bg-rose-500/[0.06]',
-  amber: 'hover:border-amber-400/35 hover:bg-amber-500/[0.06]',
-  violet: 'hover:border-violet-400/35 hover:bg-violet-500/[0.06]',
-  sky: 'hover:border-sky-400/35 hover:bg-sky-500/[0.06]',
-  emerald: 'hover:border-emerald-400/35 hover:bg-emerald-500/[0.06]',
-};
-
-const ACCENT_ICON: Record<string, string> = {
-  rose: 'text-rose-400 bg-rose-500/10',
-  amber: 'text-amber-400 bg-amber-500/10',
-  violet: 'text-violet-400 bg-violet-500/10',
-  sky: 'text-sky-400 bg-sky-500/10',
-  emerald: 'text-emerald-400 bg-emerald-500/10',
-};
-
 export const Play: React.FC = () => {
   const navigate = useNavigate();
   const reduced = usePrefersReducedMotion();
@@ -66,15 +50,15 @@ export const Play: React.FC = () => {
           animate: { opacity: 1, transform: 'translateY(0px)' },
           transition: {
             duration: 0.28,
-            delay: 0.04 + i * 0.035,
+            delay: 0.06 + i * 0.035,
             ease: EASE_OUT,
           },
         };
 
   return (
-    <div className="pt-2 pb-14 max-w-5xl mx-auto space-y-9">
+    <div className="pt-2 pb-14 max-w-5xl mx-auto space-y-8">
       <motion.header
-        className="space-y-3 max-w-2xl"
+        className="space-y-2.5 max-w-2xl"
         initial={reduced ? false : { opacity: 0, y: 6 }}
         animate={{ opacity: 1, y: 0 }}
         transition={uiTransition(reduced, 0.25)}
@@ -86,12 +70,13 @@ export const Play: React.FC = () => {
           Train speed in ways a timer can&apos;t
         </h1>
         <p className="text-text/50 leading-relaxed text-[15px]">
-          Different rules. Different pressure. Same goal — type faster without
+          Six modes, six different rules. Same goal — type faster without
           falling apart.
         </p>
       </motion.header>
 
-      {/* Mode of the day */}
+      {/* Mode of the day — same slab as the test panel, so the ranked run
+          reads as the main event on this page. */}
       <motion.button
         type="button"
         onClick={playDaily}
@@ -100,93 +85,111 @@ export const Play: React.FC = () => {
           : {
               initial: { opacity: 0, transform: 'translateY(8px)' },
               animate: { opacity: 1, transform: 'translateY(0px)' },
-              transition: { duration: 0.28, delay: 0.05, ease: EASE_OUT },
+              transition: { duration: 0.28, delay: 0.04, ease: EASE_OUT },
             })}
         className={cn(
-          'group w-full text-left rounded-2xl border border-indigo-400/25',
-          'bg-gradient-to-r from-indigo-500/[0.12] via-accent/[0.08] to-transparent',
-          'p-5 sm:p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4',
-          'transition-[border-color,transform,background-color] duration-150 ease-[cubic-bezier(0.23,1,0.32,1)]',
-          'hover:border-indigo-400/45 active:scale-[0.995]'
+          'group w-full text-left rounded-lg bg-accent/30 p-6 sm:p-7',
+          'flex flex-col sm:flex-row sm:items-center justify-between gap-5',
+          'transition-[background-color,transform] duration-150 ease-[cubic-bezier(0.23,1,0.32,1)]',
+          'hover:bg-accent/40 active:scale-[0.995]'
         )}
       >
-        <div className="flex items-start gap-3.5">
-          <div className="size-11 rounded-xl bg-indigo-400/15 flex items-center justify-center shrink-0 text-indigo-300">
+        <div className="flex items-start gap-4">
+          <div className="size-12 rounded-xl bg-primary/45 flex items-center justify-center shrink-0">
             <DailyIcon className="size-5" />
           </div>
           <div>
-            <p className="text-[10px] uppercase tracking-[0.18em] text-indigo-300/85 font-semibold">
+            <p className="text-[10px] uppercase tracking-[0.18em] text-text/55 font-semibold">
               Mode of the day · {daily.date}
             </p>
-            <h2 className="text-lg sm:text-xl font-semibold mt-0.5 tracking-tight">
+            <h2 className="text-xl sm:text-2xl font-semibold mt-1 tracking-tight">
               {daily.title.replace(/^Daily mode · /, '')}
             </h2>
-            <p className="text-sm text-text/50 mt-1">{daily.tagline}</p>
+            <p className="text-sm text-text/60 mt-1">{daily.tagline}</p>
           </div>
         </div>
-        <span className="inline-flex items-center gap-1 text-sm font-semibold text-accent shrink-0 sm:pr-1 group-hover:gap-1.5 transition-[gap] duration-150">
+        <span className="inline-flex items-center gap-1.5 rounded-lg bg-primary/45 px-4 py-2.5 text-sm font-semibold shrink-0 group-hover:gap-2.5 transition-[gap] duration-150">
           Play ranked
           <ChevronRight className="size-4 opacity-70" />
         </span>
       </motion.button>
 
-      <div className="grid sm:grid-cols-2 gap-3.5">
-        {PLAY_MODES.map((mode, i) => {
-          const Icon = ICONS[mode.id];
-          const best = bests[mode.id];
-          return (
-            <motion.div key={mode.id} {...cardEnter(i)}>
-              <Link
-                to="/play/$mode"
-                params={{ mode: mode.id }}
-                onClick={() => clearDailyRun()}
-                className={cn(
-                  'group rounded-2xl border border-accent/12 bg-accent/[0.04] p-5 sm:p-6',
-                  'transition-[border-color,background-color,transform] duration-150 ease-[cubic-bezier(0.23,1,0.32,1)]',
-                  'block relative h-full active:scale-[0.99]',
-                  mode.featured && 'ring-1 ring-accent/15',
-                  ACCENT_RING[mode.accent] ?? 'hover:border-accent/30'
-                )}
-              >
-                {mode.featured && (
-                  <span className="absolute top-3.5 right-3.5 text-[9px] uppercase tracking-[0.16em] text-accent/65 font-semibold">
-                    Core
-                  </span>
-                )}
-                <div className="flex items-start justify-between gap-3 mb-4">
-                  <div
-                    className={cn(
-                      'size-10 rounded-xl flex items-center justify-center',
-                      ACCENT_ICON[mode.accent] ?? 'text-accent bg-accent/10'
-                    )}
-                  >
-                    <Icon className="size-5" />
+      <section className="space-y-4">
+        <div className="flex items-baseline justify-between gap-4">
+          <h2 className="text-base font-semibold tracking-tight">All modes</h2>
+          <p className="text-sm text-text/40">Bests are saved on this device</p>
+        </div>
+
+        <div className="grid sm:grid-cols-2 gap-3.5">
+          {PLAY_MODES.map((mode, i) => {
+            const Icon = ICONS[mode.id];
+            const best = bests[mode.id];
+            return (
+              <motion.div key={mode.id} {...cardEnter(i)}>
+                <Link
+                  to="/play/$mode"
+                  params={{ mode: mode.id }}
+                  onClick={() => clearDailyRun()}
+                  className={cn(
+                    'group flex flex-col h-full rounded-2xl p-5 sm:p-6',
+                    'border border-accent/12 bg-accent/[0.05]',
+                    'hover:bg-accent/[0.1] hover:border-accent/25',
+                    'transition-[border-color,background-color,transform] duration-150 ease-[cubic-bezier(0.23,1,0.32,1)]',
+                    'active:scale-[0.99]',
+                    mode.featured && 'ring-1 ring-accent/15'
+                  )}
+                >
+                  <div className="flex items-start justify-between gap-3 mb-4">
+                    <div className="flex items-center gap-3">
+                      <Icon className="size-5 text-accent" />
+                      <span className="font-mono text-xs text-text/30 tabular-nums">
+                        {String(i + 1).padStart(2, '0')}
+                      </span>
+                    </div>
+                    <span className="text-[10px] uppercase tracking-[0.12em] text-text/35 font-medium text-right">
+                      {mode.featured ? 'Core · ' : ''}
+                      {mode.skill}
+                    </span>
                   </div>
-                  <span className="text-[10px] uppercase tracking-[0.12em] text-text/35 font-medium pr-7 pt-1">
-                    {mode.skill}
-                  </span>
-                </div>
-                <h2 className="text-lg font-semibold mb-1 tracking-tight group-hover:text-accent transition-colors duration-150">
-                  {mode.title}
-                </h2>
-                <p className="text-sm font-medium text-text/65 mb-1.5">
-                  {mode.tagline}
-                </p>
-                <p className="text-sm text-text/40 leading-relaxed mb-4 line-clamp-3">
-                  {mode.description}
-                </p>
-                {best ? (
-                  <p className="text-xs font-mono text-accent/75">
-                    Best · {best.label}
+
+                  <h3 className="text-lg font-semibold tracking-tight group-hover:text-accent transition-colors duration-150">
+                    {mode.title}
+                  </h3>
+                  <p className="text-sm font-medium text-text/65 mt-0.5">
+                    {mode.tagline}
                   </p>
-                ) : (
-                  <p className="text-xs text-text/28">No runs yet</p>
-                )}
-              </Link>
-            </motion.div>
-          );
-        })}
-      </div>
+                  <p className="text-sm text-text/40 leading-relaxed mt-2 line-clamp-2">
+                    {mode.description}
+                  </p>
+
+                  {/* The rule that makes this mode different — authored per
+                      mode, previously never shown. */}
+                  {mode.howToPlay[1] && (
+                    <p className="text-xs font-mono text-text/40 mt-3 leading-relaxed">
+                      <span className="text-accent/70">rule ·</span>{' '}
+                      {mode.howToPlay[1]}
+                    </p>
+                  )}
+
+                  <div className="mt-auto pt-4 flex items-center justify-between gap-3">
+                    {best ? (
+                      <p className="text-xs font-mono text-accent/75 truncate">
+                        Best · {best.label}
+                      </p>
+                    ) : (
+                      <p className="text-xs text-text/30">No runs yet</p>
+                    )}
+                    <span className="inline-flex items-center gap-1 text-xs font-semibold text-text/45 group-hover:text-accent group-hover:gap-1.5 transition-[color,gap] duration-150 shrink-0">
+                      Play
+                      <ChevronRight className="size-3.5" />
+                    </span>
+                  </div>
+                </Link>
+              </motion.div>
+            );
+          })}
+        </div>
+      </section>
 
       <motion.section
         className="rounded-2xl border border-accent/12 bg-accent/[0.04] p-5 sm:p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4"
@@ -195,7 +198,7 @@ export const Play: React.FC = () => {
           : {
               initial: { opacity: 0 },
               animate: { opacity: 1 },
-              transition: { duration: 0.25, delay: 0.2, ease: EASE_OUT },
+              transition: { duration: 0.25, delay: 0.28, ease: EASE_OUT },
             })}
       >
         <div className="flex items-start gap-3">
