@@ -8,6 +8,8 @@ interface ThemeContextType {
   setTheme: (theme: Theme) => void;
   previewTheme: Theme | null;
   setPreviewTheme: (theme: Theme | null) => void;
+  /** Polarity of the active theme, for anything that needs light/dark rather than the ramp */
+  colorScheme: 'light' | 'dark';
 }
 
 // eslint-disable-next-line react-refresh/only-export-components
@@ -59,9 +61,12 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
     }
   }, []);
 
+  const themeToApply = previewTheme || currentTheme;
+  const colorScheme =
+    relativeLuminance(themeToApply.primaryColor) < 0.4 ? 'dark' : 'light';
+
   // Apply theme to CSS variables
   useEffect(() => {
-    const themeToApply = previewTheme || currentTheme;
     const root = document.documentElement;
 
     root.style.setProperty('--theme-text', themeToApply.textColor);
@@ -77,9 +82,8 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
     root.style.setProperty('--theme-on-accent', onAccent);
 
     // Native controls, scrollbars, and form widgets follow the theme's polarity
-    root.style.colorScheme =
-      relativeLuminance(themeToApply.primaryColor) < 0.4 ? 'dark' : 'light';
-  }, [currentTheme, previewTheme]);
+    root.style.colorScheme = colorScheme;
+  }, [themeToApply, colorScheme]);
 
   const setTheme = (theme: Theme) => {
     setCurrentTheme(theme);
@@ -89,11 +93,12 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
   return (
     <ThemeContext.Provider
       value={{
-        themeToApply: previewTheme || currentTheme,
+        themeToApply,
         currentTheme,
         setTheme,
         previewTheme,
         setPreviewTheme,
+        colorScheme,
       }}
     >
       {children}
