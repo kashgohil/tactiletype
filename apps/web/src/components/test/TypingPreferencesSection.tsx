@@ -1,4 +1,14 @@
 import { Button } from '@/components/ui/button';
+import { Label } from '@/components/ui/label';
+import { Panel } from '@/components/ui/panel';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { Switch } from '@/components/ui/switch';
 import type {
   CaretStyle,
   FontSize,
@@ -8,9 +18,21 @@ import { useTestPreferences } from '@/hooks/useTestPreferences';
 import { LAYOUT_LABELS } from '@/utils/keyboardLayouts';
 import React from 'react';
 
-const labelClass = 'block text-sm font-medium text-text/60 mb-1.5';
-const selectClass =
-  'w-full h-9 rounded-md border border-input bg-transparent px-3 text-sm';
+const labelClass = 'text-text/60 mb-1.5';
+
+const CARET_STYLES: { value: CaretStyle; label: string }[] = [
+  { value: 'line', label: 'Line' },
+  { value: 'block', label: 'Block' },
+  { value: 'underline', label: 'Underline' },
+  { value: 'box', label: 'Box' },
+];
+
+const FONT_SIZES: { value: FontSize; label: string }[] = [
+  { value: 'sm', label: 'Small' },
+  { value: 'md', label: 'Medium' },
+  { value: 'lg', label: 'Large' },
+  { value: 'xl', label: 'Extra large' },
+];
 
 /**
  * Typing-test display preferences. These live in localStorage and apply to
@@ -20,87 +42,101 @@ export const TypingPreferencesSection: React.FC = () => {
   const { prefs, setPrefs, resetPrefs } = useTestPreferences();
 
   return (
-    <section className="bg-accent/10 rounded-xl p-6 space-y-4">
-      <h2 className="font-semibold text-lg">Typing preferences</h2>
-      <p className="text-xs text-text/40 -mt-2">
-        How the test screen looks and sounds. Saved on this device.
-      </p>
-
+    <Panel
+      title="Typing preferences"
+      description="How the test screen looks and sounds. Saved on this device."
+      bodyClassName="space-y-4"
+    >
       <div className="grid sm:grid-cols-2 gap-3">
         <div>
-          <label className={labelClass} htmlFor="pref-caret">
+          <Label className={labelClass} htmlFor="pref-caret">
             Caret style
-          </label>
-          <select
-            id="pref-caret"
-            className={selectClass}
+          </Label>
+          <Select
             value={prefs.caretStyle}
-            onChange={(e) =>
-              setPrefs({ caretStyle: e.target.value as CaretStyle })
+            onValueChange={(value) =>
+              setPrefs({ caretStyle: value as CaretStyle })
             }
           >
-            <option value="line">Line</option>
-            <option value="block">Block</option>
-            <option value="underline">Underline</option>
-            <option value="box">Box</option>
-          </select>
+            <SelectTrigger id="pref-caret" className="w-full">
+              <SelectValue placeholder="Caret style" />
+            </SelectTrigger>
+            <SelectContent>
+              {CARET_STYLES.map((option) => (
+                <SelectItem key={option.value} value={option.value}>
+                  {option.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
 
         <div>
-          <label className={labelClass} htmlFor="pref-font-size">
+          <Label className={labelClass} htmlFor="pref-font-size">
             Font size
-          </label>
-          <select
-            id="pref-font-size"
-            className={selectClass}
+          </Label>
+          <Select
             value={prefs.fontSize}
-            onChange={(e) => setPrefs({ fontSize: e.target.value as FontSize })}
+            onValueChange={(value) => setPrefs({ fontSize: value as FontSize })}
           >
-            <option value="sm">Small</option>
-            <option value="md">Medium</option>
-            <option value="lg">Large</option>
-            <option value="xl">Extra large</option>
-          </select>
+            <SelectTrigger id="pref-font-size" className="w-full">
+              <SelectValue placeholder="Font size" />
+            </SelectTrigger>
+            <SelectContent>
+              {FONT_SIZES.map((option) => (
+                <SelectItem key={option.value} value={option.value}>
+                  {option.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
       </div>
 
       <div>
-        <label className={labelClass} htmlFor="pref-layout">
+        <Label className={labelClass} htmlFor="pref-layout">
           Keyboard layout
-        </label>
-        <select
-          id="pref-layout"
-          className={selectClass}
+        </Label>
+        <Select
           value={prefs.keyboardLayout}
-          onChange={(e) =>
-            setPrefs({ keyboardLayout: e.target.value as KeyboardLayout })
+          onValueChange={(value) =>
+            setPrefs({ keyboardLayout: value as KeyboardLayout })
           }
         >
-          {(Object.keys(LAYOUT_LABELS) as KeyboardLayout[]).map((id) => (
-            <option key={id} value={id}>
-              {LAYOUT_LABELS[id]}
-            </option>
-          ))}
-        </select>
+          <SelectTrigger id="pref-layout" className="w-full">
+            <SelectValue placeholder="Keyboard layout" />
+          </SelectTrigger>
+          <SelectContent>
+            {(Object.keys(LAYOUT_LABELS) as KeyboardLayout[]).map((id) => (
+              <SelectItem key={id} value={id}>
+                {LAYOUT_LABELS[id]}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </div>
 
-      <div className="space-y-2.5 pt-1">
+      <div className="divide-y divide-accent/10 pt-1">
         <Toggle
+          id="pref-contrast"
           label="High-contrast typed characters"
           checked={prefs.highContrastTyped}
           onChange={(v) => setPrefs({ highContrastTyped: v })}
         />
         <Toggle
+          id="pref-smooth-caret"
           label="Smooth caret"
           checked={prefs.smoothCaret}
           onChange={(v) => setPrefs({ smoothCaret: v })}
         />
         <Toggle
+          id="pref-sound"
           label="Key click sound"
           checked={prefs.soundEnabled}
           onChange={(v) => setPrefs({ soundEnabled: v })}
         />
         <Toggle
+          id="pref-error-sound"
           label="Error sound"
           checked={prefs.errorSoundEnabled}
           onChange={(v) => setPrefs({ errorSoundEnabled: v })}
@@ -110,28 +146,27 @@ export const TypingPreferencesSection: React.FC = () => {
       <Button type="button" variant="outline" size="sm" onClick={resetPrefs}>
         Reset defaults
       </Button>
-    </section>
+    </Panel>
   );
 };
 
 function Toggle({
+  id,
   label,
   checked,
   onChange,
 }: {
+  id: string;
   label: string;
   checked: boolean;
   onChange: (v: boolean) => void;
 }) {
   return (
-    <label className="flex items-center justify-between gap-3 cursor-pointer text-sm">
-      <span className="text-text/70">{label}</span>
-      <input
-        type="checkbox"
-        checked={checked}
-        onChange={(e) => onChange(e.target.checked)}
-        className="size-4 accent-[var(--color-accent)]"
-      />
-    </label>
+    <div className="flex items-center justify-between gap-3 py-2.5">
+      <Label htmlFor={id} className="text-text/70 cursor-pointer font-normal">
+        {label}
+      </Label>
+      <Switch id={id} checked={checked} onCheckedChange={onChange} />
+    </div>
   );
 }

@@ -1,4 +1,8 @@
 import { Button } from '@/components/ui/button';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
 import {
   addPlaylistItem,
   listPlaylists,
@@ -60,11 +64,19 @@ export const CustomPasteModal: React.FC<CustomPasteModalProps> = ({
     >
       <div className="bg-primary border border-accent/30 rounded-2xl max-w-lg w-full shadow-xl max-h-[90vh] overflow-y-auto animate-in fade-in-0 zoom-in-95 duration-200 ease-[cubic-bezier(0.23,1,0.32,1)] origin-center">
         <div className="flex items-center justify-between px-4 py-3 border-b border-accent/20">
-          <h2 id="custom-paste-title" className="font-semibold flex items-center gap-2">
+          <h2
+            id="custom-paste-title"
+            className="font-semibold flex items-center gap-2"
+          >
             <ClipboardPaste className="size-4 text-accent" />
             Custom text
           </h2>
-          <Button size="icon" variant="ghost" onClick={onClose} aria-label="Close">
+          <Button
+            size="icon"
+            variant="ghost"
+            onClick={onClose}
+            aria-label="Close"
+          >
             <X className="size-4" />
           </Button>
         </div>
@@ -74,32 +86,33 @@ export const CustomPasteModal: React.FC<CustomPasteModalProps> = ({
             Paste an email, essay, or code snippet. Practice with your own
             material.
           </p>
-          <input
+          <Input
             type="text"
             value={title}
             onChange={(e) => setTitle(e.target.value)}
             placeholder="Optional title"
-            className="w-full h-9 rounded-md border border-accent/25 bg-transparent px-3 text-sm"
             maxLength={80}
           />
-          <textarea
+          <Textarea
             value={text}
             onChange={(e) => setText(e.target.value)}
             placeholder="Paste text here…"
             rows={6}
-            className="w-full rounded-md border border-accent/25 bg-transparent px-3 py-2 text-sm font-mono resize-y min-h-[120px]"
+            className="font-mono resize-y min-h-30"
             autoFocus
           />
           <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-text/40">
-            <label className="flex items-center gap-2 cursor-pointer">
-              <input
-                type="checkbox"
+            <Label
+              htmlFor="paste-save"
+              className="text-xs text-text/40 font-normal cursor-pointer"
+            >
+              <Checkbox
+                id="paste-save"
                 checked={saveToPlaylist}
-                onChange={(e) => setSaveToPlaylist(e.target.checked)}
-                className="accent-[var(--color-accent)]"
+                onCheckedChange={(v) => setSaveToPlaylist(v === true)}
               />
               Save to my playlist
-            </label>
+            </Label>
             <span>{wordCount} words</span>
           </div>
           <Button
