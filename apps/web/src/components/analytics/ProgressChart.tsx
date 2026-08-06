@@ -1,4 +1,5 @@
 import { ThemeContext } from '@/contexts/ThemeContext';
+import { cn } from '@/lib/utils';
 import type { ProgressChart as ProgressChartType } from '@tactile/types';
 import {
   CategoryScale,
@@ -26,66 +27,106 @@ ChartJS.register(
   Filler
 );
 
+/** Canvas can't read CSS vars, so theme hex values get an alpha channel here. */
+function withAlpha(color: string, alpha: number): string {
+  const hex = color.trim();
+  if (!hex.startsWith('#')) return hex;
+  const full =
+    hex.length === 4
+      ? `#${hex[1]}${hex[1]}${hex[2]}${hex[2]}${hex[3]}${hex[3]}`
+      : hex;
+  const int = parseInt(full.slice(1), 16);
+  if (Number.isNaN(int)) return hex;
+  const r = (int >> 16) & 255;
+  const g = (int >> 8) & 255;
+  const b = int & 255;
+  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+}
+
+function unitFor(type: string): string {
+  if (type === 'wpm') return ' WPM';
+  if (type === 'accuracy' || type === 'consistency') return '%';
+  return '';
+}
+
+/**
+ * Trend delta as a standalone chip so the surrounding panel can place it in
+ * its header — the chart no longer draws a header of its own.
+ */
+export const ChartTrend: React.FC<{
+  trend: ProgressChartType['trend'];
+  percentage: number;
+  className?: string;
+}> = ({ trend, percentage, className }) => {
+  const Icon =
+    trend === 'improving'
+      ? TrendingUp
+      : trend === 'declining'
+        ? TrendingDown
+        : MoveRight;
+
+  return (
+    <span
+      className={cn(
+        'inline-flex items-center gap-1.5 text-xs font-mono tabular-nums px-2 py-1 rounded-full',
+        trend === 'improving'
+          ? 'text-accent bg-accent/12'
+          : trend === 'declining'
+            ? 'text-destructive bg-destructive/10'
+            : 'text-text/45 bg-text/[0.06]',
+        className
+      )}
+      title={`Trend: ${trend}`}
+    >
+      <Icon className="size-3.5" />
+      {trend !== 'stable' && (percentage > 0 ? '+' : '')}
+      {trend === 'stable' ? 'steady' : `${(percentage || 0).toFixed(1)}%`}
+    </span>
+  );
+};
+
 interface ProgressChartProps {
   chart: ProgressChartType;
   height?: number;
+  className?: string;
 }
 
+/**
+ * Plot only — no surface, no title, no caption. Whoever renders it owns the
+ * framing, which keeps charts from sitting in a box inside a box.
+ */
 export const ProgressChart: React.FC<ProgressChartProps> = ({
   chart,
-  height = 300,
+  height = 240,
+  className,
 }) => {
   const context = useContext(ThemeContext);
-  const themeToApply = context?.themeToApply;
+  const theme = context?.themeToApply;
 
-  const getChartColor = (type: string) => {
-    switch (type) {
-      case 'wpm':
-        return {
-          border: themeToApply?.accentColor || 'rgb(59, 130, 246)', // blue-500
-          background: themeToApply?.primaryColor || 'rgba(59, 130, 246, 0.1)',
-        };
-      case 'accuracy':
-        return {
-          border: themeToApply?.accentColor || 'rgb(34, 197, 94)', // green-500
-          background: themeToApply?.primaryColor || 'rgba(34, 197, 94, 0.1)',
-        };
-      case 'consistency':
-        return {
-          border: themeToApply?.accentColor || 'rgb(168, 85, 247)', // purple-500
-          background: themeToApply?.primaryColor || 'rgba(168, 85, 247, 0.1)',
-        };
-      default:
-        return {
-          border: themeToApply?.accentColor || 'rgb(107, 114, 128)', // gray-500
-          background: themeToApply?.primaryColor || 'rgba(107, 114, 128, 0.1)',
-        };
-    }
-  };
-
-  const colors = getChartColor(chart.type);
+  const accent = theme?.accentColor || '#ceb11e';
+  const text = theme?.textColor || '#333333';
+  const primary = theme?.primaryColor || '#fefefe';
 
   const data = {
-    labels: chart.data.map((point) => {
-      const date = new Date(point.date);
-      return date.toLocaleDateString('en-US', {
+    labels: chart.data.map((point) =>
+      new Date(point.date).toLocaleDateString('en-US', {
         month: 'short',
         day: 'numeric',
-      });
-    }),
+      })
+    ),
     datasets: [
       {
         label: chart.type.toUpperCase(),
         data: chart.data.map((point) => point.value),
-        borderColor: colors.border,
-        backgroundColor: colors.background,
+        borderColor: accent,
+        backgroundColor: withAlpha(accent, 0.14),
         borderWidth: 2,
         fill: true,
-        tension: 0.4,
-        pointRadius: 4,
-        pointHoverRadius: 6,
-        pointBackgroundColor: colors.border,
-        pointBorderColor: '#ffffff',
+        tension: 0.35,
+        pointRadius: chart.data.length > 30 ? 0 : 3,
+        pointHoverRadius: 5,
+        pointBackgroundColor: accent,
+        pointBorderColor: primary,
         pointBorderWidth: 2,
       },
     ],
@@ -95,88 +136,57 @@ export const ProgressChart: React.FC<ProgressChartProps> = ({
     responsive: true,
     maintainAspectRatio: false,
     plugins: {
-      legend: {
-        display: false,
-      },
-      title: {
-        display: false,
-      },
+      legend: { display: false },
+      title: { display: false },
       tooltip: {
-        backgroundColor: 'rgba(0, 0, 0, 0.8)',
-        titleColor: '#ffffff',
-        bodyColor: '#ffffff',
-        borderColor: colors.border,
+        backgroundColor: text,
+        titleColor: primary,
+        bodyColor: primary,
+        borderColor: withAlpha(accent, 0.6),
         borderWidth: 1,
         cornerRadius: 8,
+        padding: 10,
         displayColors: false,
         callbacks: {
-          title: (context: TSAny[]) => {
-            const date = new Date(chart.data[context[0].dataIndex].date);
-            return date.toLocaleDateString('en-US', {
-              weekday: 'long',
-              year: 'numeric',
+          title: (items: { dataIndex: number }[]) => {
+            const point = chart.data[items[0].dataIndex];
+            return new Date(point.date).toLocaleDateString('en-US', {
+              weekday: 'short',
               month: 'long',
               day: 'numeric',
             });
           },
-          label: (context: { parsed: { y: number }; dataIndex: number }) => {
-            const value = context.parsed.y;
-            const unit =
-              chart.type === 'wpm'
-                ? ' WPM'
-                : chart.type === 'accuracy'
-                  ? '%'
-                  : chart.type === 'consistency'
-                    ? '%'
-                    : '';
-            return `${chart.type.charAt(0).toUpperCase() + chart.type.slice(1)}: ${value}${unit}`;
+          label: (item: { parsed: { y: number }; dataIndex: number }) => {
+            const label = chart.data[item.dataIndex]?.label;
+            const value = `${item.parsed.y}${unitFor(chart.type)}`;
+            return label ? `${value} · ${label}` : value;
           },
         },
       },
     },
     scales: {
       x: {
-        grid: {
-          display: false,
-        },
+        grid: { display: false },
+        border: { color: withAlpha(text, 0.12) },
         ticks: {
-          color: '#6b7280',
-          font: {
-            size: 12,
-          },
+          color: withAlpha(text, 0.45),
+          font: { size: 11 },
+          maxRotation: 0,
+          autoSkipPadding: 16,
         },
       },
       y: {
-        beginAtZero: chart.type === 'wpm' ? true : false,
-        min:
-          chart.type === 'accuracy' || chart.type === 'consistency'
-            ? 0
-            : undefined,
-        max:
-          chart.type === 'accuracy' || chart.type === 'consistency'
-            ? 100
-            : undefined,
-        grid: {
-          color: 'rgba(107, 114, 128, 0.1)',
-        },
+        beginAtZero: chart.type === 'wpm',
+        min: chart.type === 'wpm' ? undefined : 0,
+        max: chart.type === 'wpm' ? undefined : 100,
+        grid: { color: withAlpha(text, 0.08) },
+        border: { display: false },
         ticks: {
-          color: '#6b7280',
-          font: {
-            size: 12,
-          },
-          callback: function (value: string | number) {
-            const numValue =
-              typeof value === 'string' ? parseFloat(value) : value;
-            const unit =
-              chart.type === 'wpm'
-                ? ' WPM'
-                : chart.type === 'accuracy'
-                  ? '%'
-                  : chart.type === 'consistency'
-                    ? '%'
-                    : '';
-            return numValue + unit;
-          },
+          color: withAlpha(text, 0.45),
+          font: { size: 11 },
+          maxTicksLimit: 5,
+          callback: (value: string | number) =>
+            `${typeof value === 'string' ? parseFloat(value) : value}${unitFor(chart.type)}`,
         },
       },
     },
@@ -186,51 +196,9 @@ export const ProgressChart: React.FC<ProgressChartProps> = ({
     },
   };
 
-  const getTrendIcon = () => {
-    switch (chart.trend) {
-      case 'improving':
-        return <TrendingUp />;
-      case 'declining':
-        return <TrendingDown />;
-      default:
-        return <MoveRight />;
-    }
-  };
-
-  const getTrendColor = () => {
-    switch (chart.trend) {
-      case 'improving':
-        return 'text-green-600';
-      case 'declining':
-        return 'text-red-600';
-      default:
-        return 'text-gray-600';
-    }
-  };
-
   return (
-    <div className="bg-accent/10 rounded-lg p-6">
-      <div className="flex items-center justify-between mb-4">
-        <h3 className="text-lg font-semibold capitalize">
-          {chart.type} Progress
-        </h3>
-        <div className={`flex items-center space-x-2 ${getTrendColor()}`}>
-          <span className="text-lg">{getTrendIcon()}</span>
-          <span className="text-sm font-medium">
-            {chart.trendPercentage > 0 ? '+' : ''}
-            {(chart.trendPercentage || 0).toFixed(1)}%
-          </span>
-        </div>
-      </div>
-
-      <div style={{ height: `${height}px` }}>
-        <Line data={data} options={options} />
-      </div>
-
-      <div className="mt-4 text-sm text-center text-gray-600">
-        <span className="capitalize">{chart.timeframe}</span> trend over the
-        last {chart.data.length} data points
-      </div>
+    <div className={className} style={{ height: `${height}px` }}>
+      <Line data={data} options={options} />
     </div>
   );
 };

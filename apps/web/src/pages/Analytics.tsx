@@ -4,6 +4,7 @@ import {
   SelectItem,
   SelectTrigger,
 } from '@/components/ui/select';
+import { Panel } from '@/components/ui/panel';
 import { Skeleton } from '@/components/ui/skeleton';
 import type { AnalyticsDashboard, UserRecommendation } from '@tactile/types';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
@@ -18,7 +19,10 @@ import {
 import React from 'react';
 import { ErrorHeatmap } from '../components/analytics/ErrorHeatmap';
 import { GoalTracker } from '../components/analytics/GoalTracker';
-import { ProgressChart } from '../components/analytics/ProgressChart';
+import {
+  ChartTrend,
+  ProgressChart,
+} from '../components/analytics/ProgressChart';
 import { RecommendationsPanel } from '../components/analytics/RecommendationsPanel';
 import { ReportGenerator } from '../components/analytics/ReportGenerator';
 import { useAuth } from '../contexts';
@@ -185,7 +189,7 @@ export const Analytics: React.FC = () => {
 
   if (!user) {
     return (
-      <div className="max-w-4xl mx-auto text-center py-12">
+      <div className="text-center py-12">
         <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">
           Analytics Dashboard
         </h1>
@@ -203,7 +207,7 @@ export const Analytics: React.FC = () => {
 
   if (isLoading) {
     return (
-      <div className="pt-4 pb-8">
+      <div>
         {/* Timeframe Selector Skeleton */}
         <div className="flex items-center justify-end mb-8">
           <div className="flex items-center space-x-4">
@@ -328,7 +332,7 @@ export const Analytics: React.FC = () => {
 
   if (!dashboardData) {
     return (
-      <div className="max-w-4xl mx-auto text-center py-12">
+      <div className="text-center py-12">
         <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">
           Analytics Dashboard
         </h1>
@@ -341,7 +345,7 @@ export const Analytics: React.FC = () => {
   }
 
   return (
-    <div className="pt-4 pb-8">
+    <div>
       <div className="flex items-center justify-end mb-8">
         <div className="flex items-center space-x-4">
           <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
@@ -442,7 +446,19 @@ export const Analytics: React.FC = () => {
       {/* Progress Charts */}
       <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6 mb-8">
         {dashboardData.progressCharts.map((chart, index) => (
-          <ProgressChart key={index} chart={chart} height={250} />
+          <Panel
+            key={index}
+            title={<span className="capitalize">{chart.type} progress</span>}
+            description={`${chart.timeframe} trend · ${chart.data.length} points`}
+            action={
+              <ChartTrend
+                trend={chart.trend}
+                percentage={chart.trendPercentage}
+              />
+            }
+          >
+            <ProgressChart chart={chart} height={250} />
+          </Panel>
         ))}
       </div>
 

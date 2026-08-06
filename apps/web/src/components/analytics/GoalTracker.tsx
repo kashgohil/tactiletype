@@ -11,6 +11,7 @@ import {
 } from 'lucide-react';
 import React, { useState } from 'react';
 import { Button } from '../ui/button';
+import { Panel } from '../ui/panel';
 import { DatePicker } from '../ui/date-picker';
 import { Input } from '../ui/input';
 import { Progress } from '../ui/progress';
@@ -112,27 +113,28 @@ export const GoalTracker: React.FC<GoalTrackerProps> = ({
   };
 
   return (
-    <div className="bg-accent/10 rounded-lg p-6">
-      <div className="flex items-center justify-between mb-6">
-        <h3 className="text-lg font-semibold">Your Goals</h3>
+    <Panel
+      title="Your goals"
+      icon={<Target className="size-4 text-accent" />}
+      action={
         <Button
           size="sm"
           variant="ghost"
           onClick={() => setShowCreateForm(!showCreateForm)}
         >
-          {showCreateForm ? 'Cancel' : 'Add Goal'}
+          {showCreateForm ? 'Cancel' : 'Add goal'}
         </Button>
-      </div>
-
-      {/* Create Goal Form */}
+      }
+    >
+      {/* Create Goal Form — separated by a rule, not by a second fill. */}
       {showCreateForm && (
         <form
           onSubmit={handleSubmit}
-          className="mb-6 p-4 bg-accent/20 rounded-lg"
+          className="mb-5 pb-5 border-b border-accent/12"
         >
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+              <label className="block text-sm font-medium text-text/55 mb-1">
                 Goal Type
               </label>
               <Select
@@ -164,7 +166,7 @@ export const GoalTracker: React.FC<GoalTrackerProps> = ({
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+              <label className="block text-sm font-medium text-text/55 mb-1">
                 Target Value
               </label>
               <Input
@@ -182,7 +184,7 @@ export const GoalTracker: React.FC<GoalTrackerProps> = ({
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+              <label className="block text-sm font-medium text-text/55 mb-1">
                 Target Date (Optional)
               </label>
               <DatePicker
@@ -201,112 +203,88 @@ export const GoalTracker: React.FC<GoalTrackerProps> = ({
         </form>
       )}
 
-      {/* Goals List */}
-      <div className="space-y-4">
-        {goals.length === 0 ? (
-          <div className="text-center py-8 text-text/50">
-            <Target className="text-accent mx-auto mb-4 h-12 w-12" />
-            <p>
-              No goals set yet. Create your first goal to start tracking
-              progress!
-            </p>
-          </div>
-        ) : (
-          goals.map((goal) => {
+      {/* Goals list — rows on the panel, split by rules. */}
+      {goals.length === 0 ? (
+        <div className="text-center py-8">
+          <Target className="text-accent/60 mx-auto mb-3 size-8" />
+          <p className="text-sm text-text/50 max-w-[15rem] mx-auto leading-relaxed">
+            No goals yet. Set one and progress tracks itself as you type.
+          </p>
+        </div>
+      ) : (
+        <ul className="divide-y divide-accent/10 -my-4">
+          {goals.map((goal) => {
             const progress = calculateProgress(goal);
             const daysRemaining = getDaysRemaining(goal);
             const isExpired = isGoalExpired(goal);
             const isAchieved = goal.isAchieved || progress >= 100;
 
             return (
-              <div
-                key={goal.id}
-                className={`p-4 rounded-lg border-2 transition-all ${
-                  isAchieved
-                    ? 'border-green-200 bg-green-50 dark:border-green-800 dark:bg-green-900/20'
-                    : isExpired
-                      ? 'border-red-200 bg-red-50 dark:border-red-800 dark:bg-red-900/20'
-                      : 'border-primary bg-primary'
-                }`}
-              >
-                <div className="flex items-center justify-between mb-3">
-                  <div className="flex items-center space-x-3">
-                    <div className="text-2xl">{getGoalIcon(goal.goalType)}</div>
-                    <div>
-                      <h4 className="font-semibold capitalize">
-                        {goal.goalType.replace('_', ' ')} Goal
+              <li key={goal.id} className="py-4 space-y-2.5">
+                <div className="flex items-start justify-between gap-2">
+                  <div className="flex items-center gap-2.5 min-w-0">
+                    <span className="[&>svg]:size-4 shrink-0">
+                      {getGoalIcon(goal.goalType)}
+                    </span>
+                    <div className="min-w-0">
+                      <h4 className="font-medium text-sm capitalize truncate">
+                        {goal.goalType.replace('_', ' ')}
                       </h4>
-                      <p className="text-sm text-text/50">
-                        Target: {Number(goal.targetValue)}
+                      <p className="text-xs text-text/45 font-mono tabular-nums">
+                        {Number(goal.currentValue)} /{' '}
+                        {Number(goal.targetValue)}
                         {getGoalUnit(goal.goalType)}
                       </p>
                     </div>
                   </div>
 
-                  <div className="flex items-center space-x-2">
-                    {isAchieved && (
-                      <div className="text-green-600 dark:text-green-400 text-xl">
-                        <Trophy className="text-accent" />
-                      </div>
-                    )}
+                  <div className="flex items-center gap-1 shrink-0">
+                    {isAchieved && <Trophy className="size-4 text-accent" />}
                     <Button
                       onClick={() => onDeleteGoal(goal.id)}
-                      size="sm"
+                      size="icon"
                       variant="ghost"
                       title="Delete goal"
+                      className="size-7 text-text/35 hover:text-destructive"
                     >
-                      <Trash />
+                      <Trash className="size-3.5" />
                     </Button>
                   </div>
                 </div>
 
-                {/* Progress Bar */}
-                <div className="mb-3">
-                  <div className="flex justify-between text-sm text-text/50 mb-1">
-                    <span>
-                      Current: {Number(goal.currentValue)}
-                      {getGoalUnit(goal.goalType)}
-                    </span>
-                    <span>{progress.toFixed(1)}%</span>
-                  </div>
-                  <Progress value={progress} className="h-2" />
-                </div>
+                <Progress value={progress} className="h-1.5" />
 
-                {/* Goal Status */}
-                <div className="flex items-center justify-between text-sm">
-                  <div>
-                    {isAchieved ? (
-                      <span className="text-green-600 dark:text-green-400 font-medium flex items-center">
-                        <PartyPopper /> Goal Achieved!
-                      </span>
-                    ) : isExpired ? (
-                      <span className="text-red-600 dark:text-red-400 font-medium flex items-center">
-                        <Timer /> Goal Expired
-                      </span>
-                    ) : goal.targetDate ? (
-                      <span className="text-text/50">
-                        {daysRemaining !== null && daysRemaining > 0
-                          ? `${daysRemaining} days remaining`
-                          : daysRemaining === 0
-                            ? 'Due today'
-                            : 'Overdue'}
-                      </span>
-                    ) : (
-                      <span className="text-text/50">No deadline</span>
-                    )}
-                  </div>
-
-                  {goal.targetDate && (
-                    <span className="text-text/50">
-                      Due: {new Date(goal.targetDate).toLocaleDateString()}
+                <div className="flex items-center justify-between gap-2 text-xs">
+                  {isAchieved ? (
+                    <span className="text-accent font-medium inline-flex items-center gap-1.5">
+                      <PartyPopper className="size-3.5" />
+                      Achieved
                     </span>
+                  ) : isExpired ? (
+                    <span className="text-destructive font-medium inline-flex items-center gap-1.5">
+                      <Timer className="size-3.5" />
+                      Expired
+                    </span>
+                  ) : goal.targetDate ? (
+                    <span className="text-text/45">
+                      {daysRemaining !== null && daysRemaining > 0
+                        ? `${daysRemaining} days left`
+                        : daysRemaining === 0
+                          ? 'Due today'
+                          : 'Overdue'}
+                    </span>
+                  ) : (
+                    <span className="text-text/45">No deadline</span>
                   )}
+                  <span className="text-text/45 font-mono tabular-nums">
+                    {progress.toFixed(0)}%
+                  </span>
                 </div>
-              </div>
+              </li>
             );
-          })
-        )}
-      </div>
-    </div>
+          })}
+        </ul>
+      )}
+    </Panel>
   );
 };

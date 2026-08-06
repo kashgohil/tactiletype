@@ -4,6 +4,8 @@ import { useQuery } from '@tanstack/react-query';
 import React from 'react';
 import { useAuth } from '../../contexts';
 import { analyticsApi } from '../../services/analyticsApi';
+import { Panel } from '../ui/panel';
+import { Skeleton } from '../ui/skeleton';
 import { Tooltip, TooltipContent, TooltipTrigger } from '../ui/tooltip';
 
 interface ActivityHeatmapProps {
@@ -66,71 +68,7 @@ export const ActivityHeatmap: React.FC<ActivityHeatmapProps> = ({
 
   // Show loading skeleton if loading and no data
   if (isLoading && !heatmapData) {
-    return (
-      <div className="bg-accent/10 rounded-lg p-6">
-        <div className="mb-6">
-          <div className="h-6 bg-accent/20 rounded w-48 mb-2 animate-pulse"></div>
-          <div className="flex items-center justify-between">
-            <div className="h-6 bg-accent/20 rounded w-32 animate-pulse"></div>
-            <div className="h-6 bg-accent/20 rounded w-24 animate-pulse"></div>
-          </div>
-        </div>
-
-        <div className="overflow-x-auto">
-          <div className="min-w-max">
-            {/* Month labels skeleton */}
-            <div className="flex mb-2">
-              <div className="w-8"></div>
-              {Array.from({ length: 12 }, (_, i) => (
-                <div key={i} className="flex-1 text-center">
-                  <div className="h-3 bg-accent/20 rounded w-8 mx-auto animate-pulse"></div>
-                </div>
-              ))}
-            </div>
-
-            <div className="flex">
-              {/* Day labels skeleton */}
-              <div className="flex flex-col mr-2 gap-1">
-                {Array.from({ length: 7 }, (_, i) => (
-                  <div
-                    key={i}
-                    className="h-6 text-xs text-text/50 flex items-center leading-3"
-                  >
-                    <div className="h-3 bg-accent/20 rounded w-6 animate-pulse"></div>
-                  </div>
-                ))}
-              </div>
-
-              {/* Calendar grid skeleton */}
-              <div className="flex gap-1">
-                {Array.from({ length: 53 }, (_, weekIndex) => (
-                  <div key={weekIndex} className="flex flex-col gap-1">
-                    {Array.from({ length: 7 }, (_, dayIndex) => (
-                      <div
-                        key={dayIndex}
-                        className="w-6 h-6 rounded-sm bg-accent/20 animate-pulse"
-                      />
-                    ))}
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Legend skeleton */}
-        <div className="flex items-center justify-center mt-6 space-x-2">
-          <div className="h-4 bg-accent/20 rounded w-16 animate-pulse"></div>
-          {Array.from({ length: 5 }, (_, i) => (
-            <div
-              key={i}
-              className="w-3 h-3 rounded-sm bg-accent/20 animate-pulse"
-            ></div>
-          ))}
-          <div className="h-4 bg-accent/20 rounded w-12 animate-pulse"></div>
-        </div>
-      </div>
-    );
+    return <Skeleton className="h-[248px] rounded-2xl" />;
   }
 
   // If no data after loading, return null or error
@@ -191,18 +129,10 @@ export const ActivityHeatmap: React.FC<ActivityHeatmapProps> = ({
   ];
 
   return (
-    <div className="bg-accent/10 rounded-lg p-6">
-      <div className="mb-6">
-        <h3 className="text-lg font-semibold mb-2">
-          {title} {year}
-        </h3>
-        <div className="flex items-center justify-between text-sm text-text/40">
-          <span>
-            {heatmapData.totalTests} tests in {year}
-          </span>
-        </div>
-      </div>
-
+    <Panel
+      title={`${title} ${year}`}
+      description={`${heatmapData.totalTests} tests in ${year}`}
+    >
       <div className="overflow-x-auto">
         <div className="min-w-max">
           {/* Month labels */}
@@ -223,7 +153,7 @@ export const ActivityHeatmap: React.FC<ActivityHeatmapProps> = ({
               return (
                 <div key={weekIndex} className="flex-1 text-center">
                   {monthToShow !== null && (
-                    <span className="text-xs text-gray-500">
+                    <span className="text-xs text-text/40">
                       {monthLabels[monthToShow]}
                     </span>
                   )}
@@ -282,8 +212,8 @@ export const ActivityHeatmap: React.FC<ActivityHeatmapProps> = ({
       </div>
 
       {/* Legend */}
-      <div className="flex items-center justify-center mt-6 space-x-2 text-sm">
-        <span className="text-gray-600">Less</span>
+      <div className="flex items-center justify-end mt-5 gap-2 text-xs">
+        <span className="text-text/40">Less</span>
         {Array.from({ length: 5 }, (_, i) => (
           <div
             key={i}
@@ -296,8 +226,8 @@ export const ActivityHeatmap: React.FC<ActivityHeatmapProps> = ({
             )}
           />
         ))}
-        <span className="text-gray-600">More</span>
+        <span className="text-text/40">More</span>
       </div>
-    </div>
+    </Panel>
   );
 };

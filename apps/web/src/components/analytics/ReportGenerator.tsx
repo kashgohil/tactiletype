@@ -2,6 +2,8 @@ import type { AnalyticsOverview, ProgressChart } from '@tactile/types';
 import { BarChart, Check, Mail } from 'lucide-react';
 import React, { useState } from 'react';
 import { Button } from '../ui/button';
+import { Checkbox } from '../ui/checkbox';
+import { Label } from '../ui/label';
 import {
   Select,
   SelectContent,
@@ -210,60 +212,58 @@ export const ReportGenerator: React.FC<ReportGeneratorProps> = ({
 
             {/* Include Options */}
             <div>
-              <label className="block text-sm font-medium text-text/50 mb-2">
-                Include in Report
-              </label>
+              <Label className="text-text/50 mb-2">Include in Report</Label>
               <div className="space-y-2">
-                <label className="flex items-center">
-                  <input
-                    type="checkbox"
+                <Label
+                  htmlFor="report-includecharts"
+                  className="font-normal cursor-pointer"
+                >
+                  <Checkbox
+                    id="report-includecharts"
                     checked={reportData.includeCharts}
-                    onChange={(e) =>
+                    onCheckedChange={(v) =>
                       setReportData({
                         ...reportData,
-                        includeCharts: e.target.checked,
+                        includeCharts: v === true,
                       })
                     }
-                    className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
                   />
-                  <span className="ml-2 text-sm text-gray-700 dark:text-gray-300">
-                    Progress Charts & Visualizations
-                  </span>
-                </label>
+                  Progress Charts & Visualizations
+                </Label>
 
-                <label className="flex items-center">
-                  <input
-                    type="checkbox"
+                <Label
+                  htmlFor="report-includedetailedstats"
+                  className="font-normal cursor-pointer"
+                >
+                  <Checkbox
+                    id="report-includedetailedstats"
                     checked={reportData.includeDetailedStats}
-                    onChange={(e) =>
+                    onCheckedChange={(v) =>
                       setReportData({
                         ...reportData,
-                        includeDetailedStats: e.target.checked,
+                        includeDetailedStats: v === true,
                       })
                     }
-                    className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
                   />
-                  <span className="ml-2 text-sm text-gray-700 dark:text-gray-300">
-                    Detailed Statistics & Error Analysis
-                  </span>
-                </label>
+                  Detailed Statistics & Error Analysis
+                </Label>
 
-                <label className="flex items-center">
-                  <input
-                    type="checkbox"
+                <Label
+                  htmlFor="report-includerecommendations"
+                  className="font-normal cursor-pointer"
+                >
+                  <Checkbox
+                    id="report-includerecommendations"
                     checked={reportData.includeRecommendations}
-                    onChange={(e) =>
+                    onCheckedChange={(v) =>
                       setReportData({
                         ...reportData,
-                        includeRecommendations: e.target.checked,
+                        includeRecommendations: v === true,
                       })
                     }
-                    className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
                   />
-                  <span className="ml-2 text-sm text-gray-700 dark:text-gray-300">
-                    Improvement Recommendations
-                  </span>
-                </label>
+                  Improvement Recommendations
+                </Label>
               </div>
             </div>
 
@@ -374,14 +374,14 @@ export const ReportGenerator: React.FC<ReportGeneratorProps> = ({
                 your email.
               </p>
               <div className="flex items-center space-x-4 text-sm">
-                <label className="flex items-center">
-                  <input type="checkbox" className="rounded  mr-2" />
+                <Label className="font-normal text-text/45">
+                  <Checkbox disabled />
                   Weekly Summary
-                </label>
-                <label className="flex items-center">
-                  <input type="checkbox" className="rounded mr-2" />
+                </Label>
+                <Label className="font-normal text-text/45">
+                  <Checkbox disabled />
                   Monthly Report
-                </label>
+                </Label>
               </div>
             </div>
           </div>
