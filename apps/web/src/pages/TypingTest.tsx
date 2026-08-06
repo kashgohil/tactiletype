@@ -480,6 +480,11 @@ export const TypingTest: React.FC = () => {
   // growing into it centres the test without stacking a second min-height.
   return (
     <div className="grow flex flex-col gap-4 items-center justify-center">
+      {/* SEO: one H1 for the primary landing surface without competing with
+          the test chrome. Visually hidden; title/meta carry the SERP story. */}
+      <h1 className="sr-only">
+        Free typing test — check your WPM and accuracy
+      </h1>
       <CustomPasteModal
         open={pasteOpen}
         onClose={() => setPasteOpen(false)}

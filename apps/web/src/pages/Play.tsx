@@ -64,7 +64,7 @@ export const Play: React.FC = () => {
         transition={uiTransition(reduced, 0.25)}
       >
         <h1 className="text-3xl md:text-[2.5rem] font-bold tracking-tight leading-[1.15]">
-          Train speed in ways a timer can&apos;t
+          Typing games a timer can&apos;t teach
         </h1>
         <p className="text-text/50 leading-relaxed text-[15px]">
           Six modes, six different rules. Same goal — type faster without

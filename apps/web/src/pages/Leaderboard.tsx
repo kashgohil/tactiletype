@@ -70,7 +70,7 @@ export const Leaderboard: React.FC = () => {
     <div>
       <header className="space-y-2.5 mb-8">
         <h1 className="text-3xl md:text-[2.5rem] font-bold tracking-tight leading-[1.15]">
-          Leaderboard
+          Typing leaderboard
         </h1>
         <p className="text-text/50 max-w-2xl leading-relaxed text-[15px]">
           The fastest typists on tactiletype, ranked by their best run in the

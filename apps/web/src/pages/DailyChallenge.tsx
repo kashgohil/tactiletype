@@ -106,7 +106,7 @@ export const DailyChallenge: React.FC = () => {
         exercisePackId: `daily-${challenge.date}`,
       })
     );
-    navigate({ to: '/test', search: { practice: '1', type: 'quotes' } as never });
+    navigate({ to: '/', search: { practice: '1', type: 'quotes' } as never });
   };
 
   const startMode = () => {
@@ -157,11 +157,11 @@ export const DailyChallenge: React.FC = () => {
         transition={uiTransition(reduced, 0.22)}
       >
         <h1 className="text-3xl md:text-[2.5rem] font-bold tracking-tight leading-[1.15]">
-          Two challenges. One day.
+          The daily typing challenge
         </h1>
         <p className="text-text/50 max-w-2xl leading-relaxed text-[15px]">
-          A shared quote race and a rotating play mode — different rules so
-          you&apos;re not just replaying the same test.
+          Two challenges, one day. A shared quote race and a rotating play mode
+          — different rules so you&apos;re not just replaying the same test.
         </p>
       </motion.header>
 

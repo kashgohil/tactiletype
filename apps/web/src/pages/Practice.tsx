@@ -95,7 +95,7 @@ export const Practice: React.FC = () => {
         exercisePackId: `drill-${activeDrill}`,
       })
     );
-    navigate({ to: '/test', search: { practice: '1' } as never });
+    navigate({ to: '/', search: { practice: '1' } as never });
   };
 
   return (
@@ -107,7 +107,7 @@ export const Practice: React.FC = () => {
         transition={uiTransition(reduced, 0.22)}
       >
         <h1 className="text-3xl md:text-[2.5rem] font-bold tracking-tight leading-[1.15]">
-          Targeted drills
+          Typing practice, one weak spot at a time
         </h1>
         <p className="text-text/50 max-w-2xl leading-relaxed text-[15px]">
           Generated for a skill — keys, bigrams, hard words. For game-like
@@ -235,12 +235,20 @@ export const Practice: React.FC = () => {
         <p className="text-sm text-text/38">
           Free sandbox (timer / words / code / symbols / quotes) lives on{' '}
           <Link
-            to="/test"
+            to="/"
             className="text-accent hover:underline underline-offset-2"
           >
             the test page
           </Link>
-          .
+          . New to drilling?{' '}
+          <Link
+            to="/guides/$slug"
+            params={{ slug: 'how-to-improve-typing-speed' }}
+            className="text-accent hover:underline underline-offset-2"
+          >
+            How to improve your typing speed
+          </Link>{' '}
+          covers the order that works.
         </p>
       )}
     </div>

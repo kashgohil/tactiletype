@@ -3,10 +3,16 @@ import { Link } from '@tanstack/react-router';
 import type { FileRoutesByTo } from '@/routeTree.gen';
 
 type AppPath = keyof FileRoutesByTo;
-type FooterLink = { to: AppPath; label: string; hint?: string };
+/** `params` is for templated routes like `/guides/$slug`. */
+type FooterLink = {
+  to: AppPath;
+  label: string;
+  hint?: string;
+  params?: Record<string, string>;
+};
 
 const TRAIN: FooterLink[] = [
-  { to: '/test', label: 'Typing test' },
+  { to: '/', label: 'Typing test' },
   { to: '/practice', label: 'Practice drills' },
   { to: '/play', label: 'Play modes' },
   { to: '/daily', label: 'Daily challenge' },
@@ -15,6 +21,23 @@ const TRAIN: FooterLink[] = [
 const COMPETE: FooterLink[] = [
   { to: '/leaderboard', label: 'Leaderboard' },
   { to: '/multiplayer', label: 'Multiplayer' },
+];
+
+/**
+ * The only sitewide link into the content cluster. Guides that nothing links to
+ * are crawled late and ranked worse — descriptive anchor text here is what
+ * carries them, which is also why these say "How to improve typing speed"
+ * rather than "Read more".
+ */
+const LEARN: FooterLink[] = [
+  { to: '/typing-test', label: 'What a typing test measures' },
+  { to: '/guides/$slug', params: { slug: 'what-is-wpm' }, label: 'What is WPM?' },
+  {
+    to: '/guides/$slug',
+    params: { slug: 'how-to-improve-typing-speed' },
+    label: 'Improve typing speed',
+  },
+  { to: '/guides', label: 'All guides' },
 ];
 
 const LEGAL: FooterLink[] = [
@@ -37,9 +60,11 @@ function FooterColumn({
       </h2>
       <ul className="space-y-2">
         {links.map((link) => (
-          <li key={link.to}>
+          // Key on the label: templated routes repeat the same `to`.
+          <li key={link.label}>
             <Link
               to={link.to}
+              params={link.params}
               className="text-sm text-text/60 hover:text-accent transition-colors duration-150 ease-[cubic-bezier(0.23,1,0.32,1)]"
             >
               {link.label}
@@ -76,7 +101,7 @@ export function Footer() {
       className="w-full shrink-0 mt-auto bg-surface-accent border-t border-line"
     >
       <div className="w-full max-w-shell mx-auto px-8 py-12">
-        <div className="grid grid-cols-2 md:grid-cols-5 gap-x-6 gap-y-10">
+        <div className="grid grid-cols-2 md:grid-cols-6 gap-x-6 gap-y-10">
           {/* Brand block gets the wide column; links fill the rest. */}
           <div className="col-span-2 md:pr-8">
             <Link
@@ -99,6 +124,7 @@ export function Footer() {
 
           <FooterColumn title="Train" links={TRAIN} />
           <FooterColumn title="Compete" links={COMPETE} />
+          <FooterColumn title="Learn" links={LEARN} />
           <FooterColumn title="Account" links={account} />
         </div>
 
