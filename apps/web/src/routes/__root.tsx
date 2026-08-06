@@ -1,4 +1,5 @@
 import { Footer } from '@/components/layout/Footer';
+import { Seo } from '@/components/Seo';
 import { createRootRoute, Outlet } from '@tanstack/react-router';
 import { TanStackRouterDevtools } from '@tanstack/router-devtools';
 import { Navbar } from '../components/layout/Navbar';
@@ -12,6 +13,7 @@ export const Route = createRootRoute({
   // scroll means nothing shrinks and the footer always lands after the content.
   component: () => (
     <div className="min-h-svh w-full flex flex-col">
+      <Seo />
       <Navbar />
       {/* `grow` (basis auto), not `flex-1` (basis 0) — with a zero basis the
           box is sized from leftover space and tall content spills past its
