@@ -2,14 +2,20 @@ import React from 'react';
 
 export const Privacy: React.FC = () => {
   return (
-    <div>
-      <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-8">
-        Privacy Policy
-      </h1>
+    <div className="space-y-8">
+      <header className="space-y-2.5">
+        <h1 className="text-3xl md:text-[2.5rem] font-bold tracking-tight leading-[1.15]">
+          Privacy Policy
+        </h1>
+        <p className="text-text/50 max-w-2xl leading-relaxed text-[15px]">
+          What we collect when you type, why we keep it, and how to get it back
+          or get rid of it.
+        </p>
+      </header>
 
-      <div className="space-y-8 text-gray-700 dark:text-gray-300">
+      <div className="space-y-8 text-text/70 max-w-3xl leading-relaxed">
         <section>
-          <h2 className="text-2xl font-semibold text-gray-900 dark:text-white mb-4">
+          <h2 className="text-lg font-semibold tracking-tight text-text mb-3">
             1. Information We Collect
           </h2>
           <p className="mb-4">
@@ -17,7 +23,7 @@ export const Privacy: React.FC = () => {
             obtain automatically when you use TactileType.
           </p>
 
-          <h3 className="text-xl font-medium text-gray-900 dark:text-white mb-2">
+          <h3 className="text-sm font-semibold uppercase tracking-[0.14em] text-text/45 mb-2">
             Information You Provide:
           </h3>
           <ul className="list-disc list-inside mt-2 space-y-1 mb-4">
@@ -26,7 +32,7 @@ export const Privacy: React.FC = () => {
             <li>Communications you send to us</li>
           </ul>
 
-          <h3 className="text-xl font-medium text-gray-900 dark:text-white mb-2">
+          <h3 className="text-sm font-semibold uppercase tracking-[0.14em] text-text/45 mb-2">
             Information We Collect Automatically:
           </h3>
           <ul className="list-disc list-inside mt-2 space-y-1">
@@ -38,7 +44,7 @@ export const Privacy: React.FC = () => {
         </section>
 
         <section>
-          <h2 className="text-2xl font-semibold text-gray-900 dark:text-white mb-4">
+          <h2 className="text-lg font-semibold tracking-tight text-text mb-3">
             2. How We Use Your Information
           </h2>
           <p className="mb-4">We use the information we collect to:</p>
@@ -53,7 +59,7 @@ export const Privacy: React.FC = () => {
         </section>
 
         <section>
-          <h2 className="text-2xl font-semibold text-gray-900 dark:text-white mb-4">
+          <h2 className="text-lg font-semibold tracking-tight text-text mb-3">
             3. Information Sharing
           </h2>
           <p className="mb-4">
@@ -70,7 +76,7 @@ export const Privacy: React.FC = () => {
         </section>
 
         <section>
-          <h2 className="text-2xl font-semibold text-gray-900 dark:text-white mb-4">
+          <h2 className="text-lg font-semibold tracking-tight text-text mb-3">
             4. Data Security
           </h2>
           <p>
@@ -82,7 +88,7 @@ export const Privacy: React.FC = () => {
         </section>
 
         <section>
-          <h2 className="text-2xl font-semibold text-gray-900 dark:text-white mb-4">
+          <h2 className="text-lg font-semibold tracking-tight text-text mb-3">
             5. Data Retention
           </h2>
           <p>
@@ -94,7 +100,7 @@ export const Privacy: React.FC = () => {
         </section>
 
         <section>
-          <h2 className="text-2xl font-semibold text-gray-900 dark:text-white mb-4">
+          <h2 className="text-lg font-semibold tracking-tight text-text mb-3">
             6. Your Rights
           </h2>
           <p className="mb-4">
@@ -111,7 +117,7 @@ export const Privacy: React.FC = () => {
         </section>
 
         <section>
-          <h2 className="text-2xl font-semibold text-gray-900 dark:text-white mb-4">
+          <h2 className="text-lg font-semibold tracking-tight text-text mb-3">
             7. Cookies and Tracking
           </h2>
           <p>
@@ -122,7 +128,7 @@ export const Privacy: React.FC = () => {
         </section>
 
         <section>
-          <h2 className="text-2xl font-semibold text-gray-900 dark:text-white mb-4">
+          <h2 className="text-lg font-semibold tracking-tight text-text mb-3">
             8. Third-Party Services
           </h2>
           <p>
@@ -133,7 +139,7 @@ export const Privacy: React.FC = () => {
         </section>
 
         <section>
-          <h2 className="text-2xl font-semibold text-gray-900 dark:text-white mb-4">
+          <h2 className="text-lg font-semibold tracking-tight text-text mb-3">
             9. Children's Privacy
           </h2>
           <p>
@@ -145,7 +151,7 @@ export const Privacy: React.FC = () => {
         </section>
 
         <section>
-          <h2 className="text-2xl font-semibold text-gray-900 dark:text-white mb-4">
+          <h2 className="text-lg font-semibold tracking-tight text-text mb-3">
             10. Changes to This Policy
           </h2>
           <p>
@@ -156,7 +162,7 @@ export const Privacy: React.FC = () => {
         </section>
 
         <section>
-          <h2 className="text-2xl font-semibold text-gray-900 dark:text-white mb-4">
+          <h2 className="text-lg font-semibold tracking-tight text-text mb-3">
             11. Contact Us
           </h2>
           <p>
@@ -166,8 +172,8 @@ export const Privacy: React.FC = () => {
           </p>
         </section>
 
-        <div className="mt-12 pt-8 border-t border-gray-200 dark:border-gray-700">
-          <p className="text-sm text-gray-500 dark:text-gray-400">
+        <div className="mt-12 pt-8 border-t border-line">
+          <p className="text-sm text-text/45">
             Last updated: August 28, 2025
           </p>
         </div>
