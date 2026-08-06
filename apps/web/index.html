@@ -2,15 +2,118 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/tactiletype.ico" />
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="icon" type="image/x-icon" href="/tactiletype.ico" />
     <link
-      href="https://fonts.googleapis.com/css2?family=Saira:ital,wght@0,100..900;1,100..900&display=swap"
-      rel="stylesheet"
+      rel="apple-touch-icon"
+      sizes="180x180"
+      href="/tactiletype-180x180.png"
+    />
+    <link rel="manifest" href="/site.webmanifest" />
+    <!-- Saira is self-hosted (see @font-face in index.css). The Google Fonts
+         stylesheet was two render-blocking round trips to a third-party origin
+         before a single glyph could load; the variable woff2 below is one
+         same-origin request covering weights 100–900. Preloaded because the
+         font is discovered inside CSS, one level too deep for the prescanner. -->
+    <link
+      rel="preload"
+      href="/fonts/saira-latin.woff2"
+      as="font"
+      type="font/woff2"
+      crossorigin
     />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>tactiletype - Type Away</title>
+    <!-- Matches the default theme's primaryColor; ThemeProvider rewrites this
+         to the active theme on mount, so browser chrome tracks the skin. -->
+    <meta name="theme-color" content="#fefefe" />
+    <title>Free Typing Test — Check Your WPM | tactiletype</title>
+    <meta
+      name="description"
+      content="Take a free online typing test. Measure words per minute (WPM) and accuracy, then train with drills and play modes. No install — start typing now."
+    />
+    <meta name="robots" content="index, follow" />
+    <link rel="canonical" href="https://trytactiletype.com/" />
+
+    <!-- Open Graph -->
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="tactiletype" />
+    <meta property="og:locale" content="en_US" />
+    <meta
+      property="og:title"
+      content="Free Typing Test — Check Your WPM | tactiletype"
+    />
+    <meta
+      property="og:description"
+      content="Take a free online typing test. Measure words per minute (WPM) and accuracy, then train with drills and play modes."
+    />
+    <meta property="og:url" content="https://trytactiletype.com/" />
+    <meta
+      property="og:image"
+      content="https://trytactiletype.com/og-default.png"
+    />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta
+      property="og:image:alt"
+      content="tactiletype — free typing test. Measure your WPM and accuracy."
+    />
+
+    <!-- Twitter -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta
+      name="twitter:title"
+      content="Free Typing Test — Check Your WPM | tactiletype"
+    />
+    <meta
+      name="twitter:description"
+      content="Take a free online typing test. Measure WPM and accuracy, then train with drills and play modes."
+    />
+    <meta
+      name="twitter:image"
+      content="https://trytactiletype.com/og-default.png"
+    />
+
+    <!-- Sitewide entity graph. The prerender step (`scripts/prerender.mjs`)
+         regenerates this from `defaultGraph()` in src/lib/seo.ts for every
+         built page, so seo.ts is the source of truth — this copy only serves
+         `vite dev` and must be kept in step by hand. -->
+    <script type="application/ld+json" id="jsonld-default">
+      {
+        "@context": "https://schema.org",
+        "@graph": [
+          {
+            "@type": "Organization",
+            "@id": "https://trytactiletype.com/#organization",
+            "name": "tactiletype",
+            "url": "https://trytactiletype.com/",
+            "logo": "https://trytactiletype.com/tactiletype-256x256.png",
+            "email": "support@tactiletype.com"
+          },
+          {
+            "@type": "WebSite",
+            "@id": "https://trytactiletype.com/#website",
+            "url": "https://trytactiletype.com/",
+            "name": "tactiletype",
+            "publisher": {
+              "@id": "https://trytactiletype.com/#organization"
+            },
+            "inLanguage": "en"
+          },
+          {
+            "@type": "WebApplication",
+            "name": "tactiletype",
+            "url": "https://trytactiletype.com/",
+            "applicationCategory": "EducationalApplication",
+            "operatingSystem": "Web",
+            "offers": {
+              "@type": "Offer",
+              "price": "0",
+              "priceCurrency": "USD"
+            },
+            "description": "Free online typing test and trainer with WPM tracking, practice drills, play modes, and multiplayer races."
+          }
+        ]
+      }
+    </script>
   </head>
   <body>
     <div id="root"></div>

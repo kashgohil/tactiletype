@@ -83,6 +83,12 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
 
     // Native controls, scrollbars, and form widgets follow the theme's polarity
     root.style.colorScheme = colorScheme;
+
+    // Browser/OS chrome (mobile address bar, PWA shell) matches the page, so a
+    // skin swap doesn't leave a stale strip of the previous theme above the app.
+    document
+      .querySelector('meta[name="theme-color"]')
+      ?.setAttribute('content', themeToApply.primaryColor);
   }, [themeToApply, colorScheme]);
 
   const setTheme = (theme: Theme) => {
