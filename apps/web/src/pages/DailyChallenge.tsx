@@ -8,7 +8,7 @@ import { beginDailyRun, loadLocalDailyModeBoard } from '@/utils/dailyRun';
 import { getDailyModeForDate } from '@tactile/content';
 import { useQuery } from '@tanstack/react-query';
 import { Link, useNavigate } from '@tanstack/react-router';
-import { Calendar, Gamepad2, Quote, Trophy } from 'lucide-react';
+import { Gamepad2, Quote, Trophy } from 'lucide-react';
 import { motion } from 'motion/react';
 import React, { useMemo } from 'react';
 
@@ -149,34 +149,30 @@ export const DailyChallenge: React.FC = () => {
         };
 
   return (
-    <div className="pt-2 pb-12 max-w-4xl mx-auto space-y-8">
+    <div className="space-y-8">
       <motion.header
         className="space-y-2.5"
         initial={reduced ? false : { opacity: 0, y: 6 }}
         animate={{ opacity: 1, y: 0 }}
         transition={uiTransition(reduced, 0.22)}
       >
-        <p className="text-[11px] uppercase tracking-[0.22em] text-accent font-semibold flex items-center gap-2">
-          <Calendar className="size-3.5" />
-          Daily · UTC
-        </p>
         <h1 className="text-3xl md:text-[2.5rem] font-bold tracking-tight leading-[1.15]">
           Two challenges. One day.
         </h1>
-        <p className="text-text/50 max-w-xl leading-relaxed text-[15px]">
+        <p className="text-text/50 max-w-2xl leading-relaxed text-[15px]">
           A shared quote race and a rotating play mode — different rules so
           you&apos;re not just replaying the same test.
         </p>
       </motion.header>
 
-      <div className="grid md:grid-cols-2 gap-3.5">
+      <div className="grid md:grid-cols-2 gap-3">
         <motion.section
           {...enter(0.04)}
-          className="rounded-2xl border border-accent/20 bg-accent/[0.07] p-6 flex flex-col gap-4"
+          className="rounded-2xl border border-accent/20 bg-gradient-to-br from-accent/[0.12] to-transparent p-5 sm:p-6 flex flex-col gap-4"
         >
           <div className="flex items-center gap-2.5">
-            <div className="size-9 rounded-lg bg-accent/15 flex items-center justify-center">
-              <Quote className="size-4 text-accent" />
+            <div className="size-10 rounded-xl bg-accent/15 flex items-center justify-center shrink-0">
+              <Quote className="size-5 text-accent" />
             </div>
             <div>
               <h2 className="font-semibold tracking-tight">Quote challenge</h2>
@@ -209,11 +205,11 @@ export const DailyChallenge: React.FC = () => {
 
         <motion.section
           {...enter(0.08)}
-          className="rounded-2xl border border-indigo-400/25 bg-gradient-to-br from-indigo-500/[0.12] to-accent/[0.06] p-6 flex flex-col gap-4"
+          className="rounded-2xl border border-accent/20 bg-gradient-to-br from-accent/[0.12] to-transparent p-5 sm:p-6 flex flex-col gap-4"
         >
           <div className="flex items-center gap-2.5">
-            <div className="size-9 rounded-lg bg-indigo-400/15 flex items-center justify-center">
-              <Gamepad2 className="size-4 text-indigo-300" />
+            <div className="size-10 rounded-xl bg-accent/15 flex items-center justify-center shrink-0">
+              <Gamepad2 className="size-5 text-accent" />
             </div>
             <div>
               <h2 className="font-semibold tracking-tight">Mode of the day</h2>
@@ -228,16 +224,16 @@ export const DailyChallenge: React.FC = () => {
             <p className="text-sm text-text/45 leading-relaxed">{mode.description}</p>
             <div className="flex flex-wrap gap-2 pt-1">
               {mode.params.ghostPace != null && (
-                <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-sky-400/10 text-sky-300 border border-sky-400/20">
+                <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-text/[0.06] text-text/55 border border-line">
                   Ghost {mode.params.ghostPace} WPM
                 </span>
               )}
               {mode.params.lives === 1 && (
-                <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-rose-400/10 text-rose-300 border border-rose-400/20">
+                <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-destructive/10 text-destructive border border-destructive/25">
                   Hardcore · 1 life
                 </span>
               )}
-              <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-indigo-400/10 text-indigo-300 border border-indigo-400/20">
+              <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-accent/15 text-accent border border-accent/25">
                 Ranked
               </span>
             </div>
@@ -248,7 +244,7 @@ export const DailyChallenge: React.FC = () => {
         </motion.section>
       </div>
 
-      <div className="grid md:grid-cols-2 gap-3.5">
+      <div className="grid md:grid-cols-2 gap-3">
         <motion.section {...enter(0.12)} className="rounded-2xl border border-accent/12 bg-accent/[0.04] p-5 sm:p-6">
           <h2 className="text-base font-semibold flex items-center gap-2 mb-4 tracking-tight">
             <Trophy className="size-4 text-accent" />
@@ -262,7 +258,7 @@ export const DailyChallenge: React.FC = () => {
 
         <motion.section {...enter(0.16)} className="rounded-2xl border border-accent/12 bg-accent/[0.04] p-5 sm:p-6">
           <h2 className="text-base font-semibold flex items-center gap-2 mb-1 tracking-tight">
-            <Trophy className="size-4 text-indigo-300" />
+            <Trophy className="size-4 text-accent" />
             Mode board
           </h2>
           <p className="text-[11px] text-text/35 font-mono mb-4">
@@ -275,7 +271,7 @@ export const DailyChallenge: React.FC = () => {
         </motion.section>
       </div>
 
-      <p className="text-center text-sm text-text/40">
+      <p className="text-sm text-text/38">
         Free practice on{' '}
         <Link
           to="/play"
