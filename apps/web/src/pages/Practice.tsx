@@ -127,10 +127,10 @@ export const Practice: React.FC = () => {
           initial={reduced ? false : { opacity: 0, y: 8 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: reduced ? 0 : 0.26, delay: 0.04, ease: EASE_OUT }}
-          className="rounded-2xl border border-accent/20 bg-gradient-to-br from-accent/[0.12] to-transparent p-5 sm:p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4"
+          className="rounded-2xl border border-accent/30 bg-gradient-to-br from-accent/[0.12] to-transparent p-5 sm:p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4"
         >
           <div className="flex items-start gap-3">
-            <div className="size-10 rounded-xl bg-accent/15 flex items-center justify-center shrink-0">
+            <div className="size-10 rounded-lg bg-accent/20 flex items-center justify-center shrink-0">
               <Gamepad2 className="size-5 text-accent" />
             </div>
             <div>
@@ -157,7 +157,7 @@ export const Practice: React.FC = () => {
           initial={reduced ? false : { opacity: 0, y: 8 }}
           animate={{ opacity: 1, y: 0 }}
           transition={uiTransition(reduced, 0.22)}
-          className="bg-accent/[0.08] border border-accent/25 rounded-2xl p-6 space-y-4"
+          className="rounded-2xl border border-accent/30 bg-accent/[0.12] p-6 space-y-4"
         >
           <div className="flex flex-wrap items-start justify-between gap-3">
             <div>
@@ -178,7 +178,7 @@ export const Practice: React.FC = () => {
               <Button onClick={startDrill}>Start drill</Button>
             </div>
           </div>
-          <p className="font-mono text-sm text-text/65 leading-relaxed bg-primary/30 rounded-xl p-4 max-h-40 overflow-y-auto border border-accent/10">
+          <p className="font-mono text-sm text-text/65 leading-relaxed rounded-lg bg-accent/[0.06] p-4 max-h-40 overflow-y-auto">
             {drillPreview.content}
           </p>
         </motion.section>
@@ -210,8 +210,8 @@ export const Practice: React.FC = () => {
                     to="/practice"
                     search={{ drill: ex.id } as never}
                     className={cn(
-                      'bg-accent/[0.05] hover:bg-accent/[0.1] rounded-2xl p-5 block h-full',
-                      'border border-transparent hover:border-accent/18',
+                      'bg-accent/[0.05] hover:bg-accent/10 rounded-2xl p-5 block h-full',
+                      'border border-transparent hover:border-accent/30',
                       'transition-[background-color,border-color,transform] duration-150 ease-[cubic-bezier(0.23,1,0.32,1)]',
                       'active:scale-[0.99]'
                     )}

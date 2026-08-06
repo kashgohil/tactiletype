@@ -54,7 +54,7 @@ export const ProfileProgressChart: React.FC<ProfileProgressChartProps> = ({
   const unit = metric === 'wpm' ? 'WPM' : '%';
 
   const toggle = (
-    <div className="flex gap-0.5 rounded-lg border border-accent/20 p-0.5">
+    <div className="flex gap-0.5 rounded-lg border border-accent/15 p-0.5">
       {METRICS.map((m) => (
         <button
           key={m.id}
@@ -84,7 +84,7 @@ export const ProfileProgressChart: React.FC<ProfileProgressChartProps> = ({
       bodyClassName="flex flex-col"
     >
       {isLoading ? (
-        <Skeleton className="h-[240px] w-full rounded-xl" />
+        <Skeleton className="h-[240px] w-full rounded-2xl" />
       ) : !chart ? (
         <div className="min-h-[240px] flex items-center justify-center">
           <p className="text-sm text-text/40 text-center max-w-xs leading-relaxed">

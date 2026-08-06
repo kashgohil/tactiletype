@@ -107,7 +107,7 @@ export const ShareResultCard: React.FC<ShareResultCardProps> = ({
       }}
     >
       <div className="bg-primary border border-accent/30 rounded-2xl max-w-md w-full shadow-xl overflow-hidden">
-        <div className="flex justify-between items-center px-4 py-3 border-b border-accent/20">
+        <div className="flex justify-between items-center px-4 py-3 border-b border-accent/10">
           <h3 className="font-semibold">Share card</h3>
           <Button
             size="icon"
@@ -119,10 +119,10 @@ export const ShareResultCard: React.FC<ShareResultCardProps> = ({
           </Button>
         </div>
 
-        <div className="p-6 bg-gradient-to-br from-accent/25 to-accent/5">
+        <div className="p-6 bg-gradient-to-br from-accent/30 to-accent/[0.05]">
           <div
             ref={cardRef}
-            className="rounded-xl bg-primary/80 border border-accent/30 p-6 space-y-4"
+            className="rounded-2xl border border-accent/30 bg-accent/[0.12] p-6 space-y-4"
           >
             <div className="flex items-center gap-2">
               <img

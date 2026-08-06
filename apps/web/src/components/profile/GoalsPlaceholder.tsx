@@ -37,7 +37,7 @@ export const GoalsPlaceholder: React.FC<GoalsPlaceholderProps> = ({
   ];
 
   return (
-    <section className="bg-accent/10 rounded-xl p-5 md:p-6 h-full">
+    <section className="rounded-2xl border border-accent/15 bg-accent/[0.05] p-5 md:p-6 h-full">
       <div className="flex items-center justify-between mb-4">
         <h2 className="text-lg font-semibold flex items-center gap-2">
           <Target className="size-5 text-accent" />

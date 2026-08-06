@@ -29,7 +29,7 @@ export const RaceChat: React.FC<RaceChatProps> = ({
   };
 
   return (
-    <section className="bg-accent/10 rounded-xl flex flex-col h-64 md:h-80">
+    <section className="rounded-2xl border border-accent/15 bg-accent/[0.05] flex flex-col h-64 md:h-80">
       <h2 className="text-sm font-semibold text-text/70 px-3 py-2 border-b border-accent/15">
         Chat
       </h2>
@@ -68,7 +68,7 @@ export const RaceChat: React.FC<RaceChatProps> = ({
           placeholder="Message…"
           maxLength={500}
           disabled={disabled}
-          className="flex-1 h-9 rounded-md border border-accent/25 bg-transparent px-3 text-sm"
+          className="flex-1 h-9 rounded-md border border-line bg-transparent px-3 text-sm"
         />
         <Button type="submit" size="icon" disabled={disabled || !text.trim()}>
           <Send className="size-4" />

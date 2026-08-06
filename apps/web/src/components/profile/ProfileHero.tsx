@@ -42,7 +42,7 @@ export const ProfileHero: React.FC<ProfileHeroProps> = ({
     <Panel className="p-6 sm:p-6 md:p-8">
       <div className="flex flex-col sm:flex-row gap-6 items-start sm:items-center">
         <div
-          className="shrink-0 size-20 md:size-24 rounded-full bg-accent/30 border-2 border-accent/40 flex items-center justify-center text-2xl md:text-3xl font-semibold text-accent overflow-hidden"
+          className="shrink-0 size-20 md:size-24 rounded-full bg-accent/30 border-2 border-accent/30 flex items-center justify-center text-2xl md:text-3xl font-semibold text-accent overflow-hidden"
           aria-hidden
         >
           {user.avatarUrl ? (

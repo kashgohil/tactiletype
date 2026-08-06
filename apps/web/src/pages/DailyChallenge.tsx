@@ -28,9 +28,9 @@ function BoardList({
         <li
           key={entry.key}
           className={cn(
-            'flex items-center justify-between gap-3 text-sm rounded-xl px-3 py-2.5',
+            'flex items-center justify-between gap-3 text-sm rounded-lg px-3 py-2.5',
             entry.rank === 1
-              ? 'bg-accent/15 border border-accent/20'
+              ? 'bg-accent/[0.12] border border-accent/30'
               : 'bg-primary/25 border border-transparent'
           )}
         >
@@ -168,10 +168,10 @@ export const DailyChallenge: React.FC = () => {
       <div className="grid md:grid-cols-2 gap-3">
         <motion.section
           {...enter(0.04)}
-          className="rounded-2xl border border-accent/20 bg-gradient-to-br from-accent/[0.12] to-transparent p-5 sm:p-6 flex flex-col gap-4"
+          className="rounded-2xl border border-accent/30 bg-gradient-to-br from-accent/[0.12] to-transparent p-5 sm:p-6 flex flex-col gap-4"
         >
           <div className="flex items-center gap-2.5">
-            <div className="size-10 rounded-xl bg-accent/15 flex items-center justify-center shrink-0">
+            <div className="size-10 rounded-lg bg-accent/20 flex items-center justify-center shrink-0">
               <Quote className="size-5 text-accent" />
             </div>
             <div>
@@ -205,10 +205,10 @@ export const DailyChallenge: React.FC = () => {
 
         <motion.section
           {...enter(0.08)}
-          className="rounded-2xl border border-accent/20 bg-gradient-to-br from-accent/[0.12] to-transparent p-5 sm:p-6 flex flex-col gap-4"
+          className="rounded-2xl border border-accent/30 bg-gradient-to-br from-accent/[0.12] to-transparent p-5 sm:p-6 flex flex-col gap-4"
         >
           <div className="flex items-center gap-2.5">
-            <div className="size-10 rounded-xl bg-accent/15 flex items-center justify-center shrink-0">
+            <div className="size-10 rounded-lg bg-accent/20 flex items-center justify-center shrink-0">
               <Gamepad2 className="size-5 text-accent" />
             </div>
             <div>
@@ -233,7 +233,7 @@ export const DailyChallenge: React.FC = () => {
                   Hardcore · 1 life
                 </span>
               )}
-              <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-accent/15 text-accent border border-accent/25">
+              <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-accent/20 text-accent border border-accent/30">
                 Ranked
               </span>
             </div>
@@ -245,7 +245,7 @@ export const DailyChallenge: React.FC = () => {
       </div>
 
       <div className="grid md:grid-cols-2 gap-3">
-        <motion.section {...enter(0.12)} className="rounded-2xl border border-accent/12 bg-accent/[0.04] p-5 sm:p-6">
+        <motion.section {...enter(0.12)} className="rounded-2xl border border-accent/15 bg-accent/[0.05] p-5 sm:p-6">
           <h2 className="text-base font-semibold flex items-center gap-2 mb-4 tracking-tight">
             <Trophy className="size-4 text-accent" />
             Quote board
@@ -256,7 +256,7 @@ export const DailyChallenge: React.FC = () => {
           />
         </motion.section>
 
-        <motion.section {...enter(0.16)} className="rounded-2xl border border-accent/12 bg-accent/[0.04] p-5 sm:p-6">
+        <motion.section {...enter(0.16)} className="rounded-2xl border border-accent/15 bg-accent/[0.05] p-5 sm:p-6">
           <h2 className="text-base font-semibold flex items-center gap-2 mb-1 tracking-tight">
             <Trophy className="size-4 text-accent" />
             Mode board

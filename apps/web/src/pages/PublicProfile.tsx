@@ -76,7 +76,7 @@ export const PublicProfile: React.FC = () => {
 
   return (
     <div className="space-y-6 md:space-y-8">
-      <section className="bg-accent/10 rounded-xl p-6 md:p-8">
+      <section className="rounded-2xl border border-accent/15 bg-accent/[0.05] p-6 md:p-8">
         <div className="flex flex-col sm:flex-row gap-5 items-start">
           <div className="size-20 rounded-full bg-accent/30 flex items-center justify-center text-2xl font-bold text-accent">
             {displayName.slice(0, 2).toUpperCase()}
@@ -117,7 +117,7 @@ export const PublicProfile: React.FC = () => {
       <MetricHierarchy stats={stats} />
 
       {recentResults?.length > 0 && (
-        <section className="bg-accent/5 rounded-xl p-5">
+        <section className="rounded-2xl border border-accent/15 bg-accent/[0.05] p-5">
           <h2 className="text-lg font-semibold mb-3">Recent results</h2>
           <ul className="space-y-2">
             {recentResults.map((r) => (

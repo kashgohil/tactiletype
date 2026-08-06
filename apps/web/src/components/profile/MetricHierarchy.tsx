@@ -67,7 +67,7 @@ export const MetricHierarchy: React.FC<MetricHierarchyProps> = ({
       <div className="space-y-4">
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
           {Array.from({ length: 4 }).map((_, i) => (
-            <Skeleton key={i} className="h-[120px] rounded-xl" />
+            <Skeleton key={i} className="h-[120px] rounded-2xl" />
           ))}
         </div>
         <Skeleton className="h-[74px] rounded-2xl" />
@@ -114,7 +114,7 @@ export const MetricHierarchy: React.FC<MetricHierarchyProps> = ({
       <div
         className={cn(
           panelSurface,
-          'grid grid-cols-2 sm:grid-cols-3 divide-x divide-y sm:divide-y-0 divide-accent/12 overflow-hidden'
+          'grid grid-cols-2 sm:grid-cols-3 divide-x divide-y sm:divide-y-0 divide-accent/10 overflow-hidden'
         )}
       >
         <SecondaryMetric

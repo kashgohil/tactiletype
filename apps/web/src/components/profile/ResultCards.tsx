@@ -71,7 +71,7 @@ function ResultCard({ result }: { result: TestResult }) {
         : null;
 
   return (
-    <article className="rounded-xl p-4 flex flex-col gap-3 border border-accent/12 hover:border-accent/25 hover:bg-accent/[0.06] transition-colors">
+    <article className="rounded-lg p-4 flex flex-col gap-3 bg-accent/[0.06] hover:bg-accent/10 transition-colors">
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
           <h3 className="font-medium text-sm truncate">
@@ -241,7 +241,7 @@ export const ResultCards: React.FC<ResultCardsProps> = ({
               ))}
             </>
           )}
-          <div className="flex items-center gap-1 rounded-lg border border-accent/20 p-0.5">
+          <div className="flex items-center gap-1 rounded-lg border border-accent/15 p-0.5">
             <Button
               size="sm"
               variant={view === 'cards' ? 'default' : 'ghost'}
@@ -267,7 +267,7 @@ export const ResultCards: React.FC<ResultCardsProps> = ({
       {isLoading ? (
         <div className="grid sm:grid-cols-2 gap-3">
           {Array.from({ length: 4 }).map((_, i) => (
-            <Skeleton key={i} className="h-32 rounded-xl" />
+            <Skeleton key={i} className="h-32 rounded-lg" />
           ))}
         </div>
       ) : results.length === 0 && !isFetching ? (
@@ -280,14 +280,14 @@ export const ResultCards: React.FC<ResultCardsProps> = ({
             result.id ? (
               <ResultCard key={result.id} result={result} />
             ) : (
-              <Skeleton key={`sk-${index}`} className="h-32 rounded-xl" />
+              <Skeleton key={`sk-${index}`} className="h-32 rounded-lg" />
             )
           )}
         </div>
       ) : (
         <div className="-mx-5 sm:-mx-6">
           <Table>
-            <TableHeader className="border-y border-accent/12">
+            <TableHeader className="border-y border-accent/10">
               <TableRow className="hover:bg-transparent">
                 <TableHead className="px-5 sm:px-6">Date</TableHead>
                 <TableHead className="px-5 sm:px-6">WPM</TableHead>
@@ -314,7 +314,7 @@ export const ResultCards: React.FC<ResultCardsProps> = ({
       )}
 
       {totalCount > 0 && (
-        <div className="pt-4 mt-4 border-t border-accent/12">
+        <div className="pt-4 mt-4 border-t border-accent/10">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div className="text-sm text-text/50">
               Showing {(currentPage - 1) * pageSize + 1} to{' '}

@@ -169,10 +169,10 @@ export const MultiplayerRoom: React.FC = () => {
           let cls = 'text-text/35';
           if (engine) {
             const status = engine.getCharacterStatus(i);
-            if (status === 'correct') cls = 'text-text border-b border-accent/60';
+            if (status === 'correct') cls = 'text-text';
             else if (status === 'incorrect')
-              cls = 'text-rose-500 bg-rose-500/15';
-            else if (status === 'current') cls = 'text-text/50 bg-accent/20';
+              cls = 'text-destructive';
+            else if (status === 'current') cls = 'text-text/50 bg-accent/35 rounded-sm';
           }
           return (
             <span key={i} className={cn('relative', cls)}>
@@ -219,7 +219,7 @@ export const MultiplayerRoom: React.FC = () => {
       </div>
 
       {(error || state.error || joining) && (
-        <div className="rounded-xl bg-accent/10 px-4 py-3 text-sm text-text/60">
+        <div className="rounded-lg bg-accent/[0.06] px-4 py-3 text-sm text-text/60">
           {joining ? 'Joining room…' : error || state.error}
         </div>
       )}
@@ -227,7 +227,7 @@ export const MultiplayerRoom: React.FC = () => {
       <div className="grid lg:grid-cols-3 gap-4">
         <div className="lg:col-span-2 space-y-4">
           {isCountdown && state.countdown != null && (
-            <div className="bg-accent/20 border border-accent/40 rounded-2xl py-16 text-center">
+            <div className="rounded-2xl border border-accent/30 bg-accent/[0.12] py-16 text-center">
               <p className="text-sm text-text/50 mb-2">
                 {isSpectator ? 'Race starting' : 'Get ready'}
               </p>
@@ -247,7 +247,7 @@ export const MultiplayerRoom: React.FC = () => {
               onFocus={() => setFocused(true)}
               onBlur={() => setFocused(false)}
               className={cn(
-                'bg-accent/15 rounded-xl p-6 outline-none focus-visible:ring-2 focus-visible:ring-accent/40 min-h-[140px]',
+                'bg-accent/30 rounded-lg p-6 outline-none focus-visible:ring-2 focus-visible:ring-accent/40 min-h-[140px]',
                 !focused && 'opacity-80'
               )}
             >
@@ -279,7 +279,7 @@ export const MultiplayerRoom: React.FC = () => {
           )}
 
           {watching && state.raceStatus === 'active' && (
-            <div className="bg-accent/10 rounded-xl p-8 text-center space-y-2">
+            <div className="rounded-2xl border border-accent/15 bg-accent/[0.05] p-8 text-center space-y-2">
               <Eye className="size-8 text-accent mx-auto" />
               <p className="font-medium">Watching live</p>
               <p className="text-sm text-text/50">
@@ -289,7 +289,7 @@ export const MultiplayerRoom: React.FC = () => {
           )}
 
           {isWaiting && (
-            <div className="bg-accent/10 rounded-xl p-8 text-center space-y-2">
+            <div className="rounded-2xl border border-accent/15 bg-accent/[0.05] p-8 text-center space-y-2">
               <p className="font-medium">
                 {isSpectator ? 'Spectating lobby' : 'Waiting for host to start'}
               </p>
@@ -310,7 +310,7 @@ export const MultiplayerRoom: React.FC = () => {
           )}
 
           {isFinished && (
-            <div className="bg-accent/15 border border-accent/30 rounded-xl p-6 text-center space-y-2">
+            <div className="rounded-2xl border border-accent/30 bg-accent/[0.12] p-6 text-center space-y-2">
               <Trophy className="size-8 text-accent mx-auto" />
               <h2 className="text-lg font-semibold">Race complete</h2>
               <p className="text-sm text-text/50">
@@ -319,7 +319,7 @@ export const MultiplayerRoom: React.FC = () => {
             </div>
           )}
 
-          <section className="bg-accent/10 rounded-xl p-4 space-y-2">
+          <section className="rounded-2xl border border-accent/15 bg-accent/[0.05] p-4 space-y-2">
             <h2 className="text-sm font-semibold text-text/70 px-1">Racers</h2>
             <ul className="space-y-2">
               {ranked.map((p, i) => (
@@ -351,7 +351,7 @@ export const MultiplayerRoom: React.FC = () => {
                       {Math.round(p.wpm)} wpm · {Math.round(p.accuracy)}%
                     </span>
                   </div>
-                  <div className="h-1.5 rounded-full bg-accent/15 overflow-hidden">
+                  <div className="h-1.5 rounded-full bg-accent/20 overflow-hidden">
                     <div
                       className="h-full w-full bg-accent origin-left transition-transform duration-200 ease-linear"
                       style={{

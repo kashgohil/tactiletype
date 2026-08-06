@@ -128,7 +128,7 @@ export const ThemePicker: React.FC = () => {
       <PopoverContent
         align="end"
         sideOffset={8}
-        className="w-[19.5rem] p-0 rounded-2xl border-accent/20 bg-surface-2 shadow-xl shadow-text/5"
+        className="w-[19.5rem] p-0 rounded-2xl border-accent/15 bg-surface-2 shadow-xl shadow-text/5"
         onMouseLeave={() => setPreviewTheme(null)}
       >
         <div className="flex items-baseline justify-between gap-3 px-4 pt-4 pb-3">
@@ -175,13 +175,13 @@ export const ThemePicker: React.FC = () => {
                       },
                     })}
                 className={cn(
-                  'group/theme relative text-left rounded-xl p-1.5 cursor-pointer',
+                  'group/theme relative text-left rounded-lg p-1.5 cursor-pointer',
                   'ring-1 transition-[background-color,box-shadow,transform] duration-150',
                   'ease-[cubic-bezier(0.23,1,0.32,1)]',
                   'outline-none focus-visible:ring-accent/60 active:scale-[0.985]',
                   active
-                    ? 'bg-accent/12 ring-accent/40'
-                    : 'ring-transparent hover:bg-accent/[0.07] hover:ring-accent/20'
+                    ? 'bg-accent/[0.12] ring-accent/30'
+                    : 'ring-transparent hover:bg-accent/10 hover:ring-accent/15'
                 )}
               >
                 <ThemeMiniature theme={theme} />

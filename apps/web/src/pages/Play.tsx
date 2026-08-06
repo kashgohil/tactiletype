@@ -92,7 +92,7 @@ export const Play: React.FC = () => {
         )}
       >
         <div className="flex items-start gap-4">
-          <div className="size-12 rounded-xl bg-primary/45 flex items-center justify-center shrink-0">
+          <div className="size-12 rounded-lg bg-accent/[0.06] flex items-center justify-center shrink-0">
             <DailyIcon className="size-5" />
           </div>
           <div>
@@ -129,8 +129,8 @@ export const Play: React.FC = () => {
                   onClick={() => clearDailyRun()}
                   className={cn(
                     'group flex flex-col h-full rounded-2xl p-5 sm:p-6',
-                    'border border-accent/12 bg-accent/[0.05]',
-                    'hover:bg-accent/[0.1] hover:border-accent/25',
+                    'border border-accent/15 bg-accent/[0.05]',
+                    'hover:bg-accent/10 hover:border-accent/30',
                     'transition-[border-color,background-color,transform] duration-150 ease-[cubic-bezier(0.23,1,0.32,1)]',
                     'active:scale-[0.99]',
                     mode.featured && 'ring-1 ring-accent/15'
@@ -189,7 +189,7 @@ export const Play: React.FC = () => {
       </section>
 
       <motion.section
-        className="rounded-2xl border border-accent/12 bg-accent/[0.04] p-5 sm:p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4"
+        className="rounded-2xl border border-accent/15 bg-accent/[0.05] p-5 sm:p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4"
         {...(reduced
           ? {}
           : {

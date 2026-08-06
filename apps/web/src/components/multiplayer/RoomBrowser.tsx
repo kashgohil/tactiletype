@@ -85,14 +85,14 @@ export const RoomBrowser: React.FC<RoomBrowserProps> = ({
       {error && (
         <p
           role="alert"
-          className="text-sm text-destructive border border-destructive/30 bg-destructive/10 rounded-xl px-4 py-3"
+          className="text-sm text-destructive border border-destructive/40 bg-destructive/10 rounded-lg px-4 py-3"
         >
           {error}
         </p>
       )}
 
       {rooms.length === 0 && !loading ? (
-        <div className="bg-accent/10 rounded-xl py-16 text-center space-y-3">
+        <div className="rounded-2xl border border-accent/15 bg-accent/[0.05] py-16 text-center space-y-3">
           <Users className="mx-auto size-8 text-text/30" />
           <div className="space-y-1">
             <h2 className="font-medium">No rooms yet</h2>
@@ -113,7 +113,7 @@ export const RoomBrowser: React.FC<RoomBrowserProps> = ({
             return (
               <div
                 key={room.id}
-                className="bg-accent/10 rounded-xl p-5 space-y-4 flex flex-col"
+                className="rounded-2xl border border-accent/15 bg-accent/[0.05] p-5 space-y-4 flex flex-col"
               >
                 <div className="flex items-start justify-between gap-3">
                   <div className="min-w-0">

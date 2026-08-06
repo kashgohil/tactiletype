@@ -15,7 +15,7 @@ export const WeakSpotsPanel: React.FC<WeakSpotsPanelProps> = ({
   isLoading,
 }) => {
   if (isLoading) {
-    return <Skeleton className="h-48 rounded-xl" />;
+    return <Skeleton className="h-48 rounded-2xl" />;
   }
 
   const chars = errorAnalysis?.mostProblematicChars?.slice(0, 8) ?? [];
