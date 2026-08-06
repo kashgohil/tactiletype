@@ -1,5 +1,13 @@
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
 import { useQuery } from '@tanstack/react-query';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import React, { useState } from 'react';
@@ -57,7 +65,7 @@ export const Leaderboard: React.FC = () => {
   };
 
   return (
-    <div className="py-8 pb-16">
+    <div>
       <h1 className="text-4xl font-bold text-center mb-8 text-gray-900 dark:text-white">
         Leaderboard
       </h1>
@@ -83,55 +91,43 @@ export const Leaderboard: React.FC = () => {
       {/* Loading State */}
       {isLoading && (
         <div className="bg-accent/10 rounded-lg overflow-hidden">
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead className="bg-accent/10">
-                <tr>
-                  <th className="px-6 py-4 text-left text-xs font-medium text-text/50 uppercase tracking-wider">
-                    Rank
-                  </th>
-                  <th className="px-6 py-4 text-left text-xs font-medium text-text/50 uppercase tracking-wider">
-                    Player
-                  </th>
-                  <th className="px-6 py-4 text-left text-xs font-medium text-text/50 uppercase tracking-wider">
-                    Best WPM
-                  </th>
-                  <th className="px-6 py-4 text-left text-xs font-medium text-text/50 uppercase tracking-wider">
-                    Avg WPM
-                  </th>
-                  <th className="px-6 py-4 text-left text-xs font-medium text-text/50 uppercase tracking-wider">
-                    Avg Accuracy
-                  </th>
-                  <th className="px-6 py-4 text-left text-xs font-medium text-text/50 uppercase tracking-wider">
-                    Tests
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-accent/20">
+          <div>
+            <Table>
+              <TableHeader className="border-b border-accent/12">
+                <TableRow className="hover:bg-transparent">
+                  <TableHead className="px-5 sm:px-6">Rank</TableHead>
+                  <TableHead className="px-5 sm:px-6">Player</TableHead>
+                  <TableHead className="px-5 sm:px-6">Best WPM</TableHead>
+                  <TableHead className="px-5 sm:px-6">Avg WPM</TableHead>
+                  <TableHead className="px-5 sm:px-6">Avg Accuracy</TableHead>
+                  <TableHead className="px-5 sm:px-6">Tests</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
                 {Array.from({ length: 10 }).map((_, index) => (
-                  <tr key={index} className="hover:bg-accent/10">
-                    <td className="px-6 py-4 whitespace-nowrap">
+                  <TableRow key={index}>
+                    <TableCell className="px-5 sm:px-6 py-3">
                       <Skeleton className="h-6 w-8" />
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
+                    </TableCell>
+                    <TableCell className="px-5 sm:px-6 py-3">
                       <Skeleton className="h-4 w-24" />
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
+                    </TableCell>
+                    <TableCell className="px-5 sm:px-6 py-3">
                       <Skeleton className="h-4 w-16" />
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
+                    </TableCell>
+                    <TableCell className="px-5 sm:px-6 py-3">
                       <Skeleton className="h-4 w-16" />
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
+                    </TableCell>
+                    <TableCell className="px-5 sm:px-6 py-3">
                       <Skeleton className="h-4 w-12" />
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
+                    </TableCell>
+                    <TableCell className="px-5 sm:px-6 py-3">
                       <Skeleton className="h-4 w-8" />
-                    </td>
-                  </tr>
+                    </TableCell>
+                  </TableRow>
                 ))}
-              </tbody>
-            </table>
+              </TableBody>
+            </Table>
           </div>
         </div>
       )}
@@ -169,65 +165,47 @@ export const Leaderboard: React.FC = () => {
       {/* Leaderboard Table */}
       {!isLoading && !error && leaderboard.length > 0 && (
         <div className="bg-accent/10 rounded-lg overflow-hidden">
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead className="bg-accent/10">
-                <tr>
-                  <th className="px-6 py-4 text-left text-xs font-medium text-text/50 uppercase tracking-wider">
-                    Rank
-                  </th>
-                  <th className="px-6 py-4 text-left text-xs font-medium text-text/50 uppercase tracking-wider">
-                    Player
-                  </th>
-                  <th className="px-6 py-4 text-left text-xs font-medium text-text/50 uppercase tracking-wider">
-                    Best WPM
-                  </th>
-                  <th className="px-6 py-4 text-left text-xs font-medium text-text/50 uppercase tracking-wider">
-                    Avg WPM
-                  </th>
-                  <th className="px-6 py-4 text-left text-xs font-medium text-text/50 uppercase tracking-wider">
-                    Avg Accuracy
-                  </th>
-                  <th className="px-6 py-4 text-left text-xs font-medium text-text/50 uppercase tracking-wider">
-                    Tests
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-accent/20">
+          <div>
+            <Table>
+              <TableHeader className="border-b border-accent/12">
+                <TableRow className="hover:bg-transparent">
+                  <TableHead className="px-5 sm:px-6">Rank</TableHead>
+                  <TableHead className="px-5 sm:px-6">Player</TableHead>
+                  <TableHead className="px-5 sm:px-6">Best WPM</TableHead>
+                  <TableHead className="px-5 sm:px-6">Avg WPM</TableHead>
+                  <TableHead className="px-5 sm:px-6">Avg Accuracy</TableHead>
+                  <TableHead className="px-5 sm:px-6">Tests</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
                 {leaderboard.map((entry, index) => (
-                  <tr key={entry.userId} className={`hover:bg-accent/10`}>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="flex items-center">
-                        <span className="text-lg font-bold">
-                          {getRankIcon(index + 1)}
-                        </span>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm font-medium">
-                        {entry.username}
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm font-bold text-accent">
+                  <TableRow key={entry.userId}>
+                    <TableCell className="px-5 sm:px-6 py-3 text-lg font-bold">
+                      {getRankIcon(index + 1)}
+                    </TableCell>
+                    <TableCell className="px-5 sm:px-6 py-3">
+                      <span className="font-medium">{entry.username}</span>
+                    </TableCell>
+                    <TableCell className="px-5 sm:px-6 py-3">
+                      <span className="font-bold text-accent tabular-nums">
                         {entry.bestWpm} WPM
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm">{entry.avgWpm} WPM</div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm">{entry.avgAccuracy}%</div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm text-text/50">
+                      </span>
+                    </TableCell>
+                    <TableCell className="px-5 sm:px-6 py-3">
+                      <span className="tabular-nums">{entry.avgWpm} WPM</span>
+                    </TableCell>
+                    <TableCell className="px-5 sm:px-6 py-3">
+                      <span className="tabular-nums">{entry.avgAccuracy}%</span>
+                    </TableCell>
+                    <TableCell className="px-5 sm:px-6 py-3">
+                      <span className="text-text/50 tabular-nums">
                         {entry.testCount}
-                      </div>
-                    </td>
-                  </tr>
+                      </span>
+                    </TableCell>
+                  </TableRow>
                 ))}
-              </tbody>
-            </table>
+              </TableBody>
+            </Table>
           </div>
         </div>
       )}
