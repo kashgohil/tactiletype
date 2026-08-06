@@ -1,3 +1,4 @@
+import { SITE_EMAIL } from '@/lib/seo';
 import React from 'react';
 
 export const Privacy: React.FC = () => {
@@ -167,8 +168,14 @@ export const Privacy: React.FC = () => {
           </h2>
           <p>
             If you have any questions about this Privacy Policy or our data
-            practices, please contact us through our support channels or email
-            us at privacy@tactiletype.com.
+            practices, email us at{' '}
+            <a
+              href={`mailto:${SITE_EMAIL}`}
+              className="text-accent underline-offset-2 hover:underline"
+            >
+              {SITE_EMAIL}
+            </a>
+            .
           </p>
         </section>
 

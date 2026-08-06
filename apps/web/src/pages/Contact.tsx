@@ -1,7 +1,7 @@
 import { JsonLd } from '@/components/JsonLd';
 import { Panel } from '@/components/ui/panel';
-import { faqPageSchema, webPageSchema } from '@/lib/seo';
-import { Bug, Lightbulb, Mail, MessageCircle, Users } from 'lucide-react';
+import { SITE_EMAIL, faqPageSchema, webPageSchema } from '@/lib/seo';
+import { Bug, Lightbulb, Mail, Users } from 'lucide-react';
 import React from 'react';
 
 type Channel = {
@@ -10,7 +10,6 @@ type Channel = {
   description: string;
   href: string;
   cta: string;
-  external?: boolean;
 };
 
 const REACH: Channel[] = [
@@ -18,46 +17,46 @@ const REACH: Channel[] = [
     icon: <Mail className="size-5 text-accent" />,
     title: 'Email support',
     description: 'For general inquiries and support requests',
-    href: 'mailto:support@tactiletype.com',
-    cta: 'support@tactiletype.com',
-  },
-  {
-    icon: <MessageCircle className="size-5 text-accent" />,
-    title: 'Community chat',
-    description: 'Join our Discord community for real-time discussions',
-    href: 'https://discord.gg/tactiletype',
-    cta: 'Join Discord server',
-    external: true,
+    href: `mailto:${SITE_EMAIL}`,
+    cta: SITE_EMAIL,
   },
 ];
+
+/**
+ * Every category lands in the same inbox. There is one real address, so the
+ * categories carry a prefilled subject rather than a per-topic alias — an alias
+ * nobody reads is worse than no alias, and mail sent to one bounces silently.
+ */
+const supportMailto = (subject: string) =>
+  `mailto:${SITE_EMAIL}?subject=${encodeURIComponent(subject)}`;
 
 const CATEGORIES: Channel[] = [
   {
     icon: <Bug className="size-5 text-accent" />,
     title: 'Bug reports',
     description: 'Found a bug or experiencing technical issues?',
-    href: 'mailto:bugs@tactiletype.com',
+    href: supportMailto('Bug report'),
     cta: 'Report a bug',
   },
   {
     icon: <Lightbulb className="size-5 text-accent" />,
     title: 'Feature requests',
     description: 'Have ideas to improve tactiletype?',
-    href: 'mailto:features@tactiletype.com',
+    href: supportMailto('Feature request'),
     cta: 'Suggest a feature',
   },
   {
     icon: <Users className="size-5 text-accent" />,
     title: 'Business inquiries',
     description: 'Partnership, sponsorship, or business opportunities',
-    href: 'mailto:business@tactiletype.com',
-    cta: 'Contact business team',
+    href: supportMailto('Business inquiry'),
+    cta: 'Contact us about business',
   },
   {
     icon: <Mail className="size-5 text-accent" />,
     title: 'Press & media',
     description: 'Media inquiries and press releases',
-    href: 'mailto:press@tactiletype.com',
+    href: supportMailto('Press enquiry'),
     cta: 'Press contact',
   },
 ];
@@ -92,7 +91,7 @@ const FAQ = [
 ];
 
 /** A borderless row — panels never nest, so channels separate by spacing only. */
-function ChannelRow({ icon, title, description, href, cta, external }: Channel) {
+function ChannelRow({ icon, title, description, href, cta }: Channel) {
   return (
     <div className="flex items-start gap-3">
       <div className="size-9 rounded-lg bg-accent/[0.06] flex items-center justify-center shrink-0">
@@ -105,9 +104,6 @@ function ChannelRow({ icon, title, description, href, cta, external }: Channel) 
         </p>
         <a
           href={href}
-          {...(external
-            ? { target: '_blank', rel: 'noopener noreferrer' }
-            : null)}
           className="inline-block text-sm text-accent mt-1.5 underline-offset-2 hover:underline break-all"
         >
           {cta}

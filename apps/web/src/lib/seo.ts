@@ -14,10 +14,12 @@ export const SITE_URL = 'https://trytactiletype.com';
 export const SITE_NAME = 'tactiletype';
 
 /**
- * Support address. Note this sits on `tactiletype.com` while the site is on
- * `trytactiletype.com` — a known entity-resolution wart the audit tracks.
+ * Support address — the one inbox the site publishes, on `/contact`, in the
+ * privacy policy, and as `Organization.email`. It is a personal Gmail rather
+ * than a domain address, so it carries no entity signal for `trytactiletype.com`;
+ * a `support@trytactiletype.com` forward would, if the domain ever gets mail.
  */
-export const SITE_EMAIL = 'support@tactiletype.com';
+export const SITE_EMAIL = 'kashyapgohil476@gmail.com';
 
 /**
  * Other URLs that are the same entity as this site.
@@ -25,7 +27,8 @@ export const SITE_EMAIL = 'support@tactiletype.com';
  * Each one is an independent reference point search engines and answer models
  * use to resolve "tactiletype" into a single thing rather than an unverified
  * domain. Only list profiles that are public, live, and actually ours — a dead
- * link here is worse than an absent one. Add the Discord invite once verified.
+ * link here is worse than an absent one. GitHub is the only one that exists
+ * today; there is no X or Discord presence to claim.
  */
 export const SAME_AS: string[] = ['https://github.com/kashgohil/tactiletype'];
 
