@@ -21,22 +21,20 @@
   # Isolates this origin's browsing-context group from popups it opens.
   Cross-Origin-Opener-Policy: same-origin
 
-  # REPORT-ONLY until verified against a deploy preview. The browser logs
-  # violations to the console and blocks nothing, so a wrong rule here cannot
-  # take the site down.
+  # Enforced. api.trytactiletype.com is the confirmed production API origin,
+  # listed under both https and wss because connect-src treats them as separate
+  # origins — it covers fetch, XHR, and WebSockets alike. If VITE_API_URL or
+  # VITE_WS_URL in Netlify ever move to another host, this line has to move with
+  # them: they are baked in at build time and this static file cannot read them.
   #
-  # connect-src covers fetch, XHR, and WebSockets. api.trytactiletype.com is
-  # listed under both https and wss because they are separate origins to CSP.
-  # Confirm VITE_API_URL / VITE_WS_URL in Netlify still point there before
-  # enforcing — those are set at build time and this static file cannot read them.
-  #
-  # To enforce: deploy a preview, exercise login, a typing test, and a
-  # multiplayer room with the console open, confirm no CSP violations are
-  # reported, then rename this header to Content-Security-Policy.
+  # OAuth is unaffected: Login sends the browser to the provider with
+  # `window.location.href`, a top-level navigation, which no directive here
+  # governs. form-action only bites on real form submissions, and the app has
+  # none that leave the origin.
   #
   # 'unsafe-inline' in style-src is required: React writes inline style
   # attributes, and ThemeProvider sets custom properties on documentElement.
-  Content-Security-Policy-Report-Only: default-src 'self'; base-uri 'self'; object-src 'none'; frame-ancestors 'none'; form-action 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self' https://api.trytactiletype.com wss://api.trytactiletype.com; upgrade-insecure-requests
+  Content-Security-Policy: default-src 'self'; base-uri 'self'; object-src 'none'; frame-ancestors 'none'; form-action 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self' https://api.trytactiletype.com wss://api.trytactiletype.com; upgrade-insecure-requests
 
 # Content-hashed build output is immutable — cache it hard.
 /assets/*
