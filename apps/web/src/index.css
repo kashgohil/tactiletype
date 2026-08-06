@@ -73,7 +73,17 @@
   --color-muted: color-mix(in oklab, var(--color-text) 55%, var(--color-primary));
   /* Opaque accent wash — the accent tint without any transparency */
   --color-surface-accent: color-mix(in oklab, var(--color-accent) 30%, var(--color-primary));
+
+  /* Status hues — the ONLY colors allowed to sit outside the theme ramp, because
+     they carry meaning the accent can't (a mistyped key must read as wrong even
+     when the accent is itself red). Every wrong/right/warning/ghost signal in the
+     app resolves to one of these — never to a raw Tailwind palette color.
+     Each is muted toward the theme so it still belongs to the current skin. */
   --color-error: oklch(0.645 0.246 16.44);
+  --color-success: oklch(0.7 0.15 155);
+  --color-warning: oklch(0.78 0.15 80);
+  /* The second racer in Ghost Race — a rival, not an error or a success. */
+  --color-ghost: oklch(0.72 0.14 235);
 
   --ease-out-strong: cubic-bezier(0.23, 1, 0.32, 1);
   --ease-in-out-strong: cubic-bezier(0.77, 0, 0.175, 1);
@@ -108,6 +118,38 @@
 @utility screen-fill {
   min-height: calc(100svh - var(--height-nav) - 5rem);
 }
+
+/* ---------------------------------------------------------------------------
+   The surface contract. Two scales, no exceptions — if a value isn't listed
+   here it doesn't belong in a className.
+
+   RADIUS  (one step per level of nesting, so depth reads at a glance)
+     rounded-2xl   page-level panels and cards            → `panelSurface`
+     rounded-lg    blocks nested inside a panel, the typing slab, modals
+     rounded-md    controls — buttons, inputs, chips, badges
+     rounded-full  pills, avatars, dots, progress tracks
+     rounded-sm    rows inside a popover/menu (shadcn's own step — primitives only)
+   `rounded-xl`, `rounded-xs` and bare `rounded` are drift. Don't reintroduce them.
+
+   FILLS  (accent-tinted, so every surface follows the theme picker)
+     bg-accent/[0.05]  panel                              → `panelSurface`
+     bg-accent/[0.06]  block nested inside a panel
+     bg-accent/10      hover state on a row or card
+     bg-accent/[0.12]  accent panel                       → `<Panel tone="accent">`
+     bg-accent/20      chip, badge, progress track
+     bg-accent/30      the typing slab
+   BORDERS  (three weights, no more)
+     border-accent/10  hairline dividing rows inside a panel
+     border-accent/15  panel edge, control-group edge
+     border-accent/30  accent panel, selected, hover-emphasis
+     border-line       neutral chrome only — nav, footer, form controls
+   A panel never contains another panel — see `components/ui/panel.tsx`.
+
+   Status hues (--color-error/-success/-warning/-ghost) are the only non-accent
+   colors. Raw Tailwind palette classes (gray-, rose-, sky-, emerald-…) do not
+   belong anywhere outside `utils/codeHighlight.ts`, which is real syntax
+   highlighting and needs hues of its own.
+   --------------------------------------------------------------------------- */
 
 @layer base {
   * {
