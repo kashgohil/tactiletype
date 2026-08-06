@@ -275,7 +275,7 @@ export const WeakStormMode: React.FC = () => {
         {weakKeys.map((k) => (
           <span
             key={k}
-            className="font-mono px-2 py-0.5 rounded-md bg-rose-500/15 text-rose-300 border border-rose-500/20"
+            className="font-mono px-2 py-0.5 rounded-md bg-destructive/15 text-destructive border border-destructive/30"
           >
             {k === ' ' ? '␣' : k}
           </span>

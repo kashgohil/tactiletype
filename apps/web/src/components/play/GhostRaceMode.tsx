@@ -234,8 +234,8 @@ export const GhostRaceMode: React.FC = () => {
               className={cn(
                 'text-sm px-3 py-1 rounded-full border transition-colors font-mono',
                 pace === p
-                  ? 'border-sky-400/60 bg-sky-400/15 text-text'
-                  : 'border-accent/20 text-text/50 hover:border-accent/40'
+                  ? 'border-ghost/60 bg-ghost/15 text-text'
+                  : 'border-accent/15 text-text/50 hover:border-accent/30'
               )}
             >
               {p}
@@ -244,7 +244,7 @@ export const GhostRaceMode: React.FC = () => {
         </div>
       )}
       {isDaily && phase === 'ready' && (
-        <p className="text-center text-xs text-sky-300/80 font-mono">
+        <p className="text-center text-xs text-ghost/80 font-mono">
           Daily mode · fixed ghost at {pace} WPM
         </p>
       )}
@@ -271,7 +271,7 @@ export const GhostRaceMode: React.FC = () => {
         {/* Ghost's position on the same rail as your fill */}
         <div className="mx-8 -mt-1 h-1 relative">
           <div
-            className="absolute top-1/2 -translate-y-1/2 size-2 rounded-full bg-sky-400 shadow-[0_0_8px_rgba(56,189,248,0.7)] transition-[left] duration-75"
+            className="absolute top-1/2 -translate-y-1/2 size-2 rounded-full bg-ghost shadow-[0_0_8px_var(--color-ghost)] transition-[left] duration-75"
             style={{ left: `calc(${progressGhost * 100}% - 4px)` }}
             title="Ghost"
           />
@@ -289,7 +289,7 @@ export const GhostRaceMode: React.FC = () => {
               ? [
                   {
                     index: ghostIndex,
-                    className: 'bg-sky-400 border-sky-400',
+                    className: 'bg-ghost border-ghost',
                     title: 'Ghost',
                   },
                 ]

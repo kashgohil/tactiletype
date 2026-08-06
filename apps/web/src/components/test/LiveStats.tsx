@@ -44,7 +44,7 @@ export const LiveStats: React.FC<LiveStatsProps> = ({ stats, hidden, combo }) =>
             'tabular-nums inline-flex items-center gap-0.5 rounded-md px-1.5 py-0.5',
             'transition-[transform,color,background-color] duration-150 ease-[cubic-bezier(0.23,1,0.32,1)]',
             combo.multiplier >= 3
-              ? 'text-amber-400 bg-amber-400/10'
+              ? 'text-warning bg-warning/10'
               : 'text-text/70 bg-accent/10',
             pulse && 'scale-110'
           )}

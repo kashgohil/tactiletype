@@ -169,8 +169,8 @@ export const TypingSurface: React.FC<TypingSurfaceProps> = ({
         break;
       case "incorrect":
         className += hi
-          ? "text-rose-500 bg-rose-500/15 border-b-2 border-rose-500/80"
-          : "text-rose-500";
+          ? "text-destructive bg-destructive/15 border-b-2 border-destructive/80"
+          : "text-destructive";
         break;
       case "current":
         className += hi ? "text-text/45" : "text-text/50";

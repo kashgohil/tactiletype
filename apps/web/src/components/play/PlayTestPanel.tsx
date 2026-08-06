@@ -23,7 +23,7 @@ export function PanelStatItem({ label, value, accent, tone }: PanelStat) {
         className={cn(
           'font-mono text-lg font-semibold tabular-nums tracking-tight leading-none',
           tone === 'danger'
-            ? 'text-rose-400'
+            ? 'text-destructive'
             : accent
               ? 'text-accent'
               : 'text-text'
@@ -91,7 +91,7 @@ export function PlayTestPanel({
           <div
             className={cn(
               'h-full rounded-full transition-[width] duration-75 ease-linear',
-              meterTone === 'danger' ? 'bg-rose-400' : 'bg-accent'
+              meterTone === 'danger' ? 'bg-destructive' : 'bg-accent'
             )}
             style={{
               width: `${Math.round(Math.max(0, Math.min(1, meter)) * 100)}%`,
@@ -129,7 +129,7 @@ export function PanelHint({
 /** Keycap used inside hints. */
 export function Kbd({ children }: { children: React.ReactNode }) {
   return (
-    <kbd className="rounded border border-text/20 bg-text/8 px-1.5 py-0.5 font-mono text-xs text-text/65">
+    <kbd className="rounded-md border border-line bg-accent/10 px-1.5 py-0.5 font-mono text-xs text-text/65">
       {children}
     </kbd>
   );

@@ -281,7 +281,7 @@ export const LessonPathMode: React.FC = () => {
         subtitle="Unlock the keyboard step by step. Each lesson has a different rule — not the same test twice."
         onExit={exit}
       >
-        <div className="flex items-center justify-between gap-4 rounded-2xl bg-accent/[0.07] border border-accent/12 px-4 py-3.5">
+        <div className="flex items-center justify-between gap-4 rounded-2xl border border-accent/15 bg-accent/[0.05] px-4 py-3.5">
           <div>
             <p className="text-sm font-medium tracking-tight">Path progress</p>
             <p className="text-xs text-text/40 mt-0.5">
@@ -292,7 +292,7 @@ export const LessonPathMode: React.FC = () => {
             {pct}%
           </p>
         </div>
-        <div className="h-1.5 rounded-full bg-accent/12 overflow-hidden">
+        <div className="h-1.5 rounded-full bg-accent/20 overflow-hidden">
           <div
             className="h-full bg-accent rounded-full transition-[width] duration-300 ease-[cubic-bezier(0.23,1,0.32,1)]"
             style={{ width: `${pct}%` }}
@@ -311,10 +311,10 @@ export const LessonPathMode: React.FC = () => {
                   disabled={!unlocked}
                   onClick={() => openLesson(l)}
                   className={cn(
-                    'w-full text-left rounded-xl border p-4 flex gap-4 items-start',
+                    'w-full text-left rounded-lg border p-4 flex gap-4 items-start',
                     'transition-[background-color,border-color,transform,opacity] duration-150 ease-[cubic-bezier(0.23,1,0.32,1)]',
                     unlocked
-                      ? 'border-accent/15 bg-accent/[0.04] hover:bg-accent/[0.09] hover:border-accent/25 cursor-pointer active:scale-[0.995]'
+                      ? 'border-accent/15 bg-accent/[0.05] hover:bg-accent/10 hover:border-accent/30 cursor-pointer active:scale-[0.995]'
                       : 'border-transparent bg-primary/15 opacity-45 cursor-not-allowed'
                   )}
                 >
@@ -322,9 +322,9 @@ export const LessonPathMode: React.FC = () => {
                     className={cn(
                       'size-9 rounded-lg flex items-center justify-center shrink-0 font-mono text-sm',
                       done
-                        ? 'bg-emerald-500/15 text-emerald-400'
+                        ? 'bg-success/15 text-success'
                         : unlocked
-                          ? 'bg-accent/15 text-accent'
+                          ? 'bg-accent/20 text-accent'
                           : 'bg-text/8 text-text/35'
                     )}
                   >

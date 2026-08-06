@@ -267,7 +267,7 @@ export const SuddenDeathMode: React.FC = () => {
                 'text-sm px-3 py-1 rounded-full border transition-colors',
                 livesMode === n
                   ? 'border-accent bg-accent/20 text-text'
-                  : 'border-accent/20 text-text/50 hover:border-accent/40'
+                  : 'border-accent/15 text-text/50 hover:border-accent/30'
               )}
             >
               {n === 1 ? 'Hardcore (1 life)' : '3 lives'}
@@ -276,7 +276,7 @@ export const SuddenDeathMode: React.FC = () => {
         </div>
       )}
       {isDaily && phase === 'ready' && (
-        <p className="text-center text-xs text-rose-300/80 font-mono">
+        <p className="text-center text-xs text-destructive/80 font-mono">
           Daily mode · hardcore only (1 life)
         </p>
       )}

@@ -74,7 +74,7 @@ export function PlayShell({
               {title}
             </h1>
             {isDaily && (
-              <span className="text-[10px] uppercase tracking-[0.16em] font-semibold px-2.5 py-1 rounded-full bg-indigo-500/15 text-indigo-300 border border-indigo-400/25">
+              <span className="text-[10px] uppercase tracking-[0.16em] font-semibold px-2.5 py-1 rounded-full bg-accent/20 text-accent border border-accent/30">
                 Daily ranked
               </span>
             )}
@@ -211,7 +211,7 @@ export function PlayResultCard({
       </div>
       <p className="text-[11px] font-mono text-text/45">
         press{' '}
-        <kbd className="rounded border border-text/20 bg-text/8 px-1.5 py-0.5 text-text/65">
+        <kbd className="rounded-md border border-line bg-accent/10 px-1.5 py-0.5 text-text/65">
           enter
         </kbd>{' '}
         to retry
