@@ -79,7 +79,7 @@ export const Multiplayer: React.FC = () => {
 
   if (!user) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
+      <div className="grow flex items-center justify-center">
         <div className="text-center">
           <h2 className="text-2xl font-bold mb-4">Authentication Required</h2>
           <p className="text-text/50 mb-6">

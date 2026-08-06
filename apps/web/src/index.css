@@ -111,12 +111,21 @@
   --color-ring: var(--color-accent);
 }
 
-/* Fills everything below the sticky header, so the footer starts past the fold
-   and has to be scrolled to. `5rem` is main's py-10 — keep them in step.
+/* Fills everything below the sticky header, so the footer starts exactly at the
+   fold and has to be scrolled to. The footer itself stays in normal flow — it is
+   pushed down, never fixed or floating over the content.
+
+   Applied once to `<main>` in `__root.tsx`, so EVERY route gets it — the footer
+   is below the fold everywhere, not just on the test and results screens.
+
+   Only `--height-nav` is subtracted: main is border-box, so its own `py-10` is
+   already inside this height. Don't subtract the padding again — that lifts the
+   footer back into view by exactly that much.
+
    min-height (not height) so taller content grows the box instead of being
-   clipped by the centring. */
+   clipped. */
 @utility screen-fill {
-  min-height: calc(100svh - var(--height-nav) - 5rem);
+  min-height: calc(100svh - var(--height-nav));
 }
 
 /* ---------------------------------------------------------------------------

@@ -476,8 +476,10 @@ export const TypingTest: React.FC = () => {
         exit: { opacity: 0, y: 20 },
       };
 
+  // `grow`, not `screen-fill` — main already carries the viewport height, so
+  // growing into it centres the test without stacking a second min-height.
   return (
-    <div className="screen-fill flex flex-col gap-4 items-center justify-center">
+    <div className="grow flex flex-col gap-4 items-center justify-center">
       <CustomPasteModal
         open={pasteOpen}
         onClose={() => setPasteOpen(false)}
