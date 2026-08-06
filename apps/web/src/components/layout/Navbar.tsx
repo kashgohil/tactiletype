@@ -41,7 +41,7 @@ export const Navbar: React.FC = () => {
             <ThemePicker />
             <Tooltip>
               <TooltipTrigger asChild>
-                <Link to="/test">
+                <Link to="/">
                   <Button variant="link" size="icon">
                     <Keyboard />
                   </Button>

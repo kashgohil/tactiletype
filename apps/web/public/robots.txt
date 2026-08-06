@@ -1,0 +1,21 @@
+# https://trytactiletype.com/robots.txt
+#
+# One group only, on purpose. A crawler obeys the MOST SPECIFIC matching
+# `User-agent` group and ignores every other one — so adding a
+# `User-agent: Googlebot / Allow: /` block would have exempted Googlebot from
+# the Disallow rules below rather than reinforcing them. Search and AI crawlers
+# (Googlebot, Bingbot, GPTBot, ChatGPT-User, PerplexityBot, ClaudeBot,
+# anthropic-ai, Applebot, Google-Extended) are all allowed via `*`; add a named
+# group only to *restrict* one, and repeat the Disallow lines inside it.
+
+User-agent: *
+Allow: /
+
+# Private / ephemeral app surfaces
+Disallow: /settings
+Disallow: /analytics
+Disallow: /profile
+Disallow: /auth/
+Disallow: /multiplayer/room/
+
+Sitemap: https://trytactiletype.com/sitemap.xml

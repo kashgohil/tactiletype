@@ -157,7 +157,7 @@ export const Profile: React.FC = () => {
             filling in here.
           </p>
           <Button asChild className="mt-5">
-            <Link to="/test">Take a test</Link>
+            <Link to="/">Take a test</Link>
           </Button>
         </Panel>
       ) : (

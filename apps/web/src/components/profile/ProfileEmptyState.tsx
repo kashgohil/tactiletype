@@ -38,7 +38,7 @@ export const ProfileEmptyState: React.FC<ProfileEmptyStateProps> = ({
         Structure is here — fill it with practice.
       </p>
       <Button asChild size="lg">
-        <Link to="/test">
+        <Link to="/">
           <Keyboard className="size-4" />
           Take your first test
         </Link>

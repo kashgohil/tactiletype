@@ -1,1 +1,6 @@
+# Canonical: typing test lives at /
+/test    /    301
+/test/   /    301
+
+# SPA fallback
 /*    /index.html   200
