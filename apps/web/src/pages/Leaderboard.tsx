@@ -1,4 +1,5 @@
 import { Button } from '@/components/ui/button';
+import { panelSurface } from '@/components/ui/panel';
 import { Skeleton } from '@/components/ui/skeleton';
 import {
   Table,
@@ -8,6 +9,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
+import { cn } from '@/lib/utils';
 import { useQuery } from '@tanstack/react-query';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import React, { useState } from 'react';
@@ -66,13 +68,19 @@ export const Leaderboard: React.FC = () => {
 
   return (
     <div>
-      <h1 className="text-4xl font-bold text-center mb-8 text-gray-900 dark:text-white">
-        Leaderboard
-      </h1>
+      <header className="space-y-2.5 mb-8">
+        <h1 className="text-3xl md:text-[2.5rem] font-bold tracking-tight leading-[1.15]">
+          Leaderboard
+        </h1>
+        <p className="text-text/50 max-w-2xl leading-relaxed text-[15px]">
+          The fastest typists on tactiletype, ranked by their best run in the
+          window you pick.
+        </p>
+      </header>
 
       {/* Timeframe Selector */}
       <div className="mb-8">
-        <div className="flex justify-center space-x-2">
+        <div className="flex flex-wrap gap-2">
           {(['daily', 'weekly', 'monthly', 'all'] as const).map((tf) => (
             <Button
               key={tf}
@@ -90,10 +98,10 @@ export const Leaderboard: React.FC = () => {
 
       {/* Loading State */}
       {isLoading && (
-        <div className="bg-accent/10 rounded-lg overflow-hidden">
+        <div className={cn(panelSurface, 'overflow-hidden')}>
           <div>
             <Table>
-              <TableHeader className="border-b border-accent/12">
+              <TableHeader className="border-b border-accent/10">
                 <TableRow className="hover:bg-transparent">
                   <TableHead className="px-5 sm:px-6">Rank</TableHead>
                   <TableHead className="px-5 sm:px-6">Player</TableHead>
@@ -134,8 +142,8 @@ export const Leaderboard: React.FC = () => {
 
       {/* Error State */}
       {error && (
-        <div className="bg-red-50 dark:bg-red-900 border border-red-200 dark:border-red-700 rounded-lg p-6 text-center">
-          <p className="text-red-800 dark:text-red-200">
+        <div className="rounded-2xl border border-destructive/40 bg-destructive/10 p-6 text-center">
+          <p className="text-destructive">
             {error instanceof Error
               ? error.message
               : 'Failed to load leaderboard data'}
@@ -152,7 +160,7 @@ export const Leaderboard: React.FC = () => {
 
       {/* Empty State */}
       {!isLoading && !error && leaderboard.length === 0 && (
-        <div className="bg-accent/10 rounded-lg p-12 text-center">
+        <div className={cn(panelSurface, 'p-12 text-center')}>
           <p className="text-xl text-text/50 mb-4">
             No results found for {getTimeframeLabel(timeframe).toLowerCase()}
           </p>
@@ -164,10 +172,10 @@ export const Leaderboard: React.FC = () => {
 
       {/* Leaderboard Table */}
       {!isLoading && !error && leaderboard.length > 0 && (
-        <div className="bg-accent/10 rounded-lg overflow-hidden">
+        <div className={cn(panelSurface, 'overflow-hidden')}>
           <div>
             <Table>
-              <TableHeader className="border-b border-accent/12">
+              <TableHeader className="border-b border-accent/10">
                 <TableRow className="hover:bg-transparent">
                   <TableHead className="px-5 sm:px-6">Rank</TableHead>
                   <TableHead className="px-5 sm:px-6">Player</TableHead>
@@ -213,7 +221,7 @@ export const Leaderboard: React.FC = () => {
       {/* Stats Summary */}
       {!isLoading && !error && leaderboard.length > 0 && (
         <div className="mt-8 grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div className="bg-accent/10 rounded-lg p-6 text-center">
+          <div className={cn(panelSurface, 'p-6 text-center')}>
             <div className="text-2xl font-bold text-accent">
               {leaderboard[0]?.bestWpm || 0}
             </div>
@@ -221,7 +229,7 @@ export const Leaderboard: React.FC = () => {
               Highest WPM ({getTimeframeLabel(timeframe)})
             </div>
           </div>
-          <div className="bg-accent/10 rounded-lg p-6 text-center">
+          <div className={cn(panelSurface, 'p-6 text-center')}>
             <div className="text-2xl font-bold text-accent">
               {(
                 leaderboard.reduce((sum, entry) => sum + entry.avgWpm, 0) /
@@ -230,7 +238,7 @@ export const Leaderboard: React.FC = () => {
             </div>
             <div className="text-sm text-text/50">Average WPM</div>
           </div>
-          <div className="bg-accent/10 rounded-lg p-6 text-center">
+          <div className={cn(panelSurface, 'p-6 text-center')}>
             <div className="text-2xl font-bold text-accent">{totalCount}</div>
             <div className="text-sm text-text/50">Active Players</div>
           </div>
@@ -239,7 +247,7 @@ export const Leaderboard: React.FC = () => {
 
       {/* Pagination */}
       {!isLoading && !error && totalCount > pageSize && (
-        <div className="mt-8 px-6 py-4 border-t border-accent/20">
+        <div className="mt-8 px-6 py-4 border-t border-accent/15">
           <div className="flex items-center justify-between">
             <div className="text-sm text-text/50">
               Showing {(currentPage - 1) * pageSize + 1} to{' '}
@@ -293,15 +301,15 @@ export const Leaderboard: React.FC = () => {
       {/* Loading Stats Summary */}
       {isLoading && (
         <div className="mt-8 grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div className="bg-accent/10 rounded-lg p-6 text-center">
+          <div className={cn(panelSurface, 'p-6 text-center')}>
             <Skeleton className="h-8 w-16 mx-auto mb-2" />
             <Skeleton className="h-4 w-24 mx-auto" />
           </div>
-          <div className="bg-accent/10 rounded-lg p-6 text-center">
+          <div className={cn(panelSurface, 'p-6 text-center')}>
             <Skeleton className="h-8 w-16 mx-auto mb-2" />
             <Skeleton className="h-4 w-20 mx-auto" />
           </div>
-          <div className="bg-accent/10 rounded-lg p-6 text-center">
+          <div className={cn(panelSurface, 'p-6 text-center')}>
             <Skeleton className="h-8 w-12 mx-auto mb-2" />
             <Skeleton className="h-4 w-20 mx-auto" />
           </div>

@@ -4,8 +4,9 @@ import {
   SelectItem,
   SelectTrigger,
 } from '@/components/ui/select';
-import { Panel } from '@/components/ui/panel';
+import { Panel, panelSurface } from '@/components/ui/panel';
 import { Skeleton } from '@/components/ui/skeleton';
+import { cn } from '@/lib/utils';
 import type { AnalyticsDashboard, UserRecommendation } from '@tactile/types';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
@@ -190,10 +191,10 @@ export const Analytics: React.FC = () => {
   if (!user) {
     return (
       <div className="text-center py-12">
-        <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">
+        <h1 className="text-2xl font-bold tracking-tight mb-3">
           Analytics Dashboard
         </h1>
-        <p className="text-gray-600 dark:text-gray-400">
+        <p className="text-text/50">
           Please log in to view your typing analytics.
         </p>
       </div>
@@ -219,7 +220,7 @@ export const Analytics: React.FC = () => {
         {/* Overview Stats Skeleton */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-6 mb-8">
           {[...Array(6)].map((_, i) => (
-            <div key={i} className="bg-accent/10 rounded-lg p-6">
+            <div key={i} className={cn(panelSurface, 'p-6')}>
               <div className="flex items-center justify-between">
                 <div className="space-y-2">
                   <Skeleton className="h-4 w-20" />
@@ -234,7 +235,7 @@ export const Analytics: React.FC = () => {
         {/* Progress Charts Skeleton */}
         <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6 mb-8">
           {[...Array(3)].map((_, i) => (
-            <div key={i} className="bg-accent/10 rounded-lg p-6">
+            <div key={i} className={cn(panelSurface, 'p-6')}>
               <Skeleton className="h-64 w-full" />
             </div>
           ))}
@@ -242,7 +243,7 @@ export const Analytics: React.FC = () => {
 
         {/* Error Heatmap Skeleton */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-          <div className="lg:col-span-2 bg-accent/10 rounded-lg p-6">
+          <div className={cn(panelSurface, 'lg:col-span-2 p-6')}>
             <Skeleton className="h-80 w-full" />
           </div>
         </div>
@@ -250,13 +251,13 @@ export const Analytics: React.FC = () => {
         {/* Improvement Areas Skeleton */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Characters to Improve Skeleton */}
-          <div className="bg-accent/10 rounded-lg p-6">
+          <div className={cn(panelSurface, 'p-6')}>
             <Skeleton className="h-6 w-48 mb-4" />
             <div className="space-y-3">
               {[...Array(5)].map((_, i) => (
                 <div
                   key={i}
-                  className="flex items-center justify-between p-3 bg-accent/10 rounded-lg"
+                  className="flex items-center justify-between p-3 rounded-lg bg-accent/[0.06]"
                 >
                   <div className="flex items-center space-x-3">
                     <Skeleton className="h-8 w-8 rounded-lg" />
@@ -272,13 +273,13 @@ export const Analytics: React.FC = () => {
           </div>
 
           {/* Improvement Areas Skeleton */}
-          <div className="bg-accent/10 rounded-lg p-6">
+          <div className={cn(panelSurface, 'p-6')}>
             <Skeleton className="h-6 w-32 mb-4" />
             <div className="space-y-3">
               {[...Array(3)].map((_, i) => (
                 <div
                   key={i}
-                  className="flex items-start space-x-3 p-3 bg-accent/10 rounded-lg"
+                  className="flex items-start space-x-3 p-3 rounded-lg bg-accent/[0.06]"
                 >
                   <Skeleton className="h-5 w-5 mt-0.5" />
                   <div className="space-y-1 flex-1">
@@ -292,7 +293,7 @@ export const Analytics: React.FC = () => {
 
           {/* Goals and Recommendations Skeleton */}
           <div className="grid grid-rows-2 gap-6 mb-8">
-            <div className="bg-accent/10 rounded-lg p-6">
+            <div className={cn(panelSurface, 'p-6')}>
               <Skeleton className="h-6 w-24 mb-4" />
               <div className="space-y-3">
                 {[...Array(2)].map((_, i) => (
@@ -304,7 +305,7 @@ export const Analytics: React.FC = () => {
               </div>
             </div>
 
-            <div className="bg-accent/10 rounded-lg p-6">
+            <div className={cn(panelSurface, 'p-6')}>
               <Skeleton className="h-6 w-40 mb-4" />
               <div className="space-y-3">
                 {[...Array(2)].map((_, i) => (
@@ -318,7 +319,7 @@ export const Analytics: React.FC = () => {
           </div>
 
           {/* Report Generator Skeleton */}
-          <div className="mb-8 bg-accent/10 rounded-lg p-6">
+          <div className={cn(panelSurface, 'mb-8 p-6')}>
             <Skeleton className="h-6 w-32 mb-4" />
             <div className="space-y-3">
               <Skeleton className="h-4 w-full" />
@@ -333,10 +334,10 @@ export const Analytics: React.FC = () => {
   if (!dashboardData) {
     return (
       <div className="text-center py-12">
-        <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">
+        <h1 className="text-2xl font-bold tracking-tight mb-3">
           Analytics Dashboard
         </h1>
-        <p className="text-gray-600 dark:text-gray-400">
+        <p className="text-text/50">
           No analytics data available. Complete some typing tests to see your
           progress!
         </p>
@@ -348,7 +349,7 @@ export const Analytics: React.FC = () => {
     <div>
       <div className="flex items-center justify-end mb-8">
         <div className="flex items-center space-x-4">
-          <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+          <label className="text-sm font-medium text-text/60">
             Timeframe:
           </label>
           <Select
@@ -369,7 +370,7 @@ export const Analytics: React.FC = () => {
 
       {/* Overview Stats */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-6 mb-8">
-        <div className="bg-accent/10 rounded-lg p-6">
+        <div className={cn(panelSurface, 'p-6')}>
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium">Total Tests</p>
@@ -381,7 +382,7 @@ export const Analytics: React.FC = () => {
           </div>
         </div>
 
-        <div className="bg-accent/10 rounded-lg p-6">
+        <div className={cn(panelSurface, 'p-6')}>
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium ">Average WPM</p>
@@ -393,7 +394,7 @@ export const Analytics: React.FC = () => {
           </div>
         </div>
 
-        <div className="bg-accent/10 rounded-lg p-6">
+        <div className={cn(panelSurface, 'p-6')}>
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium ">Average Accuracy</p>
@@ -406,7 +407,7 @@ export const Analytics: React.FC = () => {
           </div>
         </div>
 
-        <div className="bg-accent/10 rounded-lg p-6">
+        <div className={cn(panelSurface, 'p-6')}>
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium">Time Spent</p>
@@ -418,7 +419,7 @@ export const Analytics: React.FC = () => {
           </div>
         </div>
 
-        <div className="bg-accent/10 rounded-lg p-6">
+        <div className={cn(panelSurface, 'p-6')}>
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium">Current Streak</p>
@@ -430,7 +431,7 @@ export const Analytics: React.FC = () => {
           </div>
         </div>
 
-        <div className="bg-accent/10 rounded-lg p-6">
+        <div className={cn(panelSurface, 'p-6')}>
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium">Longest Streak</p>
@@ -475,7 +476,7 @@ export const Analytics: React.FC = () => {
       {/* Improvement Areas */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Most Problematic Characters */}
-        <div className="bg-accent/10 rounded-lg p-6">
+        <div className={cn(panelSurface, 'p-6')}>
           <h3 className="text-lg mb-4 font-semibold">Characters to Improve</h3>
           <div className="space-y-3">
             {dashboardData.errorAnalysis.mostProblematicChars
@@ -483,25 +484,25 @@ export const Analytics: React.FC = () => {
               .map((char, index) => (
                 <div
                   key={index}
-                  className="flex items-center justify-between p-3 bg-accent/10 rounded-lg"
+                  className="flex items-center justify-between p-3 rounded-lg bg-accent/[0.06]"
                 >
                   <div className="flex items-center space-x-3">
-                    <div className="w-8 h-8 bg-red-200 rounded-lg flex items-center justify-center">
-                      <span className="font-mono font-bold text-red-600 dark:text-red-400">
+                    <div className="w-8 h-8 bg-destructive/15 rounded-lg flex items-center justify-center">
+                      <span className="font-mono font-bold text-destructive">
                         {char.character}
                       </span>
                     </div>
                     <div>
-                      <p className="font-medium text-gray-900 dark:text-white">
+                      <p className="font-medium">
                         {char.errorCount} errors
                       </p>
-                      <p className="text-sm text-gray-600 dark:text-gray-400">
+                      <p className="text-sm text-text/50">
                         {char.errorRate.toFixed(1)}% error rate
                       </p>
                     </div>
                   </div>
                   <div className="text-right">
-                    <p className="text-sm text-gray-600 dark:text-gray-400">
+                    <p className="text-sm text-text/50">
                       {char.suggestions[0]}
                     </p>
                   </div>
@@ -511,13 +512,13 @@ export const Analytics: React.FC = () => {
         </div>
 
         {/* Improvement Suggestions */}
-        <div className="bg-accent/10 rounded-lg p-6">
+        <div className={cn(panelSurface, 'p-6')}>
           <h3 className="text-lg font-semibold mb-4">Improvement Areas</h3>
           <div className="space-y-3">
             {dashboardData.errorAnalysis.improvementAreas.map((area, index) => (
               <div
                 key={index}
-                className="flex items-start space-x-3 p-3 bg-accent/10 rounded-lg"
+                className="flex items-start space-x-3 p-3 rounded-lg bg-accent/[0.06]"
               >
                 <Lightbulb className="text-accent" />
                 <p>{area}</p>
@@ -525,7 +526,7 @@ export const Analytics: React.FC = () => {
             ))}
 
             {/* Additional improvement suggestions */}
-            <div className="flex items-start space-x-3 p-3 bg-accent/10 rounded-lg">
+            <div className="flex items-start space-x-3 p-3 rounded-lg bg-accent/[0.06]">
               <Target className="text-accent" />
               <p>
                 Your consistency score is{' '}
@@ -534,7 +535,7 @@ export const Analytics: React.FC = () => {
               </p>
             </div>
 
-            <div className="flex items-start space-x-3 p-3 bg-accent/10 rounded-lg">
+            <div className="flex items-start space-x-3 p-3 rounded-lg bg-accent/[0.06]">
               <LineChart className="text-accent" />
               <p>
                 You're improving at{' '}
