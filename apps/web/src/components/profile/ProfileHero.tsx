@@ -1,7 +1,8 @@
 import { Button } from '@/components/ui/button';
+import { Panel } from '@/components/ui/panel';
 import { Link } from '@tanstack/react-router';
 import type { User, UserProfile } from '@tactile/types';
-import { Globe, Keyboard, Lock, Settings, Share2 } from 'lucide-react';
+import { Globe, Keyboard, Lock, Mail, Settings, Share2 } from 'lucide-react';
 import React from 'react';
 
 interface ProfileHeroProps {
@@ -38,7 +39,7 @@ export const ProfileHero: React.FC<ProfileHeroProps> = ({
   const isPublic = profile?.isPublic !== false;
 
   return (
-    <section className="bg-accent/10 rounded-xl p-6 md:p-8">
+    <Panel className="p-6 sm:p-6 md:p-8">
       <div className="flex flex-col sm:flex-row gap-6 items-start sm:items-center">
         <div
           className="shrink-0 size-20 md:size-24 rounded-full bg-accent/30 border-2 border-accent/40 flex items-center justify-center text-2xl md:text-3xl font-semibold text-accent overflow-hidden"
@@ -96,6 +97,12 @@ export const ProfileHero: React.FC<ProfileHeroProps> = ({
                 {profile.keyboard}
               </span>
             )}
+            {user.email && (
+              <span className="inline-flex items-center gap-1.5 min-w-0">
+                <Mail className="size-3.5 shrink-0" />
+                <span className="truncate">{user.email}</span>
+              </span>
+            )}
             <span>
               Member since{' '}
               {new Date(user.createdAt).toLocaleDateString(undefined, {
@@ -113,6 +120,12 @@ export const ProfileHero: React.FC<ProfileHeroProps> = ({
               Edit profile
             </Link>
           </Button>
+          <Button variant="ghost" size="sm" asChild>
+            <Link to="/u/$username" params={{ username: user.username }}>
+              <Globe className="size-4" />
+              Public page
+            </Link>
+          </Button>
           {onShare && (
             <Button variant="ghost" size="sm" onClick={onShare}>
               <Share2 className="size-4" />
@@ -121,6 +134,6 @@ export const ProfileHero: React.FC<ProfileHeroProps> = ({
           )}
         </div>
       </div>
-    </section>
+    </Panel>
   );
 };

@@ -1,4 +1,5 @@
 import { Button } from '@/components/ui/button';
+import { Panel } from '@/components/ui/panel';
 import type { ErrorAnalysisSummary } from '@tactile/types';
 import { Crosshair } from 'lucide-react';
 import React from 'react';
@@ -21,15 +22,12 @@ export const WeakSpotsPanel: React.FC<WeakSpotsPanelProps> = ({
   const words = errorAnalysis?.mostProblematicWords?.slice(0, 5) ?? [];
 
   return (
-    <section className="bg-accent/10 rounded-xl p-5 md:p-6 h-full flex flex-col">
-      <h2 className="text-lg font-semibold flex items-center gap-2 mb-1">
-        <Crosshair className="size-5 text-accent" />
-        Weak spots
-      </h2>
-      <p className="text-xs text-text/40 mb-4">
-        From recent error analytics — one click starts a drill.
-      </p>
-
+    <Panel
+      title="Weak spots"
+      icon={<Crosshair className="size-4 text-accent" />}
+      description="From recent error analytics — one click starts a drill."
+      bodyClassName="flex flex-col"
+    >
       {chars.length === 0 && words.length === 0 ? (
         <p className="text-sm text-text/50 flex-1">
           Complete a few tests to surface weak keys and words. Analytics need
@@ -95,6 +93,6 @@ export const WeakSpotsPanel: React.FC<WeakSpotsPanelProps> = ({
           )}
         </div>
       )}
-    </section>
+    </Panel>
   );
 };

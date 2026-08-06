@@ -1,4 +1,6 @@
-import { ProgressChart } from '@/components/analytics/ProgressChart';
+import { ChartTrend, ProgressChart } from '@/components/analytics/ProgressChart';
+import { Panel } from '@/components/ui/panel';
+import { cn } from '@/lib/utils';
 import type { ProgressPoint } from '@/services/api';
 import type { ProgressChart as ProgressChartType } from '@tactile/types';
 import React, { useMemo, useState } from 'react';
@@ -8,12 +10,19 @@ interface ProfileProgressChartProps {
   series: ProgressPoint[];
   isLoading?: boolean;
   days?: number;
+  className?: string;
 }
+
+const METRICS = [
+  { id: 'wpm' as const, label: 'WPM' },
+  { id: 'accuracy' as const, label: 'Accuracy' },
+];
 
 export const ProfileProgressChart: React.FC<ProfileProgressChartProps> = ({
   series,
   isLoading,
   days = 30,
+  className,
 }) => {
   const [metric, setMetric] = useState<'wpm' | 'accuracy'>('wpm');
 
@@ -41,50 +50,66 @@ export const ProfileProgressChart: React.FC<ProfileProgressChartProps> = ({
     };
   }, [series, metric]);
 
-  if (isLoading) {
-    return <Skeleton className="h-[280px] w-full rounded-xl" />;
-  }
+  const latest = chart?.data[chart.data.length - 1]?.value ?? null;
+  const unit = metric === 'wpm' ? 'WPM' : '%';
 
-  if (!chart) {
-    return (
-      <div className="bg-accent/10 rounded-xl p-6 min-h-[200px] flex items-center justify-center">
-        <p className="text-sm text-text/40 text-center max-w-sm">
-          Complete tests over a few days to see your {days}-day trend here.
-        </p>
-      </div>
-    );
-  }
+  const toggle = (
+    <div className="flex gap-0.5 rounded-lg border border-accent/20 p-0.5">
+      {METRICS.map((m) => (
+        <button
+          key={m.id}
+          type="button"
+          onClick={() => setMetric(m.id)}
+          aria-pressed={metric === m.id}
+          className={cn(
+            'text-xs px-2.5 py-1 rounded-md cursor-pointer',
+            'transition-colors duration-150 ease-[cubic-bezier(0.23,1,0.32,1)]',
+            metric === m.id
+              ? 'bg-accent text-on-accent font-medium'
+              : 'text-text/55 hover:text-text'
+          )}
+        >
+          {m.label}
+        </button>
+      ))}
+    </div>
+  );
 
   return (
-    <div className="bg-accent/10 rounded-xl p-4 md:p-5 space-y-3">
-      <div className="flex items-center justify-between gap-2 flex-wrap">
-        <p className="text-sm text-text/50">Last {days} days</p>
-        <div className="flex gap-1 bg-accent/15 rounded-lg p-0.5">
-          <button
-            type="button"
-            onClick={() => setMetric('wpm')}
-            className={`text-xs px-3 py-1.5 rounded-md transition-colors cursor-pointer ${
-              metric === 'wpm'
-                ? 'bg-accent text-text'
-                : 'text-text/60 hover:text-text'
-            }`}
-          >
-            WPM
-          </button>
-          <button
-            type="button"
-            onClick={() => setMetric('accuracy')}
-            className={`text-xs px-3 py-1.5 rounded-md transition-colors cursor-pointer ${
-              metric === 'accuracy'
-                ? 'bg-accent text-text'
-                : 'text-text/60 hover:text-text'
-            }`}
-          >
-            Accuracy
-          </button>
+    <Panel
+      title="Progress"
+      description={`Daily average over the last ${days} days`}
+      action={toggle}
+      className={className}
+      bodyClassName="flex flex-col"
+    >
+      {isLoading ? (
+        <Skeleton className="h-[240px] w-full rounded-xl" />
+      ) : !chart ? (
+        <div className="min-h-[240px] flex items-center justify-center">
+          <p className="text-sm text-text/40 text-center max-w-xs leading-relaxed">
+            Complete tests over a few days and your {days}-day trend shows up
+            here.
+          </p>
         </div>
-      </div>
-      <ProgressChart chart={chart} height={220} />
-    </div>
+      ) : (
+        <>
+          {/* Reading of the line, stated before the line itself. */}
+          <div className="flex items-baseline gap-3 mb-4">
+            <span className="text-3xl font-bold font-mono tabular-nums tracking-tight">
+              {latest != null ? Math.round(latest) : '—'}
+              <span className="text-base text-text/40 ml-1 font-sans font-normal">
+                {unit}
+              </span>
+            </span>
+            <ChartTrend
+              trend={chart.trend}
+              percentage={chart.trendPercentage}
+            />
+          </div>
+          <ProgressChart chart={chart} height={220} />
+        </>
+      )}
+    </Panel>
   );
 };

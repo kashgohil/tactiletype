@@ -1,4 +1,5 @@
 import { Button } from '@/components/ui/button';
+import { Panel } from '@/components/ui/panel';
 import { Link } from '@tanstack/react-router';
 import { Keyboard, Sparkles } from 'lucide-react';
 import React from 'react';
@@ -22,7 +23,7 @@ export const ProfileEmptyState: React.FC<ProfileEmptyStateProps> = ({
   }
 
   return (
-    <section className="bg-accent/10 rounded-xl p-8 md:p-12 text-center">
+    <Panel className="p-8 md:p-12 text-center">
       <div className="inline-flex items-center justify-center size-14 rounded-full bg-accent/20 mb-5">
         <Sparkles className="size-7 text-accent" />
       </div>
@@ -42,6 +43,6 @@ export const ProfileEmptyState: React.FC<ProfileEmptyStateProps> = ({
           Take your first test
         </Link>
       </Button>
-    </section>
+    </Panel>
   );
 };

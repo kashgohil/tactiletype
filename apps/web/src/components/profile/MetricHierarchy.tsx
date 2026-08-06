@@ -1,3 +1,5 @@
+import { panelSurface } from '@/components/ui/panel';
+import { cn } from '@/lib/utils';
 import type { UserStats } from '@/services/api';
 import { formatTime } from '@/utils/typingEngine';
 import { Flame, Target, Trophy, Zap } from 'lucide-react';
@@ -21,12 +23,17 @@ function PrimaryMetric({
   hint?: string;
 }) {
   return (
-    <div className="bg-accent/15 rounded-xl p-5 md:p-6 flex flex-col gap-2 min-h-[120px]">
+    <div
+      className={cn(
+        panelSurface,
+        'p-5 md:p-6 flex flex-col gap-2 min-h-[120px]'
+      )}
+    >
       <div className="flex items-center gap-2 text-text/50 text-sm font-medium">
         {icon}
         {label}
       </div>
-      <div className="text-3xl md:text-4xl font-bold text-accent tracking-tight font-mono">
+      <div className="text-3xl md:text-4xl font-bold text-accent tracking-tight font-mono tabular-nums">
         {value}
       </div>
       {hint && <p className="text-xs text-text/40 mt-auto">{hint}</p>}
@@ -42,8 +49,10 @@ function SecondaryMetric({
   value: string | number;
 }) {
   return (
-    <div className="bg-accent/10 rounded-lg px-4 py-3 text-center">
-      <div className="text-lg font-semibold text-text font-mono">{value}</div>
+    <div className="px-4 py-3 text-center">
+      <div className="text-lg font-semibold text-text font-mono tabular-nums">
+        {value}
+      </div>
       <div className="text-xs text-text/50 mt-0.5">{label}</div>
     </div>
   );
@@ -61,11 +70,7 @@ export const MetricHierarchy: React.FC<MetricHierarchyProps> = ({
             <Skeleton key={i} className="h-[120px] rounded-xl" />
           ))}
         </div>
-        <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-          {Array.from({ length: 3 }).map((_, i) => (
-            <Skeleton key={i} className="h-16 rounded-lg" />
-          ))}
-        </div>
+        <Skeleton className="h-[74px] rounded-2xl" />
       </div>
     );
   }
@@ -105,7 +110,13 @@ export const MetricHierarchy: React.FC<MetricHierarchyProps> = ({
         />
       </div>
 
-      <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+      {/* Secondary numbers share one surface, split by rules instead of gaps. */}
+      <div
+        className={cn(
+          panelSurface,
+          'grid grid-cols-2 sm:grid-cols-3 divide-x divide-y sm:divide-y-0 divide-accent/12 overflow-hidden'
+        )}
+      >
         <SecondaryMetric
           label="Avg WPM"
           value={Math.round(Number(stats.avgWpm))}
