@@ -2,6 +2,8 @@ import { Github } from '@/assets/github';
 import { Google } from '@/assets/google';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { panelSurface } from '@/components/ui/panel';
+import { cn } from '@/lib/utils';
 import { usePrefersReducedMotion } from '@/hooks/usePrefersReducedMotion';
 import { authCardEnter } from '@/lib/motion';
 import api from '@/services/api';
@@ -59,7 +61,7 @@ export const Register: React.FC = () => {
       animate={card.animate}
       exit={card.exit}
       transition={card.transition}
-      className="max-w-md w-full my-auto mx-auto bg-surface rounded-lg shadow-md p-8"
+      className={cn(panelSurface, 'max-w-md w-full my-auto mx-auto p-8')}
     >
       <h1 className="flex items-center justify-center gap-2 text-2xl font-bold text-center mb-8">
         <img
@@ -72,7 +74,7 @@ export const Register: React.FC = () => {
       </h1>
 
       {error && (
-        <div className="bg-destructive/10 border border-destructive/40 text-destructive px-4 py-3 rounded mb-4">
+        <div className="bg-destructive/10 border border-destructive/40 text-destructive px-4 py-3 rounded-lg mb-4">
           {error}
         </div>
       )}
@@ -125,13 +127,12 @@ export const Register: React.FC = () => {
       </form>
 
       <div className="mt-6">
-        <div className="relative">
-          <div className="absolute inset-0 flex items-center">
-            <span className="w-full border-t border-line" />
-          </div>
-          <div className="relative flex justify-center text-sm">
-            <span className="px-2 bg-surface text-muted">Or sign up with</span>
-          </div>
+        {/* Two rules either side of the label, rather than one rule masked by an
+            opaque chip — the card fill is translucent, so a mask would show. */}
+        <div className="flex items-center gap-3 text-sm">
+          <span className="h-px flex-1 bg-line" />
+          <span className="text-muted">Or sign up with</span>
+          <span className="h-px flex-1 bg-line" />
         </div>
 
         <div className="mt-6 grid grid-cols-2 gap-3">
