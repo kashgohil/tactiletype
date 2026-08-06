@@ -1,4 +1,6 @@
+import { JsonLd } from '@/components/JsonLd';
 import { Panel } from '@/components/ui/panel';
+import { faqPageSchema, webPageSchema } from '@/lib/seo';
 import { Bug, Lightbulb, Mail, MessageCircle, Users } from 'lucide-react';
 import React from 'react';
 
@@ -118,6 +120,25 @@ function ChannelRow({ icon, title, description, href, cta, external }: Channel) 
 export const Contact: React.FC = () => {
   return (
     <div className="space-y-8">
+      {/* FAQPage markup is safe here only because the same questions and
+          answers render visibly below — Google treats FAQ schema that doesn't
+          match the page as a manual-action offence. */}
+      <JsonLd
+        id="content"
+        data={{
+          '@context': 'https://schema.org',
+          '@graph': [
+            webPageSchema({
+              path: '/contact',
+              title: 'Contact & Support | tactiletype',
+              description:
+                'Get help with tactiletype: support email, bug reports, feature ideas, and FAQs.',
+            }),
+            faqPageSchema(FAQ, '/contact'),
+          ],
+        }}
+      />
+
       <header className="space-y-2.5">
         <h1 className="text-3xl md:text-[2.5rem] font-bold tracking-tight leading-[1.15]">
           Contact & support

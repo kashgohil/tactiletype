@@ -9,6 +9,7 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as TypingTestRouteImport } from './routes/typing-test'
 import { Route as TestRouteImport } from './routes/test'
 import { Route as TermsRouteImport } from './routes/terms'
 import { Route as SettingsRouteImport } from './routes/settings'
@@ -20,17 +21,25 @@ import { Route as PlayRouteImport } from './routes/play'
 import { Route as MultiplayerRouteImport } from './routes/multiplayer'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as LeaderboardRouteImport } from './routes/leaderboard'
+import { Route as GuidesRouteImport } from './routes/guides'
 import { Route as DailyRouteImport } from './routes/daily'
 import { Route as ContactRouteImport } from './routes/contact'
 import { Route as AnalyticsRouteImport } from './routes/analytics'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as PlayIndexRouteImport } from './routes/play.index'
 import { Route as MultiplayerIndexRouteImport } from './routes/multiplayer.index'
+import { Route as GuidesIndexRouteImport } from './routes/guides.index'
 import { Route as UUsernameRouteImport } from './routes/u.$username'
 import { Route as PlayModeRouteImport } from './routes/play.$mode'
+import { Route as GuidesSlugRouteImport } from './routes/guides.$slug'
 import { Route as MultiplayerRoomRoomIdRouteImport } from './routes/multiplayer.room.$roomId'
 import { Route as AuthSsoCallbackRouteImport } from './routes/auth/sso/callback'
 
+const TypingTestRoute = TypingTestRouteImport.update({
+  id: '/typing-test',
+  path: '/typing-test',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const TestRoute = TestRouteImport.update({
   id: '/test',
   path: '/test',
@@ -86,6 +95,11 @@ const LeaderboardRoute = LeaderboardRouteImport.update({
   path: '/leaderboard',
   getParentRoute: () => rootRouteImport,
 } as any)
+const GuidesRoute = GuidesRouteImport.update({
+  id: '/guides',
+  path: '/guides',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const DailyRoute = DailyRouteImport.update({
   id: '/daily',
   path: '/daily',
@@ -116,6 +130,11 @@ const MultiplayerIndexRoute = MultiplayerIndexRouteImport.update({
   path: '/',
   getParentRoute: () => MultiplayerRoute,
 } as any)
+const GuidesIndexRoute = GuidesIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => GuidesRoute,
+} as any)
 const UUsernameRoute = UUsernameRouteImport.update({
   id: '/u/$username',
   path: '/u/$username',
@@ -125,6 +144,11 @@ const PlayModeRoute = PlayModeRouteImport.update({
   id: '/$mode',
   path: '/$mode',
   getParentRoute: () => PlayRoute,
+} as any)
+const GuidesSlugRoute = GuidesSlugRouteImport.update({
+  id: '/$slug',
+  path: '/$slug',
+  getParentRoute: () => GuidesRoute,
 } as any)
 const MultiplayerRoomRoomIdRoute = MultiplayerRoomRoomIdRouteImport.update({
   id: '/room/$roomId',
@@ -142,6 +166,7 @@ export interface FileRoutesByFullPath {
   '/analytics': typeof AnalyticsRoute
   '/contact': typeof ContactRoute
   '/daily': typeof DailyRoute
+  '/guides': typeof GuidesRouteWithChildren
   '/leaderboard': typeof LeaderboardRoute
   '/login': typeof LoginRoute
   '/multiplayer': typeof MultiplayerRouteWithChildren
@@ -153,8 +178,11 @@ export interface FileRoutesByFullPath {
   '/settings': typeof SettingsRoute
   '/terms': typeof TermsRoute
   '/test': typeof TestRoute
+  '/typing-test': typeof TypingTestRoute
+  '/guides/$slug': typeof GuidesSlugRoute
   '/play/$mode': typeof PlayModeRoute
   '/u/$username': typeof UUsernameRoute
+  '/guides/': typeof GuidesIndexRoute
   '/multiplayer/': typeof MultiplayerIndexRoute
   '/play/': typeof PlayIndexRoute
   '/auth/sso/callback': typeof AuthSsoCallbackRoute
@@ -174,8 +202,11 @@ export interface FileRoutesByTo {
   '/settings': typeof SettingsRoute
   '/terms': typeof TermsRoute
   '/test': typeof TestRoute
+  '/typing-test': typeof TypingTestRoute
+  '/guides/$slug': typeof GuidesSlugRoute
   '/play/$mode': typeof PlayModeRoute
   '/u/$username': typeof UUsernameRoute
+  '/guides': typeof GuidesIndexRoute
   '/multiplayer': typeof MultiplayerIndexRoute
   '/play': typeof PlayIndexRoute
   '/auth/sso/callback': typeof AuthSsoCallbackRoute
@@ -187,6 +218,7 @@ export interface FileRoutesById {
   '/analytics': typeof AnalyticsRoute
   '/contact': typeof ContactRoute
   '/daily': typeof DailyRoute
+  '/guides': typeof GuidesRouteWithChildren
   '/leaderboard': typeof LeaderboardRoute
   '/login': typeof LoginRoute
   '/multiplayer': typeof MultiplayerRouteWithChildren
@@ -198,8 +230,11 @@ export interface FileRoutesById {
   '/settings': typeof SettingsRoute
   '/terms': typeof TermsRoute
   '/test': typeof TestRoute
+  '/typing-test': typeof TypingTestRoute
+  '/guides/$slug': typeof GuidesSlugRoute
   '/play/$mode': typeof PlayModeRoute
   '/u/$username': typeof UUsernameRoute
+  '/guides/': typeof GuidesIndexRoute
   '/multiplayer/': typeof MultiplayerIndexRoute
   '/play/': typeof PlayIndexRoute
   '/auth/sso/callback': typeof AuthSsoCallbackRoute
@@ -212,6 +247,7 @@ export interface FileRouteTypes {
     | '/analytics'
     | '/contact'
     | '/daily'
+    | '/guides'
     | '/leaderboard'
     | '/login'
     | '/multiplayer'
@@ -223,8 +259,11 @@ export interface FileRouteTypes {
     | '/settings'
     | '/terms'
     | '/test'
+    | '/typing-test'
+    | '/guides/$slug'
     | '/play/$mode'
     | '/u/$username'
+    | '/guides/'
     | '/multiplayer/'
     | '/play/'
     | '/auth/sso/callback'
@@ -244,8 +283,11 @@ export interface FileRouteTypes {
     | '/settings'
     | '/terms'
     | '/test'
+    | '/typing-test'
+    | '/guides/$slug'
     | '/play/$mode'
     | '/u/$username'
+    | '/guides'
     | '/multiplayer'
     | '/play'
     | '/auth/sso/callback'
@@ -256,6 +298,7 @@ export interface FileRouteTypes {
     | '/analytics'
     | '/contact'
     | '/daily'
+    | '/guides'
     | '/leaderboard'
     | '/login'
     | '/multiplayer'
@@ -267,8 +310,11 @@ export interface FileRouteTypes {
     | '/settings'
     | '/terms'
     | '/test'
+    | '/typing-test'
+    | '/guides/$slug'
     | '/play/$mode'
     | '/u/$username'
+    | '/guides/'
     | '/multiplayer/'
     | '/play/'
     | '/auth/sso/callback'
@@ -280,6 +326,7 @@ export interface RootRouteChildren {
   AnalyticsRoute: typeof AnalyticsRoute
   ContactRoute: typeof ContactRoute
   DailyRoute: typeof DailyRoute
+  GuidesRoute: typeof GuidesRouteWithChildren
   LeaderboardRoute: typeof LeaderboardRoute
   LoginRoute: typeof LoginRoute
   MultiplayerRoute: typeof MultiplayerRouteWithChildren
@@ -291,12 +338,20 @@ export interface RootRouteChildren {
   SettingsRoute: typeof SettingsRoute
   TermsRoute: typeof TermsRoute
   TestRoute: typeof TestRoute
+  TypingTestRoute: typeof TypingTestRoute
   UUsernameRoute: typeof UUsernameRoute
   AuthSsoCallbackRoute: typeof AuthSsoCallbackRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/typing-test': {
+      id: '/typing-test'
+      path: '/typing-test'
+      fullPath: '/typing-test'
+      preLoaderRoute: typeof TypingTestRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/test': {
       id: '/test'
       path: '/test'
@@ -374,6 +429,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LeaderboardRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/guides': {
+      id: '/guides'
+      path: '/guides'
+      fullPath: '/guides'
+      preLoaderRoute: typeof GuidesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/daily': {
       id: '/daily'
       path: '/daily'
@@ -416,6 +478,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof MultiplayerIndexRouteImport
       parentRoute: typeof MultiplayerRoute
     }
+    '/guides/': {
+      id: '/guides/'
+      path: '/'
+      fullPath: '/guides/'
+      preLoaderRoute: typeof GuidesIndexRouteImport
+      parentRoute: typeof GuidesRoute
+    }
     '/u/$username': {
       id: '/u/$username'
       path: '/u/$username'
@@ -429,6 +498,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/play/$mode'
       preLoaderRoute: typeof PlayModeRouteImport
       parentRoute: typeof PlayRoute
+    }
+    '/guides/$slug': {
+      id: '/guides/$slug'
+      path: '/$slug'
+      fullPath: '/guides/$slug'
+      preLoaderRoute: typeof GuidesSlugRouteImport
+      parentRoute: typeof GuidesRoute
     }
     '/multiplayer/room/$roomId': {
       id: '/multiplayer/room/$roomId'
@@ -446,6 +522,19 @@ declare module '@tanstack/react-router' {
     }
   }
 }
+
+interface GuidesRouteChildren {
+  GuidesSlugRoute: typeof GuidesSlugRoute
+  GuidesIndexRoute: typeof GuidesIndexRoute
+}
+
+const GuidesRouteChildren: GuidesRouteChildren = {
+  GuidesSlugRoute: GuidesSlugRoute,
+  GuidesIndexRoute: GuidesIndexRoute,
+}
+
+const GuidesRouteWithChildren =
+  GuidesRoute._addFileChildren(GuidesRouteChildren)
 
 interface MultiplayerRouteChildren {
   MultiplayerIndexRoute: typeof MultiplayerIndexRoute
@@ -478,6 +567,7 @@ const rootRouteChildren: RootRouteChildren = {
   AnalyticsRoute: AnalyticsRoute,
   ContactRoute: ContactRoute,
   DailyRoute: DailyRoute,
+  GuidesRoute: GuidesRouteWithChildren,
   LeaderboardRoute: LeaderboardRoute,
   LoginRoute: LoginRoute,
   MultiplayerRoute: MultiplayerRouteWithChildren,
@@ -489,6 +579,7 @@ const rootRouteChildren: RootRouteChildren = {
   SettingsRoute: SettingsRoute,
   TermsRoute: TermsRoute,
   TestRoute: TestRoute,
+  TypingTestRoute: TypingTestRoute,
   UUsernameRoute: UUsernameRoute,
   AuthSsoCallbackRoute: AuthSsoCallbackRoute,
 }
