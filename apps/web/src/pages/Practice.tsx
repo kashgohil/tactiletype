@@ -99,16 +99,13 @@ export const Practice: React.FC = () => {
   };
 
   return (
-    <div className="pt-2 pb-12 max-w-5xl mx-auto space-y-8">
+    <div className="space-y-8">
       <motion.header
         className="space-y-2.5"
         initial={reduced ? false : { opacity: 0, y: 6 }}
         animate={{ opacity: 1, y: 0 }}
         transition={uiTransition(reduced, 0.22)}
       >
-        <p className="text-[11px] uppercase tracking-[0.22em] text-accent font-semibold">
-          Practice
-        </p>
         <h1 className="text-3xl md:text-[2.5rem] font-bold tracking-tight leading-[1.15]">
           Targeted drills
         </h1>

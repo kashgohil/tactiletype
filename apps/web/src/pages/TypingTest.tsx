@@ -477,7 +477,7 @@ export const TypingTest: React.FC = () => {
       };
 
   return (
-    <div className="h-full flex flex-col gap-4 items-center justify-center">
+    <div className="screen-fill flex flex-col gap-4 items-center justify-center">
       <CustomPasteModal
         open={pasteOpen}
         onClose={() => setPasteOpen(false)}

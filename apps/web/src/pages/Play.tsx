@@ -56,16 +56,13 @@ export const Play: React.FC = () => {
         };
 
   return (
-    <div className="pt-2 pb-14 max-w-5xl mx-auto space-y-8">
+    <div className="space-y-8">
       <motion.header
         className="space-y-2.5 max-w-2xl"
         initial={reduced ? false : { opacity: 0, y: 6 }}
         animate={{ opacity: 1, y: 0 }}
         transition={uiTransition(reduced, 0.25)}
       >
-        <p className="text-[11px] uppercase tracking-[0.22em] text-accent font-semibold">
-          Play modes
-        </p>
         <h1 className="text-3xl md:text-[2.5rem] font-bold tracking-tight leading-[1.15]">
           Train speed in ways a timer can&apos;t
         </h1>

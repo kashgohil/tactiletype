@@ -3,7 +3,7 @@ import React from 'react';
 
 export const Contact: React.FC = () => {
   return (
-    <div className="max-w-4xl mx-auto px-4 py-8">
+    <div>
       <h1 className="text-4xl font-bold mb-8">Contact & Support</h1>
 
       <div className="space-y-8">

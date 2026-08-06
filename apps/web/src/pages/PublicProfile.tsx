@@ -75,7 +75,7 @@ export const PublicProfile: React.FC = () => {
   const displayName = user.profile?.displayName || user.username;
 
   return (
-    <div className="pt-2 pb-10 space-y-6 md:space-y-8 max-w-3xl mx-auto">
+    <div className="space-y-6 md:space-y-8">
       <section className="bg-accent/10 rounded-xl p-6 md:p-8">
         <div className="flex flex-col sm:flex-row gap-5 items-start">
           <div className="size-20 rounded-full bg-accent/30 flex items-center justify-center text-2xl font-bold text-accent">

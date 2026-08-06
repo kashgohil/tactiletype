@@ -43,6 +43,14 @@
   --font-saira: 'Saira', sans-serif;
   --font-sans: 'Saira', ui-sans-serif, system-ui, sans-serif;
 
+  /* One shell width every screen shares — header, page content, and footer
+     all align to `max-w-shell`. Change it here and the whole app follows. */
+  --container-shell: 80rem;
+
+  /* The header is a fixed height so pages can fill exactly what's left of the
+     viewport. Navbar pins itself to this — don't let its content grow past it. */
+  --height-nav: 3.75rem;
+
   /* Deliberate type scale — geometric, ~1.2 minor-third steps */
   --text-hero: 4.5rem;
   --text-hero--line-height: 1;
@@ -63,6 +71,8 @@
   --color-surface-2: color-mix(in oklab, var(--color-text) 9%, var(--color-primary));
   --color-line: color-mix(in oklab, var(--color-text) 15%, var(--color-primary));
   --color-muted: color-mix(in oklab, var(--color-text) 55%, var(--color-primary));
+  /* Opaque accent wash — the accent tint without any transparency */
+  --color-surface-accent: color-mix(in oklab, var(--color-accent) 30%, var(--color-primary));
   --color-error: oklch(0.645 0.246 16.44);
 
   --ease-out-strong: cubic-bezier(0.23, 1, 0.32, 1);
@@ -89,6 +99,14 @@
   --color-border: var(--color-line);
   --color-input: var(--color-line);
   --color-ring: var(--color-accent);
+}
+
+/* Fills everything below the sticky header, so the footer starts past the fold
+   and has to be scrolled to. `5rem` is main's py-10 — keep them in step.
+   min-height (not height) so taller content grows the box instead of being
+   clipped by the centring. */
+@utility screen-fill {
+  min-height: calc(100svh - var(--height-nav) - 5rem);
 }
 
 @layer base {

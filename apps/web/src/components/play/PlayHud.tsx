@@ -62,7 +62,7 @@ export function PlayShell({
 
   return (
     <motion.div
-      className="pt-2 pb-12 max-w-5xl mx-auto space-y-6"
+      className="space-y-6"
       initial={reduced ? false : { opacity: 0, transform: 'translateY(6px)' }}
       animate={{ opacity: 1, transform: 'translateY(0px)' }}
       transition={uiTransition(reduced, 0.22)}

@@ -21,11 +21,11 @@ export const Navbar: React.FC = () => {
   const { user } = useAuth();
 
   return (
-    <nav className="p-4 w-full sticky top-0">
-      <div
-        data-theme-surface
-        className="container mx-auto p-4 bg-accent/30 rounded-lg backdrop-blur-3xl"
-      >
+    <nav
+      data-theme-surface
+      className="w-full shrink-0 sticky top-0 z-50 h-[var(--height-nav)] bg-surface-accent border-b border-line"
+    >
+      <div className="h-full w-full max-w-shell mx-auto px-8 flex flex-col justify-center">
         <div className="flex justify-between items-center">
           <Link to="/" className="text-2xl font-bold flex items-center gap-2">
             <img

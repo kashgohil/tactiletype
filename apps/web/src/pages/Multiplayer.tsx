@@ -103,7 +103,7 @@ export const Multiplayer: React.FC = () => {
 
   return (
     <div>
-      <div className="py-8">
+      <div>
         {/* Connection Status */}
         <div className="mb-6">
           <div className="flex items-center space-x-2">

@@ -25,7 +25,7 @@ export const PlayMode: React.FC = () => {
 
   if (!Component || !meta) {
     return (
-      <div className="pt-10 max-w-md mx-auto text-center space-y-4">
+      <div className="max-w-md mx-auto text-center space-y-4">
         <h1 className="text-xl font-semibold">Unknown mode</h1>
         <p className="text-sm text-text/50">That play mode doesn&apos;t exist.</p>
         <Button asChild>

@@ -7,7 +7,10 @@ export const Route = createRootRoute({
   component: () => (
     <div className="h-screen w-full flex flex-col items-center overflow-y-auto">
       <Navbar />
-      <main className="container flex flex-col flex-1 px-8">
+      {/* `grow` (basis auto), not `flex-1` (basis 0) — with a zero basis the
+          box is sized from leftover space and tall content spills past its
+          padding, so the bottom gutter collapses against the footer. */}
+      <main className="w-full max-w-shell mx-auto flex flex-col grow px-8 py-10">
         <Outlet />
       </main>
       <Footer />
