@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import { Button } from '../ui/button';
 import { Checkbox } from '../ui/checkbox';
 import { Label } from '../ui/label';
+import { Panel } from '../ui/panel';
 import {
   Select,
   SelectContent,
@@ -134,10 +135,10 @@ export const ReportGenerator: React.FC<ReportGeneratorProps> = ({
   };
 
   return (
-    <div className="bg-accent/10 rounded-lg p-6">
-      <div className="flex items-center justify-between mb-6">
-        <h3 className="text-lg font-semibold">Generate Report</h3>
-        <div className="flex items-center space-x-2">
+    <Panel
+      title="Generate report"
+      action={
+        <>
           <Button onClick={() => onExportData('csv')} size="sm" variant="ghost">
             Export CSV
           </Button>
@@ -148,8 +149,9 @@ export const ReportGenerator: React.FC<ReportGeneratorProps> = ({
           >
             Export JSON
           </Button>
-        </div>
-      </div>
+        </>
+      }
+    >
 
       <div className="flex flex-col gap-4">
         {/* Report Configuration */}
@@ -275,7 +277,7 @@ export const ReportGenerator: React.FC<ReportGeneratorProps> = ({
             >
               {isGenerating ? (
                 <>
-                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                  <div className="animate-spin rounded-full h-4 w-4 border-2 border-current/30 border-t-current mr-2" />
                   Generating Report...
                 </>
               ) : (
@@ -291,9 +293,9 @@ export const ReportGenerator: React.FC<ReportGeneratorProps> = ({
         <div>
           <h4 className="text-md font-medium mb-4">Report Preview</h4>
 
-          <div className="bg-primary rounded-lg p-4 space-y-4">
+          <div className="rounded-lg bg-accent/[0.06] p-4 space-y-4">
             {/* Report Header */}
-            <div className="border-b border-accent/20 pb-3">
+            <div className="border-b border-accent/15 pb-3">
               <h5 className="font-semibold">{reportPreview.title}</h5>
               <p className="text-sm text-text/50">
                 Generated on {reportPreview.date}
@@ -304,21 +306,21 @@ export const ReportGenerator: React.FC<ReportGeneratorProps> = ({
             <div>
               <h6 className="font-medium  mb-2">Key Metrics Summary</h6>
               <div className="grid grid-cols-2 gap-3 text-sm">
-                <div className="bg-accent/20 p-2 rounded">
+                <div className="bg-accent/10 p-2 rounded-md">
                   <div className="text-text/80">Tests Completed</div>
                   <div className="font-semibold">{overview.totalTests}</div>
                 </div>
-                <div className="bg-accent/20 p-2 rounded">
+                <div className="bg-accent/10 p-2 rounded-md">
                   <div className="text-text/80">Average WPM</div>
                   <div className="font-semibold">{overview.averageWpm}</div>
                 </div>
-                <div className="bg-accent/20 p-2 rounded">
+                <div className="bg-accent/10 p-2 rounded-md">
                   <div className="text-text/80">Average Accuracy</div>
                   <div className="font-semibold">
                     {overview.averageAccuracy}%
                   </div>
                 </div>
-                <div className="bg-accent/20 p-2 rounded">
+                <div className="bg-accent/10 p-2 rounded-md">
                   <div className="text-text/80">Time Practiced</div>
                   <div className="font-semibold">
                     {formatTime(overview.totalTimeSpent)}
@@ -329,10 +331,10 @@ export const ReportGenerator: React.FC<ReportGeneratorProps> = ({
 
             {/* Report Sections */}
             <div>
-              <h6 className="font-medium text-gray-900 dark:text-white mb-2">
+              <h6 className="font-medium mb-2">
                 Report Sections
               </h6>
-              <ul className="space-y-1 text-sm text-gray-600 dark:text-gray-400">
+              <ul className="space-y-1 text-sm text-text/60">
                 {reportPreview.sections.map((section, index) => (
                   <li key={index} className="flex items-center">
                     <span className="w-1.5 h-1.5 bg-accent rounded-full mr-2"></span>
@@ -344,10 +346,10 @@ export const ReportGenerator: React.FC<ReportGeneratorProps> = ({
 
             {/* Insights Preview */}
             <div>
-              <h6 className="font-medium text-gray-900 dark:text-white mb-2">
+              <h6 className="font-medium mb-2">
                 Key Insights
               </h6>
-              <ul className="space-y-1 text-sm text-gray-600 dark:text-gray-400">
+              <ul className="space-y-1 text-sm text-text/60">
                 {getImprovementInsight().map((insight, index) => (
                   <li key={index} className="flex items-center">
                     <Check className="text-accent mr-2" size={16} />
@@ -361,10 +363,10 @@ export const ReportGenerator: React.FC<ReportGeneratorProps> = ({
       </div>
 
       {/* Automated Reports Section */}
-      <div className="mt-8 pt-6 border-t border-accent/20">
+      <div className="mt-8 pt-6 border-t border-accent/15">
         <h4 className="text-md font-medium mb-4">Automated Reports</h4>
 
-        <div className="bg-primary rounded-lg p-4">
+        <div className="rounded-lg bg-accent/[0.06] p-4">
           <div className="flex items-start space-x-3">
             <Mail className="text-accent" />
             <div>
@@ -387,6 +389,6 @@ export const ReportGenerator: React.FC<ReportGeneratorProps> = ({
           </div>
         </div>
       </div>
-    </div>
+    </Panel>
   );
 };

@@ -130,7 +130,7 @@ export const GoalTracker: React.FC<GoalTrackerProps> = ({
       {showCreateForm && (
         <form
           onSubmit={handleSubmit}
-          className="mb-5 pb-5 border-b border-accent/12"
+          className="mb-5 pb-5 border-b border-accent/10"
         >
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div>

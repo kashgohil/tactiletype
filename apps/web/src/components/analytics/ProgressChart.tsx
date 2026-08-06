@@ -70,7 +70,7 @@ export const ChartTrend: React.FC<{
       className={cn(
         'inline-flex items-center gap-1.5 text-xs font-mono tabular-nums px-2 py-1 rounded-full',
         trend === 'improving'
-          ? 'text-accent bg-accent/12'
+          ? 'text-accent bg-accent/[0.12]'
           : trend === 'declining'
             ? 'text-destructive bg-destructive/10'
             : 'text-text/45 bg-text/[0.06]',

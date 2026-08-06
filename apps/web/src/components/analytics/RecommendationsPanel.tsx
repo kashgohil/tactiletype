@@ -1,5 +1,8 @@
+import { Button } from '@/components/ui/button';
+import { Panel } from '@/components/ui/panel';
+import { cn } from '@/lib/utils';
 import type { UserRecommendation } from '@tactile/types';
-import { Target } from 'lucide-react';
+import { Target, X } from 'lucide-react';
 import React from 'react';
 
 interface RecommendationsPanelProps {
@@ -9,127 +12,108 @@ interface RecommendationsPanelProps {
   onDismiss: (recommendationId: string) => void;
 }
 
+/**
+ * Priority reads through the status tokens, not a five-hue rainbow: only the top
+ * two levels earn a colour of their own, the rest sit on the theme's own ramp.
+ */
+const PRIORITY = [
+  { min: 5, label: 'Critical', text: 'text-destructive', dot: 'bg-destructive' },
+  { min: 4, label: 'High', text: 'text-warning', dot: 'bg-warning' },
+  { min: 3, label: 'Medium', text: 'text-accent', dot: 'bg-accent' },
+  { min: 2, label: 'Low', text: 'text-text/50', dot: 'bg-text/30' },
+  { min: 0, label: 'Info', text: 'text-text/50', dot: 'bg-text/30' },
+] as const;
+
+const priorityOf = (priority: number) =>
+  PRIORITY.find((p) => priority >= p.min) ?? PRIORITY[PRIORITY.length - 1];
+
+const ICONS: Record<string, string> = {
+  practice_focus: '🎯',
+  goal_suggestion: '📈',
+  improvement_tip: '💡',
+};
+
 export const RecommendationsPanel: React.FC<RecommendationsPanelProps> = ({
   recommendations,
   onMarkAsRead,
   onMarkAsApplied,
   onDismiss,
 }) => {
-  const getRecommendationIcon = (type: string) => {
-    switch (type) {
-      case 'practice_focus':
-        return '🎯';
-      case 'goal_suggestion':
-        return '📈';
-      case 'improvement_tip':
-        return '💡';
-      default:
-        return '📝';
-    }
-  };
-
-  const getRecommendationColor = (priority: number) => {
-    if (priority >= 5)
-      return 'border-red-200 bg-red-50 dark:border-red-800 dark:bg-red-900/20';
-    if (priority >= 4)
-      return 'border-orange-200 bg-orange-50 dark:border-orange-800 dark:bg-orange-900/20';
-    if (priority >= 3)
-      return 'border-yellow-200 bg-yellow-50 dark:border-yellow-800 dark:bg-yellow-900/20';
-    if (priority >= 2)
-      return 'border-blue-200 bg-blue-50 dark:border-blue-800 dark:bg-blue-900/20';
-    return 'border-gray-200 bg-gray-50 dark:border-gray-600 dark:bg-gray-700';
-  };
-
-  const getPriorityLabel = (priority: number) => {
-    if (priority >= 5)
-      return { label: 'Critical', color: 'text-red-600 dark:text-red-400' };
-    if (priority >= 4)
-      return { label: 'High', color: 'text-orange-600 dark:text-orange-400' };
-    if (priority >= 3)
-      return { label: 'Medium', color: 'text-yellow-600 dark:text-yellow-400' };
-    if (priority >= 2)
-      return { label: 'Low', color: 'text-blue-600 dark:text-blue-400' };
-    return { label: 'Info', color: 'text-gray-600 dark:text-gray-400' };
-  };
-
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
+  const formatDate = (dateString: string) =>
+    new Date(dateString).toLocaleDateString('en-US', {
       month: 'short',
       day: 'numeric',
       hour: '2-digit',
       minute: '2-digit',
     });
-  };
 
   const isExpired = (recommendation: UserRecommendation) => {
     if (!recommendation.validUntil) return false;
     return new Date(recommendation.validUntil) < new Date();
   };
 
-  // Sort recommendations by priority (highest first) and then by creation date
-  const sortedRecommendations = [...recommendations].sort((a, b) => {
-    if (a.priority !== b.priority) {
-      return b.priority - a.priority;
-    }
-    return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
-  });
+  // Highest priority first, then newest first.
+  const sorted = [...recommendations].sort((a, b) =>
+    a.priority !== b.priority
+      ? b.priority - a.priority
+      : new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+  );
 
-  // Group recommendations by read status
-  const unreadRecommendations = sortedRecommendations.filter(
-    (r) => !r.isRead && !isExpired(r)
-  );
-  const readRecommendations = sortedRecommendations.filter(
-    (r) => r.isRead && !isExpired(r)
-  );
-  const expiredRecommendations = sortedRecommendations.filter((r) =>
-    isExpired(r)
-  );
+  const unread = sorted.filter((r) => !r.isRead && !isExpired(r));
+  const read = sorted.filter((r) => r.isRead && !isExpired(r));
+  const expired = sorted.filter(isExpired);
 
   const RecommendationCard: React.FC<{
     recommendation: UserRecommendation;
     isExpired?: boolean;
   }> = ({ recommendation, isExpired: expired = false }) => {
-    const priorityInfo = getPriorityLabel(recommendation.priority);
+    const priority = priorityOf(recommendation.priority);
+    const unread = !recommendation.isRead && !expired;
 
     return (
+      // Nested inside a panel, so: no second border, just the tint. Unread is a
+      // left rail rather than a ring — it doesn't compete with the panel edge.
       <div
-        className={`p-4 rounded-lg border-2 transition-all ${
-          expired
-            ? 'border-gray-300 bg-gray-100 dark:border-gray-600 dark:bg-gray-800 opacity-60'
-            : getRecommendationColor(recommendation.priority)
-        } ${!recommendation.isRead && !expired ? 'ring-2 ring-blue-200 dark:ring-blue-800' : ''}`}
+        className={cn(
+          'p-4 rounded-lg bg-accent/[0.06] transition-colors',
+          unread && 'border-l-2 border-accent',
+          expired && 'opacity-55'
+        )}
       >
-        <div className="flex items-start justify-between mb-3">
-          <div className="flex items-start space-x-3">
-            <div className="text-2xl mt-1">
-              {getRecommendationIcon(recommendation.type)}
+        <div className="flex items-start justify-between gap-2 mb-3">
+          <div className="flex items-start gap-3 min-w-0">
+            <div className="text-2xl leading-none mt-0.5 shrink-0">
+              {ICONS[recommendation.type] ?? '📝'}
             </div>
-            <div className="flex-1">
-              <div className="flex items-center space-x-2 mb-1">
-                <h4 className="font-semibold text-gray-900 dark:text-white">
+            <div className="min-w-0">
+              <div className="flex items-center flex-wrap gap-2 mb-1">
+                <h4 className="font-semibold tracking-tight">
                   {recommendation.title}
                 </h4>
-                {!recommendation.isRead && !expired && (
-                  <span className="bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200 text-xs px-2 py-1 rounded-full">
+                {unread && (
+                  <span className="bg-accent/20 text-accent text-xs px-2 py-0.5 rounded-full">
                     New
                   </span>
                 )}
                 {recommendation.isApplied && (
-                  <span className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200 text-xs px-2 py-1 rounded-full">
+                  <span className="bg-success/15 text-success text-xs px-2 py-0.5 rounded-full">
                     Applied
                   </span>
                 )}
               </div>
-              <div className="flex items-center space-x-2 mb-2">
-                <span className={`text-xs font-medium ${priorityInfo.color}`}>
-                  {priorityInfo.label} Priority
+              <div className="flex items-center flex-wrap gap-x-2 gap-y-1 mb-2">
+                <span className={cn('text-xs font-medium', priority.text)}>
+                  {priority.label} priority
                 </span>
-                <span className="text-xs text-gray-500 dark:text-gray-400">
+                <span className="text-xs text-text/45">
                   {formatDate(recommendation.createdAt)}
                 </span>
                 {recommendation.validUntil && (
                   <span
-                    className={`text-xs ${expired ? 'text-red-500' : 'text-gray-500 dark:text-gray-400'}`}
+                    className={cn(
+                      'text-xs',
+                      expired ? 'text-destructive' : 'text-text/45'
+                    )}
                   >
                     {expired
                       ? 'Expired'
@@ -137,48 +121,47 @@ export const RecommendationsPanel: React.FC<RecommendationsPanelProps> = ({
                   </span>
                 )}
               </div>
-              <p className="text-gray-700 dark:text-gray-300 text-sm leading-relaxed">
+              <p className="text-text/60 text-sm leading-relaxed">
                 {recommendation.description}
               </p>
             </div>
           </div>
 
-          <div className="flex items-center space-x-1 ml-2">
-            <button
-              onClick={() => onDismiss(recommendation.id)}
-              className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 p-1 rounded"
-              title="Dismiss"
-            >
-              ✕
-            </button>
-          </div>
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => onDismiss(recommendation.id)}
+            title="Dismiss"
+            aria-label="Dismiss recommendation"
+            className="shrink-0"
+          >
+            <X />
+          </Button>
         </div>
 
-        {/* Action Buttons */}
         {!expired && (
-          <div className="flex items-center space-x-2">
+          <div className="flex items-center flex-wrap gap-2">
             {!recommendation.isRead && (
-              <button
-                onClick={() => onMarkAsRead(recommendation.id)}
-                className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded text-xs transition-colors"
-              >
-                Mark as Read
-              </button>
+              <Button size="sm" onClick={() => onMarkAsRead(recommendation.id)}>
+                Mark as read
+              </Button>
             )}
 
             {recommendation.isRead && !recommendation.isApplied && (
-              <button
+              <Button
+                size="sm"
+                variant="secondary"
                 onClick={() => onMarkAsApplied(recommendation.id)}
-                className="bg-green-600 hover:bg-green-700 text-white px-3 py-1 rounded text-xs transition-colors"
               >
-                Mark as Applied
-              </button>
+                Mark as applied
+              </Button>
             )}
 
             {recommendation.type === 'practice_focus' &&
               recommendation.actionData && (
-                <button
-                  className="bg-purple-600 hover:bg-purple-700 text-white px-3 py-1 rounded text-xs transition-colors"
+                <Button
+                  size="sm"
+                  variant="outline"
                   onClick={() => {
                     // TODO: Navigate to practice session with specific focus
                     console.log(
@@ -187,13 +170,14 @@ export const RecommendationsPanel: React.FC<RecommendationsPanelProps> = ({
                     );
                   }}
                 >
-                  Start Practice
-                </button>
+                  Start practice
+                </Button>
               )}
 
             {recommendation.type === 'goal_suggestion' && (
-              <button
-                className="bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-1 rounded text-xs transition-colors"
+              <Button
+                size="sm"
+                variant="outline"
                 onClick={() => {
                   // TODO: Open goal creation modal with pre-filled data
                   console.log(
@@ -202,8 +186,8 @@ export const RecommendationsPanel: React.FC<RecommendationsPanelProps> = ({
                   );
                 }}
               >
-                Set Goal
-              </button>
+                Set goal
+              </Button>
             )}
           </div>
         )}
@@ -211,90 +195,78 @@ export const RecommendationsPanel: React.FC<RecommendationsPanelProps> = ({
     );
   };
 
-  return (
-    <div className="bg-accent/10 rounded-lg p-6">
-      <div className="flex items-center justify-between mb-6">
-        <h3 className="text-lg font-semibold">Personalized Recommendations</h3>
-        <div className="text-sm text-gray-500 dark:text-gray-400">
-          {unreadRecommendations.length} new
-        </div>
+  const Group: React.FC<{
+    title: string;
+    dot: string;
+    items: UserRecommendation[];
+    expired?: boolean;
+    footer?: React.ReactNode;
+  }> = ({ title, dot, items, expired, footer }) => (
+    <div>
+      <h4 className="text-sm font-semibold uppercase tracking-[0.14em] text-text/45 mb-3 flex items-center gap-2">
+        <span className={cn('size-1.5 rounded-full', dot)} />
+        {title} ({items.length})
+      </h4>
+      <div className="space-y-3">
+        {items.map((recommendation) => (
+          <RecommendationCard
+            key={recommendation.id}
+            recommendation={recommendation}
+            isExpired={expired}
+          />
+        ))}
+        {footer}
       </div>
+    </div>
+  );
 
+  return (
+    <Panel
+      title="Personalized recommendations"
+      action={<span className="text-sm text-text/45">{unread.length} new</span>}
+    >
       <div className="space-y-6">
-        {/* New Recommendations */}
-        {unreadRecommendations.length > 0 && (
-          <div>
-            <h4 className="text-md font-medium text-gray-900 dark:text-white mb-3 flex items-center">
-              <span className="w-2 h-2 bg-blue-500 rounded-full mr-2"></span>
-              New Recommendations ({unreadRecommendations.length})
-            </h4>
-            <div className="space-y-3">
-              {unreadRecommendations.map((recommendation) => (
-                <RecommendationCard
-                  key={recommendation.id}
-                  recommendation={recommendation}
-                />
-              ))}
-            </div>
-          </div>
+        {unread.length > 0 && (
+          <Group title="New" dot="bg-accent" items={unread} />
         )}
 
-        {/* Read Recommendations */}
-        {readRecommendations.length > 0 && (
-          <div>
-            <h4 className="text-md font-medium text-gray-900 dark:text-white mb-3 flex items-center">
-              <span className="w-2 h-2 bg-gray-400 rounded-full mr-2"></span>
-              Previous Recommendations ({readRecommendations.length})
-            </h4>
-            <div className="space-y-3">
-              {readRecommendations.slice(0, 5).map((recommendation) => (
-                <RecommendationCard
-                  key={recommendation.id}
-                  recommendation={recommendation}
-                />
-              ))}
-              {readRecommendations.length > 5 && (
+        {read.length > 0 && (
+          <Group
+            title="Previous"
+            dot="bg-text/30"
+            items={read.slice(0, 5)}
+            footer={
+              read.length > 5 ? (
                 <div className="text-center">
-                  <button className="text-blue-600 dark:text-blue-400 hover:underline text-sm">
-                    Show {readRecommendations.length - 5} more
-                  </button>
+                  <Button variant="link" size="sm">
+                    Show {read.length - 5} more
+                  </Button>
                 </div>
-              )}
-            </div>
-          </div>
+              ) : null
+            }
+          />
         )}
 
-        {/* Expired Recommendations */}
-        {expiredRecommendations.length > 0 && (
-          <div>
-            <h4 className="text-md font-medium text-gray-900 dark:text-white mb-3 flex items-center">
-              <span className="w-2 h-2 bg-red-400 rounded-full mr-2"></span>
-              Expired ({expiredRecommendations.length})
-            </h4>
-            <div className="space-y-3">
-              {expiredRecommendations.slice(0, 3).map((recommendation) => (
-                <RecommendationCard
-                  key={recommendation.id}
-                  recommendation={recommendation}
-                  isExpired
-                />
-              ))}
-            </div>
-          </div>
+        {expired.length > 0 && (
+          <Group
+            title="Expired"
+            dot="bg-destructive"
+            items={expired.slice(0, 3)}
+            expired
+          />
         )}
 
-        {/* Empty State */}
         {recommendations.length === 0 && (
           <div className="text-center py-8 text-text/50">
             <Target className="mx-auto mb-4 h-12 w-12 text-accent" />
             <p className="text-lg font-medium mb-1">No recommendations yet</p>
             <p className="text-sm">
               Complete more typing tests to get personalized improvement
-              suggestions!
+              suggestions.
             </p>
           </div>
         )}
       </div>
-    </div>
+    </Panel>
   );
 };

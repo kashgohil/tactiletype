@@ -1,5 +1,6 @@
 import type { AccuracyHeatmap, HeatmapCell } from '@tactile/types';
 import React from 'react';
+import { Panel } from '../ui/panel';
 import { Tooltip, TooltipContent, TooltipTrigger } from '../ui/tooltip';
 
 interface ErrorHeatmapProps {
@@ -41,36 +42,37 @@ const qwertyLayout = {
   space_row: [' '], // Space bar
 };
 
+/**
+ * The heatmap is the one place a sequential scale is warranted, so it is built
+ * from the status tokens rather than raw rgba — recolour a theme and the
+ * keyboard recolours with it. Alpha carries the magnitude, hue the verdict.
+ */
+const ACCURACY_BANDS = [
+  { min: 95, token: '--color-success' },
+  { min: 85, token: '--color-warning' },
+  { min: 70, token: '--color-warning' },
+  { min: 0, token: '--color-error' },
+] as const;
+
+const bandFor = (accuracy: number) =>
+  ACCURACY_BANDS.find((band) => accuracy >= band.min) ?? ACCURACY_BANDS[3];
+
+const swatch = (token: string, alpha: number) =>
+  `color-mix(in oklab, var(${token}) ${Math.round(alpha * 100)}%, transparent)`;
+
 const getColorIntensity = (accuracy: number, hasData: boolean) => {
-  if (!hasData) {
-    return 'rgba(156, 163, 175, 0.3)'; // gray for no data
-  }
+  if (!hasData) return 'color-mix(in oklab, var(--color-line) 60%, transparent)';
 
-  // Convert accuracy (0-100) to color intensity
-  const intensity = accuracy / 100;
-
-  if (accuracy >= 95) {
-    return `rgba(34, 197, 94, ${0.2 + intensity * 0.6})`; // green
-  } else if (accuracy >= 85) {
-    return `rgba(251, 191, 36, ${0.2 + (1 - intensity) * 0.6})`; // yellow
-  } else if (accuracy >= 70) {
-    return `rgba(249, 115, 22, ${0.2 + (1 - intensity) * 0.6})`; // orange
-  } else {
-    return `rgba(239, 68, 68, ${0.2 + (1 - intensity) * 0.6})`; // red
-  }
+  const band = bandFor(accuracy);
+  // Above the top band, more accuracy means more colour; below it, the further
+  // from perfect the louder the warning.
+  const magnitude =
+    accuracy >= 95 ? accuracy / 100 : 1 - accuracy / 100;
+  return swatch(band.token, 0.2 + magnitude * 0.6);
 };
 
-const getTextColor = (accuracy: number, hasData: boolean) => {
-  if (!hasData) {
-    return 'text-gray-500 dark:text-gray-400';
-  }
-
-  if (accuracy >= 85) {
-    return 'text-gray-800 dark:text-gray-200';
-  } else {
-    return 'text-white';
-  }
-};
+const getTextColor = (_accuracy: number, hasData: boolean) =>
+  hasData ? 'text-text' : 'text-text/40';
 
 const KeyboardRow: React.FC<{ row: string; characters: HeatmapCell[] }> = ({
   row,
@@ -86,7 +88,7 @@ const KeyboardRow: React.FC<{ row: string; characters: HeatmapCell[] }> = ({
             <TooltipTrigger>
               <div
                 className={`
-                            ${isSpace ? 'w-32' : 'w-10'} h-10 rounded flex items-center justify-center
+                            ${isSpace ? 'w-32' : 'w-10'} h-10 rounded-md flex items-center justify-center
                              text-sm font-semibold cursor-pointer
                             transition-all duration-200 hover:scale-110 hover:shadow-lg
                             ${getTextColor(cell.accuracy, hasData)}
@@ -224,13 +226,10 @@ export const ErrorHeatmap: React.FC<ErrorHeatmapProps> = ({
   const keyboardRows = getAllCharacters();
 
   return (
-    <div className="bg-accent/10 rounded-lg p-6">
-      <div className="mb-6">
-        <h3 className="text-lg font-semibold mb-2">{title}</h3>
-        <p className="text-sm text-gray-600">
-          Hover over characters to see detailed accuracy statistics
-        </p>
-      </div>
+    <Panel
+      title={title}
+      description="Hover over characters to see detailed accuracy statistics."
+    >
 
       <div className="space-y-4 mb-6">
         {/* Uppercase Letters Section */}
@@ -298,36 +297,22 @@ export const ErrorHeatmap: React.FC<ErrorHeatmapProps> = ({
       </div>
 
       {/* Legend */}
-      <div className="flex items-center justify-center space-x-6 text-sm">
-        <div className="flex items-center space-x-2">
-          <div
-            className="w-4 h-4 rounded"
-            style={{ backgroundColor: 'rgba(34, 197, 94, 0.8)' }}
-          ></div>
-          <span className="text-text/80">95%+ Excellent</span>
-        </div>
-        <div className="flex items-center space-x-2">
-          <div
-            className="w-4 h-4 rounded"
-            style={{ backgroundColor: 'rgba(251, 191, 36, 0.8)' }}
-          ></div>
-          <span className="text-text/80">85-94% Good</span>
-        </div>
-        <div className="flex items-center space-x-2">
-          <div
-            className="w-4 h-4 rounded"
-            style={{ backgroundColor: 'rgba(249, 115, 22, 0.8)' }}
-          ></div>
-          <span className="text-text/80">70-84% Fair</span>
-        </div>
-        <div className="flex items-center space-x-2">
-          <div
-            className="w-4 h-4 rounded"
-            style={{ backgroundColor: 'rgba(239, 68, 68, 0.8)' }}
-          ></div>
-          <span className="text-text/80">&lt;70% Needs Work</span>
-        </div>
+      <div className="flex items-center justify-center flex-wrap gap-x-6 gap-y-2 text-sm">
+        {[
+          { token: '--color-success', label: '95%+ Excellent' },
+          { token: '--color-warning', label: '85-94% Good' },
+          { token: '--color-warning', label: '70-84% Fair' },
+          { token: '--color-error', label: '<70% Needs work' },
+        ].map((entry) => (
+          <div key={entry.label} className="flex items-center gap-2">
+            <span
+              className="size-3 rounded-full"
+              style={{ backgroundColor: swatch(entry.token, 0.8) }}
+            />
+            <span className="text-text/60">{entry.label}</span>
+          </div>
+        ))}
       </div>
-    </div>
+    </Panel>
   );
 };
