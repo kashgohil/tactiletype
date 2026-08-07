@@ -6,6 +6,7 @@ import { Hono } from 'hono';
 import { z } from 'zod';
 import { OAuthProviderFactory } from '../auth/oauth';
 import {
+  RevocationCheckUnavailableError,
   revokeAllTokens,
   signAccessToken,
   verifyAccessToken,
@@ -127,16 +128,28 @@ authRoutes.post('/login', zValidator('json', loginSchema), async (c) => {
 
 // Get current user endpoint
 authRoutes.get('/me', async (c) => {
+  const authHeader = c.req.header('Authorization');
+
+  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    return c.json({ error: 'No token provided' }, 401);
+  }
+
+  let payload;
   try {
-    const authHeader = c.req.header('Authorization');
-
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      return c.json({ error: 'No token provided' }, 401);
+    payload = await verifyAccessToken(authHeader.substring(7));
+  } catch (error) {
+    if (error instanceof RevocationCheckUnavailableError) {
+      console.error('Auth check unavailable:', error);
+      return c.json({ error: 'Authentication temporarily unavailable' }, 503);
     }
+    console.error('Auth verification error:', error);
+    return c.json({ error: 'Invalid token' }, 401);
+  }
 
-    const token = authHeader.substring(7);
-    const payload = await verifyAccessToken(token);
-
+  // Past this point the token is known good, so nothing below may answer 401 —
+  // this is the endpoint the client trusts to decide whether a session is over,
+  // and a database hiccup here used to read as "your token is bad".
+  try {
     const user = await db.query.users.findFirst({
       where: eq(users.id, payload.userId),
       with: {
@@ -166,8 +179,8 @@ authRoutes.get('/me', async (c) => {
       },
     });
   } catch (error) {
-    console.error('Auth verification error:', error);
-    return c.json({ error: 'Invalid token' }, 401);
+    console.error('Failed to load the authenticated user:', error);
+    return c.json({ error: 'Could not load your account right now' }, 503);
   }
 });
 
