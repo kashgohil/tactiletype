@@ -13,6 +13,7 @@ import {
 } from '../auth/tokens';
 import { authMiddleware } from '../middleware/auth';
 import { setCsrfCookie } from '../middleware/csrf';
+import { loginRateLimit } from '../middleware/rateLimit';
 
 const authRoutes = new Hono().basePath('/auth');
 
@@ -85,46 +86,54 @@ authRoutes.post('/register', zValidator('json', registerSchema), async (c) => {
   }
 });
 
-// Login endpoint
-authRoutes.post('/login', zValidator('json', loginSchema), async (c) => {
-  try {
-    const { email, password } = c.req.valid('json');
+// Login endpoint.
+//
+// The throttle sits ahead of the validator so a flood of malformed bodies still
+// counts toward nothing — only the 401s the handler returns do.
+authRoutes.post(
+  '/login',
+  loginRateLimit(),
+  zValidator('json', loginSchema),
+  async (c) => {
+    try {
+      const { email, password } = c.req.valid('json');
 
-    // Find user
-    const user = await db.query.users.findFirst({
-      where: eq(users.email, email),
-    });
+      // Find user
+      const user = await db.query.users.findFirst({
+        where: eq(users.email, email),
+      });
 
-    if (!user || !user.passwordHash) {
-      return c.json({ error: 'Invalid credentials' }, 401);
+      if (!user || !user.passwordHash) {
+        return c.json({ error: 'Invalid credentials' }, 401);
+      }
+
+      // Verify password
+      const isValidPassword = await bcrypt.compare(password, user.passwordHash);
+
+      if (!isValidPassword) {
+        return c.json({ error: 'Invalid credentials' }, 401);
+      }
+
+      const token = await signAccessToken(user);
+
+      setCsrfCookie(c);
+
+      return c.json({
+        message: 'Login successful',
+        user: {
+          id: user.id,
+          email: user.email,
+          username: user.username,
+          createdAt: user.createdAt,
+        },
+        token,
+      });
+    } catch (error) {
+      console.error('Login error:', error);
+      return c.json({ error: 'Login failed' }, 500);
     }
-
-    // Verify password
-    const isValidPassword = await bcrypt.compare(password, user.passwordHash);
-
-    if (!isValidPassword) {
-      return c.json({ error: 'Invalid credentials' }, 401);
-    }
-
-    const token = await signAccessToken(user);
-
-    setCsrfCookie(c);
-
-    return c.json({
-      message: 'Login successful',
-      user: {
-        id: user.id,
-        email: user.email,
-        username: user.username,
-        createdAt: user.createdAt,
-      },
-      token,
-    });
-  } catch (error) {
-    console.error('Login error:', error);
-    return c.json({ error: 'Login failed' }, 500);
   }
-});
+);
 
 // Get current user endpoint
 authRoutes.get('/me', async (c) => {
