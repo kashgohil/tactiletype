@@ -6,18 +6,18 @@ import { verifyAccessToken } from '../auth/tokens';
  * @param next next function
  */
 export const optionalAuthMiddleware = async (c: any, next: any) => {
-  try {
-    const authHeader = c.req.header('Authorization');
+  const authHeader = c.req.header('Authorization');
 
-    if (authHeader && authHeader.startsWith('Bearer ')) {
-      const token = authHeader.substring(7);
-      const payload = await verifyAccessToken(token);
-      c.set('user', payload);
+  if (authHeader?.startsWith('Bearer ')) {
+    try {
+      c.set('user', await verifyAccessToken(authHeader.substring(7)));
+    } catch {
+      // Anonymous is a valid outcome on these routes, so an unusable token —
+      // for any reason, including an unreachable database — just means no user.
     }
-
-    await next();
-  } catch (error) {
-    // Continue without auth if token is invalid
-    await next();
   }
+
+  // Outside the try: the old version ran next() in both branches, so a route
+  // that threw was retried a second time before the error escaped.
+  await next();
 };
