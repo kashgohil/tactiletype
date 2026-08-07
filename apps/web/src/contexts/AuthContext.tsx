@@ -25,6 +25,24 @@ function getApiErrorMessage(error: unknown, fallback: string): string {
   return fallback;
 }
 
+/**
+ * Log an API failure without logging the request that caused it.
+ *
+ * An AxiosError carries the whole outgoing request on `error.config` —
+ * `config.data` is the serialised body and `config.headers` holds the bearer
+ * token. Passing one straight to console.error therefore prints the user's
+ * password, in full, into the browser console on every failed sign-in, and
+ * hands it to whatever error-reporting service gets wired up later. Only the
+ * status and the server's own message are useful for debugging anyway.
+ */
+function logApiFailure(label: string, error: unknown): void {
+  const status = axios.isAxiosError(error) ? error.response?.status : undefined;
+  console.error(label, {
+    status: status ?? 'no response',
+    message: getApiErrorMessage(error, 'Unknown error'),
+  });
+}
+
 async function tryMergeGuestResults() {
   try {
     const result = await mergeGuestResults((data) =>
@@ -85,7 +103,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         return false;
       }
 
-      console.warn(
+      logApiFailure(
         'Could not reach the API to verify the session; keeping it for the next attempt.',
         error
       );
@@ -119,7 +137,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       localStorage.setItem('auth_token', data.token);
       await tryMergeGuestResults();
     } catch (error) {
-      console.error('Login error:', error);
+      logApiFailure('Login error:', error);
       throw new Error(getApiErrorMessage(error, 'Login failed'));
     }
   };
@@ -141,7 +159,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         localStorage.setItem('auth_token', data.token);
         await tryMergeGuestResults();
       } catch (error) {
-        console.error('Registration error:', error);
+        logApiFailure('Registration error:', error);
         throw new Error(getApiErrorMessage(error, 'Registration failed'));
       }
     },
@@ -178,7 +196,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         }
         await tryMergeGuestResults();
       } catch (error) {
-        console.error('OAuth callback handling failed:', error);
+        logApiFailure('OAuth callback handling failed:', error);
         localStorage.removeItem('auth_token');
         setToken(null);
         throw error;
