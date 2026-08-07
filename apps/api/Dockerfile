@@ -22,11 +22,19 @@ RUN bun install --frozen-lockfile
 # Copy API source code
 COPY apps/api/src ./apps/api/src
 
-# Expose the port
-EXPOSE 3000
+# Must match the PORT the app binds (apps/api/src/constants.ts) and the
+# proxy_pass target in nginx. Changing one without the others publishes a port
+# nothing is listening on.
+EXPOSE 3021
 
-# Run database migrations (optional, uncomment if needed)
-# RUN bun run db:migrate
+# Migrations are deliberately NOT run here. A build step runs at image-build
+# time, against whatever database the builder can reach — not the one this image
+# will be deployed against. Run them as their own step before starting the new
+# container: `./apps/api/deploy.sh migrate`.
+
+# Drop root. The app only ever reads from /app, so the copied files staying
+# root-owned is what we want.
+USER bun
 
 # Start the application
 CMD ["bun", "run", "--filter=api", "start"]
