@@ -48,6 +48,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [token, setToken] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
+  /** Resolves true when the session is live, false when it has genuinely ended. */
   const verifyToken = React.useCallback(async (token: string) => {
     try {
       const response = await api.get('/api/auth/me', {
@@ -66,10 +67,29 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         setToken(data.token);
         localStorage.setItem('auth_token', data.token);
       }
+      return true;
     } catch (error) {
-      console.error('Token verification failed:', error);
-      localStorage.removeItem('auth_token');
-      setToken(null);
+      // Only the server explicitly rejecting the token ends the session. This
+      // used to discard the token on *any* failure, so an offline moment, a
+      // 5xx, or an API restart mid-request destroyed a valid 30-day session and
+      // read to the user as being logged out for no reason. Anything else is
+      // treated as transient: keep the token and let the next load try again.
+      const status = axios.isAxiosError(error)
+        ? error.response?.status
+        : undefined;
+
+      if (status === 401 || status === 403) {
+        localStorage.removeItem('auth_token');
+        setToken(null);
+        setUser(null);
+        return false;
+      }
+
+      console.warn(
+        'Could not reach the API to verify the session; keeping it for the next attempt.',
+        error
+      );
+      return false;
     } finally {
       setIsLoading(false);
     }
@@ -150,8 +170,12 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         setToken(token);
         localStorage.setItem('auth_token', token);
 
-        // Verify token and get user info
-        await verifyToken(token);
+        // verifyToken no longer throws, so its verdict has to be read from the
+        // return value — otherwise a failed callback lands on the app looking
+        // signed in, with no user.
+        if (!(await verifyToken(token))) {
+          throw new Error('Could not complete sign in. Please try again.');
+        }
         await tryMergeGuestResults();
       } catch (error) {
         console.error('OAuth callback handling failed:', error);
