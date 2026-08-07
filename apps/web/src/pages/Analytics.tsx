@@ -18,6 +18,7 @@ import {
   Timer,
 } from 'lucide-react';
 import React from 'react';
+import { toast } from 'sonner';
 import { ErrorHeatmap } from '../components/analytics/ErrorHeatmap';
 import { GoalTracker } from '../components/analytics/GoalTracker';
 import {
@@ -28,6 +29,7 @@ import { RecommendationsPanel } from '../components/analytics/RecommendationsPan
 import { ReportGenerator } from '../components/analytics/ReportGenerator';
 import { useAuth } from '../contexts';
 import { analyticsApi } from '../services/analyticsApi';
+import { describeError } from '../utils/describeError';
 
 export const Analytics: React.FC = () => {
   const { user } = useAuth();
@@ -138,6 +140,15 @@ export const Analytics: React.FC = () => {
 
   const exportDataMutation = useMutation({
     mutationFn: analyticsApi.exportData,
+    // Nothing is being saved here, so the default write-flavoured toast would
+    // misdescribe the failure.
+    meta: { ownsErrorToast: true },
+    onError: (error) => {
+      toast.error('Export failed', {
+        id: 'analytics-export-failed',
+        description: describeError(error),
+      });
+    },
   });
 
   const handleCreateGoal = (goalData: {
@@ -171,11 +182,7 @@ export const Analytics: React.FC = () => {
   };
 
   const handleExportData = (format: 'csv' | 'json') => {
-    exportDataMutation.mutate(format, {
-      onSuccess: () => {
-        console.log(`Data exported successfully in ${format} format`);
-      },
-    });
+    exportDataMutation.mutate(format);
   };
 
   const formatTime = (seconds: number): string => {
