@@ -1,30 +1,35 @@
-version: '3.8'
-
 services:
   api:
     build:
       context: ../../
       dockerfile: apps/api/Dockerfile
+    # Bound to loopback: nginx terminates TLS and proxies to it. Publishing on
+    # 0.0.0.0 would expose the API on http://<vps-ip>:3021, bypassing both TLS
+    # and the firewall rules that only open 80/443.
     ports:
-      - '3000:3000'
-    environment:
-      - NODE_ENV=production
-      - PORT=3000
-      - DATABASE_URL=${DATABASE_URL}
-      # Add other environment variables as needed
-      - JWT_SECRET=${JWT_SECRET}
-      # - GITHUB_CLIENT_ID=${GITHUB_CLIENT_ID}
-      # - GITHUB_CLIENT_SECRET=${GITHUB_CLIENT_SECRET}
-      - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID}
-      - GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET}
-      - BASE_URL=${BASE_URL}
-      - FRONTEND_URL=${FRONTEND_URL}
+      - '127.0.0.1:3021:3021'
+    # One source of truth for secrets, shared with deploy.sh. Listing vars under
+    # `environment:` instead makes Compose substitute an empty string for
+    # anything unset, so a typo'd JWT_SECRET silently becomes ''.
+    env_file:
+      - .env
     restart: unless-stopped
     healthcheck:
-      test: ['CMD', 'curl', '-f', 'https://api.trytactiletype.com/api']
+      # Uses bun rather than curl, which this image does not ship, and checks
+      # this container rather than the public hostname — an external URL would
+      # report healthy while the container is broken behind a cached CDN
+      # response, and unhealthy during any DNS or TLS blip.
+      test:
+        [
+          'CMD',
+          'bun',
+          '-e',
+          'const r = await fetch("http://127.0.0.1:3021/api").catch(() => null); process.exit(r?.ok ? 0 : 1)',
+        ]
       interval: 30s
       timeout: 10s
       retries: 3
+      start_period: 10s
     networks:
       - app-network
 
