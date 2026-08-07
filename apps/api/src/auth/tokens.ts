@@ -12,6 +12,26 @@ import { JWT_SECRET } from '../constants';
  */
 export const ACCESS_TOKEN_TTL_SECONDS = 60 * 60 * 24 * 30; // 30 days
 
+/**
+ * How long a user's token generation is trusted before it is read again.
+ *
+ * Without this every authenticated request costs a database round trip purely
+ * to notice the rare case of a revoked token. A minute of staleness means
+ * "Log out on all devices" takes up to a minute to reach a device mid-session,
+ * which is the right trade for dropping the read rate to once per user per
+ * minute. The window is per process: with more than one API container, each
+ * one expires its own copy.
+ */
+const REVOCATION_CACHE_TTL_MS = 60_000;
+
+/** Bounds the cache so a burst of distinct users cannot grow it without limit. */
+const REVOCATION_CACHE_MAX_ENTRIES = 10_000;
+
+const revocationCache = new Map<
+  string,
+  { version: number; expiresAt: number }
+>();
+
 /** The token is not acceptable — bad signature, expired, or revoked. Answer 401. */
 export class InvalidTokenError extends Error {
   override readonly name = 'InvalidTokenError';
@@ -30,11 +50,32 @@ export class RevocationCheckUnavailableError extends Error {
   override readonly name = 'RevocationCheckUnavailableError';
 }
 
+const rememberTokenVersion = (userId: string, version: number): void => {
+  if (
+    revocationCache.size >= REVOCATION_CACHE_MAX_ENTRIES &&
+    !revocationCache.has(userId)
+  ) {
+    // Map iterates in insertion order, so the first key is the oldest write.
+    const oldest = revocationCache.keys().next();
+    if (!oldest.done) revocationCache.delete(oldest.value);
+  }
+
+  revocationCache.set(userId, {
+    version,
+    expiresAt: Date.now() + REVOCATION_CACHE_TTL_MS,
+  });
+};
+
 /**
  * The user's current token generation, or null if the user is gone.
  * Throws RevocationCheckUnavailableError when the answer is unknowable.
  */
 const currentTokenVersion = async (userId: string): Promise<number | null> => {
+  const cached = revocationCache.get(userId);
+  if (cached && cached.expiresAt > Date.now()) {
+    return cached.version;
+  }
+
   let row;
   try {
     row = await db.query.users.findFirst({
@@ -42,14 +83,22 @@ const currentTokenVersion = async (userId: string): Promise<number | null> => {
       columns: { tokenVersion: true },
     });
   } catch (error) {
-    // A dropped pool connection is not a bad token — say so honestly and let
-    // the caller answer 503 rather than ending the session.
+    // A dropped pool connection is not a bad token. Prefer a stale generation
+    // over ending the session; if there is nothing cached, say so honestly and
+    // let the caller return 503.
+    if (cached) return cached.version;
     throw new RevocationCheckUnavailableError(
       error instanceof Error ? error.message : 'Revocation check failed'
     );
   }
 
-  return row ? row.tokenVersion : null;
+  if (!row) {
+    revocationCache.delete(userId);
+    return null;
+  }
+
+  rememberTokenVersion(userId, row.tokenVersion);
+  return row.tokenVersion;
 };
 
 export interface AccessTokenPayload {
@@ -127,5 +176,12 @@ export const revokeAllTokens = async (userId: string): Promise<number> => {
     .where(eq(users.id, userId))
     .returning({ tokenVersion: users.tokenVersion });
 
-  return updated?.tokenVersion ?? 0;
+  const next = updated?.tokenVersion ?? 0;
+
+  // Publish to this process at once so the caller's own token stops working on
+  // the very next request rather than at the end of the cache window. Other
+  // containers, if any, pick it up when their copy expires.
+  rememberTokenVersion(userId, next);
+
+  return next;
 };
