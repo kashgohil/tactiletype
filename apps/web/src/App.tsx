@@ -12,11 +12,25 @@ import { describeError } from './utils/describeError';
 // Import the generated route tree
 import { routeTree } from './routeTree.gen';
 
+declare module '@tanstack/react-query' {
+  interface Register {
+    mutationMeta: {
+      /**
+       * Set when a mutation reports its own failures. "That didn't save" is
+       * wrong for anything that isn't a write — a download, say — and two
+       * toasts for one error is worse than the wrong words.
+       */
+      ownsErrorToast?: boolean;
+    };
+  }
+}
+
 const queryClient = new QueryClient({
   // Every write gets a voice by default. A mutation that wants its own wording
-  // can still add onError — this runs alongside it, not instead of it.
+  // opts out with meta.ownsErrorToast and handles onError itself.
   mutationCache: new MutationCache({
-    onError: (error) => {
+    onError: (error, _variables, _context, mutation) => {
+      if (mutation.meta?.ownsErrorToast) return;
       toast.error("That didn't save", { description: describeError(error) });
     },
   }),
