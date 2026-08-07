@@ -4,6 +4,9 @@
   "installCommand": "bun install --frozen-lockfile",
   "buildCommand": "bun run --filter=web build",
   "outputDirectory": "apps/web/dist",
+  "git": {
+    "deploymentEnabled": false
+  },
   "redirects": [
     { "source": "/test", "destination": "/", "statusCode": 301 },
     { "source": "/test/", "destination": "/", "statusCode": 301 }
