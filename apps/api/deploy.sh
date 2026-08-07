@@ -11,9 +11,15 @@ CONTAINER_NAME="tactile-api-container"
 REGISTRY=""  # Add your registry if using one (e.g., "your-registry.com/")
 
 # Must match PORT in apps/api/.env, EXPOSE in the Dockerfile, and the
-# proxy_pass target in nginx.
+# reverse_proxy target in the Caddyfile.
 PORT="${PORT:-3021}"
 ENV_FILE="apps/api/.env"
+
+# User-defined bridge shared with tactile-postgres and the Caddy container.
+# It must be user-defined, not the default bridge: only user-defined networks
+# provide container-name DNS, and both DATABASE_URL and Caddy's reverse_proxy
+# target resolve by container name.
+NETWORK="${NETWORK:-tactile_net}"
 
 # Colors for output
 RED='\033[0;31m'
@@ -78,6 +84,7 @@ run_migrations() {
     require_env
     log "Running database migrations..."
     docker run --rm \
+        --network "${NETWORK}" \
         --add-host=host.docker.internal:host-gateway \
         --env-file "${ENV_FILE}" \
         "${REGISTRY}${IMAGE_NAME}:latest" \
@@ -97,14 +104,17 @@ deploy_container() {
         docker rm "${CONTAINER_NAME}" || true
     fi
 
-    # Run the container. Published on loopback only: nginx terminates TLS and
+    # Run the container. Published on loopback only: Caddy terminates TLS and
     # proxies to it, so binding 0.0.0.0 would serve the API unencrypted on
     # http://<vps-ip>:${PORT} straight past the firewall's 80/443-only rules.
+    # The published port is for local debugging; Caddy reaches the container by
+    # name over ${NETWORK}, which is why that network is not optional.
     #
     # host.docker.internal is mapped so a Postgres running on the VPS host
     # itself is reachable — inside a container, `localhost` is the container.
     docker run -d \
         --name "${CONTAINER_NAME}" \
+        --network "${NETWORK}" \
         --restart unless-stopped \
         -p "127.0.0.1:${PORT}:${PORT}" \
         --add-host=host.docker.internal:host-gateway \
@@ -112,7 +122,7 @@ deploy_container() {
         "${REGISTRY}${IMAGE_NAME}:latest"
 
     log "Container deployed successfully!"
-    log "API listening on 127.0.0.1:${PORT} — reach it through nginx."
+    log "API listening on 127.0.0.1:${PORT} — reach it through Caddy."
 }
 
 # Show container logs
