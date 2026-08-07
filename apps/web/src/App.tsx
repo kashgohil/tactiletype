@@ -5,21 +5,12 @@ import {
   QueryClientProvider,
 } from '@tanstack/react-query';
 import { RouterProvider, createRouter } from '@tanstack/react-router';
-import { isAxiosError } from 'axios';
 import { toast } from 'sonner';
 import { AuthProvider, ThemeProvider } from './contexts';
+import { describeError } from './utils/describeError';
 
 // Import the generated route tree
 import { routeTree } from './routeTree.gen';
-
-function describeError(error: unknown): string {
-  if (isAxiosError(error)) {
-    const message = error.response?.data?.error;
-    if (typeof message === 'string') return message;
-    if (!error.response) return 'Could not reach the server.';
-  }
-  return error instanceof Error ? error.message : 'Something went wrong.';
-}
 
 const queryClient = new QueryClient({
   // Every write gets a voice by default. A mutation that wants its own wording
