@@ -221,7 +221,6 @@ export interface BuildReportInput {
   errorAnalysis?: ErrorAnalysisSummary;
   recommendations: UserRecommendation[];
   period: ReportPeriod;
-  sections: ReportSections;
   /** Injected so the caller controls "now" — keeps this pure and testable. */
   now?: Date;
 }
@@ -232,6 +231,9 @@ export interface BuildReportInput {
  * Every headline figure is recomputed from rows inside the window: the
  * server's AnalyticsOverview is lifetime-scoped, so reusing it here would print
  * a career total under a "Monthly report" heading.
+ *
+ * This always builds the full document; `applySections` narrows it afterwards,
+ * so the model the caller holds is the same one whatever is ticked.
  */
 export function buildReport({
   rows,
@@ -239,7 +241,6 @@ export function buildReport({
   errorAnalysis,
   recommendations,
   period,
-  sections,
   now = new Date(),
 }: BuildReportInput): ReportModel {
   const days = PERIOD_DAYS[period];
@@ -299,62 +300,52 @@ export function buildReport({
     },
   ];
 
-  const reportCharts: ReportChart[] = sections.charts
-    ? charts
-        .map((chart) => {
-          const points = chart.data.filter((point) => {
-            const at = new Date(point.date).getTime();
-            return at >= from.getTime() && at < to.getTime();
-          });
-          const trendPercentage = trendOf(points);
-          return {
-            type: chart.type,
-            title: CHART_TITLES[chart.type] ?? chart.type,
-            caption: `${describeTrend(
-              trendPercentage,
-              CHART_TITLES[chart.type] ?? chart.type
-            )} across ${points.length} recorded ${
-              points.length === 1 ? 'day' : 'days'
-            }.`,
-            points,
-            trendPercentage,
-          };
-        })
-        // A single point draws a dot, not a trend — not worth a page of paper.
-        .filter((chart) => chart.points.length >= 2)
-    : [];
+  const reportCharts: ReportChart[] = charts
+    .map((chart) => {
+      const points = chart.data.filter((point) => {
+        const at = new Date(point.date).getTime();
+        return at >= from.getTime() && at < to.getTime();
+      });
+      const trendPercentage = trendOf(points);
+      return {
+        type: chart.type,
+        title: CHART_TITLES[chart.type] ?? chart.type,
+        caption: `${describeTrend(
+          trendPercentage,
+          CHART_TITLES[chart.type] ?? chart.type
+        )} across ${points.length} recorded ${
+          points.length === 1 ? 'day' : 'days'
+        }.`,
+        points,
+        trendPercentage,
+      };
+    })
+    // A single point draws a dot, not a trend — not worth a page of paper.
+    .filter((chart) => chart.points.length >= 2);
 
-  const stats: ReportStatRow[] = sections.detailedStats
+  const stats: ReportStatRow[] = current.length
     ? [
         { label: 'Tests completed', value: String(current.length) },
         { label: 'Fastest test', value: `${round1(bestWpm)} WPM` },
         {
           label: 'Slowest test',
-          value: current.length
-            ? `${round1(Math.min(...current.map((r) => r.wpm)))} WPM`
-            : '-',
+          value: `${round1(Math.min(...current.map((r) => r.wpm)))} WPM`,
         },
         { label: 'Average speed', value: `${round1(avgWpm)} WPM` },
         { label: 'Average accuracy', value: `${round1(avgAccuracy)}%` },
         {
           label: 'Best accuracy',
-          value: current.length
-            ? `${round1(Math.max(...current.map((r) => r.accuracy)))}%`
-            : '-',
+          value: `${round1(Math.max(...current.map((r) => r.accuracy)))}%`,
         },
         { label: 'Total errors', value: String(totalErrors) },
         {
           label: 'Errors per test',
-          value: current.length
-            ? String(round1(totalErrors / current.length))
-            : '-',
+          value: String(round1(totalErrors / current.length)),
         },
         { label: 'Time practised', value: formatDuration(totalTime) },
         {
           label: 'Average session',
-          value: current.length
-            ? formatDuration(totalTime / current.length)
-            : '-',
+          value: formatDuration(totalTime / current.length),
         },
       ]
     : [];
@@ -371,10 +362,24 @@ export function buildReport({
     metrics,
     charts: reportCharts,
     stats,
-    errorAnalysis: sections.detailedStats ? errorAnalysis : undefined,
-    recommendations: sections.recommendations ? recommendations : [],
+    errorAnalysis,
+    recommendations,
     closing: current.length ? writeClosing(current, wpmDelta) : '',
     testCount: current.length,
+  };
+}
+
+/** Narrows a full report to the sections the reader asked for. */
+export function applySections(
+  model: ReportModel,
+  sections: ReportSections
+): ReportModel {
+  return {
+    ...model,
+    charts: sections.charts ? model.charts : [],
+    stats: sections.detailedStats ? model.stats : [],
+    errorAnalysis: sections.detailedStats ? model.errorAnalysis : undefined,
+    recommendations: sections.recommendations ? model.recommendations : [],
   };
 }
 

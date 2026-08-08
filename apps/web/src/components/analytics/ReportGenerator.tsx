@@ -2,6 +2,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { analyticsApi } from '@/services/analyticsApi';
 import { describeError } from '@/utils/describeError';
 import {
+  applySections,
   buildReport,
   PERIOD_DAYS,
   type ReportFormat,
@@ -84,27 +85,26 @@ export const ReportGenerator: React.FC<ReportGeneratorProps> = ({
     staleTime: 5 * 60 * 1000,
   });
 
-  const report = useMemo(() => {
+  // Built whole, then narrowed, so a toggled section only re-slices a model
+  // that is already there rather than recomputing the period from scratch.
+  const fullReport = useMemo(() => {
     if (!rowsQuery.data) return null;
-    const model = buildReport({
+    return buildReport({
       rows: rowsQuery.data,
       charts: progressCharts,
       errorAnalysis,
       recommendations,
       period,
-      sections,
     });
+  }, [rowsQuery.data, progressCharts, errorAnalysis, recommendations, period]);
+
+  const report = useMemo(() => {
+    if (!fullReport) return null;
+    const model = applySections(fullReport, sections);
     // Rasterised for the preview too, so what is on screen is exactly what
     // prints — no second chart implementation to drift out of sync.
     return { ...model, charts: withChartImages(model.charts) };
-  }, [
-    rowsQuery.data,
-    progressCharts,
-    errorAnalysis,
-    recommendations,
-    period,
-    sections,
-  ]);
+  }, [fullReport, sections]);
 
   const isEmpty = report !== null && report.testCount === 0;
   const hasAnyResult = (rowsQuery.data?.length ?? 0) > 0;
