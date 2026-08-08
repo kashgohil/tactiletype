@@ -122,9 +122,17 @@ export function PlayResultCard({
 }) {
   const reduced = usePrefersReducedMotion();
 
-  // Enter / r to retry
+  // Enter / r to retry. Armed on a delay: the keystroke that ends a run is
+  // still bubbling to `window` when this card mounts, so a run submitted with
+  // enter — or the stray keys a player types after the run is already over —
+  // would otherwise retry instantly and the result would never be seen.
   useEffect(() => {
+    let armed = false;
+    const arm = window.setTimeout(() => {
+      armed = true;
+    }, 400);
     const onKey = (e: KeyboardEvent) => {
+      if (!armed) return;
       if (e.key === 'Enter' || e.key === 'r' || e.key === 'R') {
         if (
           e.target instanceof HTMLInputElement ||
@@ -137,7 +145,10 @@ export function PlayResultCard({
       }
     };
     window.addEventListener('keydown', onKey);
-    return () => window.removeEventListener('keydown', onKey);
+    return () => {
+      clearTimeout(arm);
+      window.removeEventListener('keydown', onKey);
+    };
   }, [onRetry]);
 
   return (
