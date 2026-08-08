@@ -8,6 +8,17 @@ import type {
 } from '@tactile/types';
 import api from './api';
 
+/** One completed test, as `/api/analytics/export?format=json` returns it. */
+export interface ReportResultRow {
+  date: string;
+  wpm: number;
+  accuracy: number;
+  errors: number;
+  timeTaken: number;
+  difficulty: string;
+  title: string;
+}
+
 const MIME_BY_FORMAT: Record<'csv' | 'json', string> = {
   csv: 'text/csv',
   json: 'application/json',
@@ -147,6 +158,18 @@ export const analyticsApi = {
   getPersonalBests: async () => {
     const response = await api.get('/api/analytics/personal-bests');
     return response.data.personalBests;
+  },
+
+  /**
+   * Every completed test as flat rows, for building a report on the client.
+   *
+   * Shares the export endpoint rather than adding one: it already returns
+   * exactly these fields for the signed-in user, and reading it over XHR has no
+   * download side effect — Content-Disposition only applies to navigation.
+   */
+  getResultRows: async (): Promise<ReportResultRow[]> => {
+    const response = await api.get('/api/analytics/export?format=json');
+    return response.data.analytics ?? [];
   },
 
   // Export analytics data
