@@ -135,6 +135,20 @@
   /* The second racer in Ghost Race — a rival, not an error or a success. */
   --color-ghost: oklch(0.72 0.14 235);
 
+  /* Report sheet — the third documented exception to the theme ramp, after the
+     status hues. An analytics report is a print artefact: it is saved as a PDF,
+     opened as a standalone HTML file outside the app, and put on paper. A dark
+     skin rendered onto A4 floods the page with ink and reads as a bug, and a
+     shared HTML file has no ThemeProvider to read from at all. So the sheet
+     fixes its own ink-on-paper palette and every report surface derives from
+     these two — never from --color-accent.
+     Confined to `components/analytics/report/`. Nothing else may use them. */
+  --color-report-paper: #ffffff;
+  --color-report-ink: #17171a;
+  --color-report-rule: color-mix(in oklab, var(--color-report-ink) 14%, var(--color-report-paper));
+  --color-report-muted: color-mix(in oklab, var(--color-report-ink) 48%, var(--color-report-paper));
+  --color-report-faint: color-mix(in oklab, var(--color-report-ink) 5%, var(--color-report-paper));
+
   --ease-out-strong: cubic-bezier(0.23, 1, 0.32, 1);
   --ease-in-out-strong: cubic-bezier(0.77, 0, 0.175, 1);
 }
@@ -228,5 +242,62 @@
         border-color 0.28s var(--ease-out-strong),
         box-shadow 0.28s var(--ease-out-strong);
     }
+  }
+}
+
+/* ---------------------------------------------------------------------------
+   Printing a report.
+
+   The document is portalled to `#report-print-root`, a direct child of <body>,
+   so print can hide its siblings outright instead of the usual visibility
+   trick. That matters: `visibility: hidden` leaves the app's boxes occupying
+   space, and an absolutely-positioned sheet — the usual workaround — breaks
+   across pages badly. Removing the siblings from flow entirely lets the sheet
+   paginate as ordinary static content.
+
+   Background colours are deliberately left un-forced. Browsers omit them from
+   print by default, which is exactly right here: the paper supplies the white,
+   and `print-color-adjust: exact` would flood a page with ink for no gain.
+   --------------------------------------------------------------------------- */
+@media print {
+  @page {
+    /* No `size` on purpose. This block applies to every print the app does, and
+       forcing A4 would misfit anyone on Letter — the sheet is fluid, so let the
+       printer's own paper choice win. */
+    margin: 16mm 14mm;
+  }
+
+  html,
+  body {
+    background: #fff !important;
+    /* Print resolves lengths against the sheet, not the viewport. */
+    height: auto !important;
+  }
+
+  /* Gated on the class, not merely on the portal existing: `> *:not(#id)` with
+     no such element in the DOM matches every child, which would blank out an
+     ordinary Ctrl+P of any other page in the app. */
+  body.printing-report > *:not(#report-print-root) {
+    display: none !important;
+  }
+
+  body.printing-report #report-print-root {
+    display: block !important;
+  }
+
+  /* A metric, a chart, or a keycap row split across a page break reads as a
+     printing fault rather than a design choice. */
+  [data-report-block] {
+    break-inside: avoid;
+  }
+
+  [data-report-section] {
+    break-before: auto;
+  }
+
+  /* A heading stranded at the foot of a page loses the block it introduces. */
+  h2,
+  h3 {
+    break-after: avoid;
   }
 }
