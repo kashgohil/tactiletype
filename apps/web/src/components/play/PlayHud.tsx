@@ -1,4 +1,5 @@
 import { Button } from '@/components/ui/button';
+import { useArmedHotkey } from '@/hooks/useArmedHotkey';
 import { usePrefersReducedMotion } from '@/hooks/usePrefersReducedMotion';
 import { EASE_OUT, uiTransition } from '@/lib/motion';
 import { cn } from '@/lib/utils';
@@ -6,7 +7,10 @@ import { isActiveDailyForMode } from '@/utils/dailyRun';
 import type { PlayModeId } from '@/utils/playModes';
 import { AnimatePresence, motion } from 'motion/react';
 import { ArrowLeft, RotateCcw, Sparkles } from 'lucide-react';
-import React, { useEffect } from 'react';
+import React from 'react';
+
+/** Enter or R restarts a finished run, from any play mode's result card. */
+const RETRY_KEYS = ['Enter', 'r', 'R'];
 
 export function PlayStat({
   label,
@@ -122,34 +126,7 @@ export function PlayResultCard({
 }) {
   const reduced = usePrefersReducedMotion();
 
-  // Enter / r to retry. Armed on a delay: the keystroke that ends a run is
-  // still bubbling to `window` when this card mounts, so a run submitted with
-  // enter — or the stray keys a player types after the run is already over —
-  // would otherwise retry instantly and the result would never be seen.
-  useEffect(() => {
-    let armed = false;
-    const arm = window.setTimeout(() => {
-      armed = true;
-    }, 400);
-    const onKey = (e: KeyboardEvent) => {
-      if (!armed) return;
-      if (e.key === 'Enter' || e.key === 'r' || e.key === 'R') {
-        if (
-          e.target instanceof HTMLInputElement ||
-          e.target instanceof HTMLTextAreaElement
-        ) {
-          return;
-        }
-        e.preventDefault();
-        onRetry();
-      }
-    };
-    window.addEventListener('keydown', onKey);
-    return () => {
-      clearTimeout(arm);
-      window.removeEventListener('keydown', onKey);
-    };
-  }, [onRetry]);
+  useArmedHotkey(RETRY_KEYS, onRetry);
 
   return (
     <motion.div
