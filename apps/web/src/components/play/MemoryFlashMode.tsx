@@ -7,8 +7,10 @@ import {
 import { TypingSurface } from '@/components/test/TypingSurface';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts';
+import { cn } from '@/lib/utils';
 import { isNonPrintingKey } from '@/utils/typingEngine';
 import { pickPhrase, savePlayBest } from '@/utils/playModes';
+import { scoreRecall, type RecallScore } from '@/utils/recall';
 import { submitPlayResult } from '@/utils/submitPlayResult';
 import { playCompleteChime, playErrorBeep, playKeyClick } from '@/utils/testSounds';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
@@ -16,46 +18,59 @@ import { useNavigate } from '@tanstack/react-router';
 
 type Phase = 'ready' | 'flash' | 'type' | 'round-result' | 'over';
 
-const TOTAL_ROUNDS = 5;
-const FLASH_MS_BASE = 2800;
+/**
+ * The run is a memory-span ladder, not a fixed set of rounds: hold the phrase
+ * and the next one is a word longer, drop it and it shrinks and costs a life.
+ * Everyone converges on the longest phrase they can actually hold, and that
+ * span — not an average percentage — is the score.
+ */
+const START_SPAN = 4;
+const MIN_SPAN = 3;
+const MAX_SPAN = 16;
+const START_LIVES = 3;
 
-function flashDuration(round: number, wordCount: number): number {
-  return Math.max(1600, FLASH_MS_BASE + wordCount * 120 - (round - 1) * 200);
+/** Longer phrases get more time, but less time per word — that's the ramp. */
+function flashDuration(span: number): number {
+  return Math.min(5200, 1200 + span * 320);
 }
 
-function wordsForRound(round: number): number {
-  return 3 + round; // 4…8
+function bankFor(span: number): 'easy' | 'medium' | 'hard' {
+  return span >= 9 ? 'hard' : span >= 6 ? 'medium' : 'easy';
 }
 
-function scoreRound(target: string, typed: string): { correct: number; total: number; accuracy: number } {
-  const total = target.length;
-  let correct = 0;
-  for (let i = 0; i < total; i++) {
-    if (typed[i] === target[i]) correct++;
-  }
-  const extras = Math.max(0, typed.length - total);
-  const accuracy = total > 0 ? Math.round((correct / (total + extras)) * 100) : 0;
-  return { correct, total, accuracy };
+interface RoundRecord {
+  span: number;
+  hits: number;
+  total: number;
+  cleared: boolean;
 }
 
 export const MemoryFlashMode: React.FC = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const [phase, setPhase] = useState<Phase>('ready');
-  const [round, setRound] = useState(1);
+  const [span, setSpan] = useState(START_SPAN);
+  const [nextSpan, setNextSpan] = useState(START_SPAN);
+  const [bestSpan, setBestSpan] = useState(0);
+  const [lives, setLives] = useState(START_LIVES);
   const [phrase, setPhrase] = useState('');
   const [typed, setTyped] = useState('');
   const [flashLeft, setFlashLeft] = useState(1);
-  const [roundScores, setRoundScores] = useState<number[]>([]);
-  const [lastRoundAcc, setLastRoundAcc] = useState(0);
+  const [rounds, setRounds] = useState<RoundRecord[]>([]);
+  const [lastScore, setLastScore] = useState<RecallScore | null>(null);
   const [isNewBest, setIsNewBest] = useState(false);
-  const [sessionCorrect, setSessionCorrect] = useState(0);
-  const [sessionTotal, setSessionTotal] = useState(0);
-  const [typeStartedAt, setTypeStartedAt] = useState<number | null>(null);
-  const [typeMsTotal, setTypeMsTotal] = useState(0);
+  const [wordsRecalled, setWordsRecalled] = useState(0);
+  const [finalWpm, setFinalWpm] = useState(0);
   const focusRef = useRef<HTMLDivElement>(null);
+  /** Authoritative keystroke buffer: `typed` state lags a render behind when
+      keys land faster than React commits, and appending to a stale copy
+      silently swallows characters. */
+  const buffer = useRef('');
   const flashTimer = useRef<number | null>(null);
   const flashDeadline = useRef(0);
+  const typeStartedAt = useRef<number | null>(null);
+  const typeMsTotal = useRef(0);
+  const hitCharsTotal = useRef(0);
   const submitted = useRef(false);
   const allPhrases = useRef<string[]>([]);
 
@@ -66,16 +81,14 @@ export const MemoryFlashMode: React.FC = () => {
     }
   };
 
-  const startRound = useCallback((r: number) => {
+  const startRound = useCallback((s: number) => {
     clearFlashTimer();
-    const wc = wordsForRound(r);
-    const difficulty = r >= 4 ? 'hard' : r >= 2 ? 'medium' : 'easy';
-    const p = pickPhrase(wc, difficulty);
-    setPhrase(p);
+    setPhrase(pickPhrase(s, bankFor(s)));
+    buffer.current = '';
     setTyped('');
     setPhase('flash');
-    setTypeStartedAt(null);
-    const dur = flashDuration(r, wc);
+    typeStartedAt.current = null;
+    const dur = flashDuration(s);
     flashDeadline.current = Date.now() + dur;
     setFlashLeft(1);
 
@@ -85,8 +98,7 @@ export const MemoryFlashMode: React.FC = () => {
       if (left <= 0) {
         clearFlashTimer();
         setPhase('type');
-        setTypeStartedAt(Date.now());
-        requestAnimationFrame(() => focusRef.current?.focus());
+        typeStartedAt.current = Date.now();
       }
     }, 40);
   }, []);
@@ -94,75 +106,103 @@ export const MemoryFlashMode: React.FC = () => {
   const reset = useCallback(() => {
     clearFlashTimer();
     setPhase('ready');
-    setRound(1);
+    setSpan(START_SPAN);
+    setNextSpan(START_SPAN);
+    setBestSpan(0);
+    setLives(START_LIVES);
     setPhrase('');
+    buffer.current = '';
     setTyped('');
-    setRoundScores([]);
-    setLastRoundAcc(0);
+    setRounds([]);
+    setLastScore(null);
     setIsNewBest(false);
-    setSessionCorrect(0);
-    setSessionTotal(0);
-    setTypeStartedAt(null);
-    setTypeMsTotal(0);
+    setWordsRecalled(0);
+    setFinalWpm(0);
+    typeStartedAt.current = null;
+    typeMsTotal.current = 0;
+    hitCharsTotal.current = 0;
     submitted.current = false;
     allPhrases.current = [];
   }, []);
 
   useEffect(() => () => clearFlashTimer(), []);
 
+  // The flash and type phases render separate surfaces, so the typing one only
+  // exists after the commit that reveals it. Focusing here rather than from the
+  // flash timer means a blind attempt can never be typed into nothing.
+  useEffect(() => {
+    if (phase === 'type') focusRef.current?.focus();
+  }, [phase]);
+
   const finishRound = useCallback(
     async (finalTyped: string) => {
-      const { correct, total, accuracy } = scoreRound(phrase, finalTyped);
+      const score = scoreRecall(phrase, finalTyped);
+      setLastScore(score);
       allPhrases.current.push(phrase);
-      const scores = [...roundScores, accuracy];
-      setRoundScores(scores);
-      setLastRoundAcc(accuracy);
+      hitCharsTotal.current += score.hitChars;
+      typeMsTotal.current += typeStartedAt.current
+        ? Date.now() - typeStartedAt.current
+        : 0;
 
-      const newCorrect = sessionCorrect + correct;
-      const newTotal = sessionTotal + total;
-      setSessionCorrect(newCorrect);
-      setSessionTotal(newTotal);
+      const recalled = wordsRecalled + score.hits;
+      setWordsRecalled(recalled);
+      setRounds((r) => [
+        ...r,
+        { span, hits: score.hits, total: score.total, cleared: score.perfect },
+      ]);
 
-      const typedMs = typeStartedAt ? Date.now() - typeStartedAt : 0;
-      const newTypeMs = typeMsTotal + typedMs;
-      setTypeMsTotal(newTypeMs);
+      const livesLeft = score.perfect ? lives : lives - 1;
+      const climbedTo = score.perfect
+        ? Math.min(MAX_SPAN, span + 1)
+        : Math.max(MIN_SPAN, span - 1);
+      const best = score.perfect ? Math.max(bestSpan, span) : bestSpan;
+      setLives(livesLeft);
+      setNextSpan(climbedTo);
+      setBestSpan(best);
 
-      if (accuracy < 70) playErrorBeep();
-      else playKeyClick();
+      if (score.perfect) playKeyClick();
+      else playErrorBeep();
 
-      if (round >= TOTAL_ROUNDS) {
-        setPhase('over');
-        const avgAcc = Math.round(scores.reduce((a, b) => a + b, 0) / scores.length);
-        const wpm =
-          newTypeMs > 0 ? Math.round(newCorrect / 5 / (newTypeMs / 60000)) : 0;
-        const score = avgAcc * 10 + scores.filter((s) => s === 100).length * 50;
-        const isBest = savePlayBest('memory-flash', score, `${avgAcc}% avg recall`);
-        setIsNewBest(isBest);
-
-        if (!submitted.current) {
-          submitted.current = true;
-          await submitPlayResult(
-            {
-              modeId: 'memory-flash',
-              title: `Memory Flash · ${avgAcc}% avg`,
-              content: allPhrases.current.join(' · '),
-              wpm,
-              accuracy: avgAcc,
-              errors: Math.max(0, newTotal - newCorrect),
-              timeTaken: Math.max(1, Math.round(newTypeMs / 1000)),
-              wordCount: allPhrases.current.join(' ').split(/\s+/).filter(Boolean).length,
-              score,
-              scoreLabel: `${avgAcc}% avg`,
-            },
-            !!user
-          );
-        }
-        playCompleteChime();
-      } else {
+      if (livesLeft > 0) {
         setPhase('round-result');
+        return;
       }
+
+      setPhase('over');
+      const wpm =
+        typeMsTotal.current > 0
+          ? Math.round(hitCharsTotal.current / 5 / (typeMsTotal.current / 60000))
+          : 0;
+      setFinalWpm(wpm);
+
+      const runScore = best * 1000 + recalled;
+      const label = best > 0 ? `${best}-word span` : 'no span held';
+      setIsNewBest(savePlayBest('memory-flash', runScore, label));
+
+      if (!submitted.current) {
+        submitted.current = true;
+        const targetWords = allPhrases.current.join(' ').split(/\s+/)
+          .filter(Boolean).length;
+        await submitPlayResult(
+          {
+            modeId: 'memory-flash',
+            title: `Memory Flash · ${label}`,
+            content: allPhrases.current.join(' · '),
+            wpm,
+            accuracy:
+              targetWords > 0 ? Math.round((recalled / targetWords) * 100) : 0,
+            errors: Math.max(0, targetWords - recalled),
+            timeTaken: Math.max(1, Math.round(typeMsTotal.current / 1000)),
+            wordCount: targetWords,
+            score: runScore,
+            scoreLabel: label,
+          },
+          !!user
+        );
+      }
+      playCompleteChime();
     },
-    [phrase, round, roundScores, sessionCorrect, sessionTotal, typeStartedAt, typeMsTotal, user]
+    [phrase, span, lives, bestSpan, wordsRecalled, user]
   );
 
   const onKeyDown = useCallback(
@@ -172,49 +212,66 @@ export const MemoryFlashMode: React.FC = () => {
       e.preventDefault();
 
       if (e.key === 'Enter') {
-        void finishRound(typed);
+        void finishRound(buffer.current);
         return;
       }
       if (e.key === 'Backspace') {
-        setTyped((t) => t.slice(0, -1));
+        buffer.current = buffer.current.slice(0, -1);
+        setTyped(buffer.current);
         return;
       }
       if (e.key.length !== 1) return;
+      // Overshooting is scored as invented words, not a hard stop — but the
+      // input still needs a ceiling.
+      if (buffer.current.length > phrase.length + 24) return;
 
-      const next = typed + e.key;
+      const next = buffer.current + e.key;
+      buffer.current = next;
       setTyped(next);
-      if (next.length >= phrase.length) {
-        void finishRound(next.slice(0, phrase.length));
+      // Landing the phrase exactly submits it — no reason to make someone
+      // press enter to confirm what they already got right.
+      if (next.trim().replace(/\s+/g, ' ') === phrase) {
+        void finishRound(next);
       }
     },
-    [phase, typed, phrase, finishRound]
+    [phase, phrase, finishRound]
   );
 
   const exit = () => navigate({ to: '/play' });
 
-  const avgSoFar =
-    roundScores.length > 0
-      ? Math.round(roundScores.reduce((a, b) => a + b, 0) / roundScores.length)
-      : 0;
+  const typedWordCount = typed.trim() ? typed.trim().split(/\s+/).length : 0;
 
   if (phase === 'over') {
     return (
       <PlayShell modeId="memory-flash" title="Memory Flash" onExit={exit}>
         <PlayResultCard
-          title={`${avgSoFar}% average recall`}
+          title={
+            bestSpan > 0
+              ? `${bestSpan}-word recall span`
+              : 'No phrase held whole'
+          }
+          hint={
+            bestSpan > 0
+              ? `You held ${bestSpan} words at once and typed them back exactly.`
+              : 'Every phrase came back with a word missing. The ladder starts at three next time.'
+          }
           isNewBest={isNewBest}
           stats={[
-            { label: 'Avg accuracy', value: `${avgSoFar}%` },
-            { label: 'Perfect rounds', value: roundScores.filter((s) => s === 100).length },
-            { label: 'Rounds', value: TOTAL_ROUNDS },
+            { label: 'Span', value: bestSpan > 0 ? bestSpan : '—' },
+            { label: 'Words recalled', value: wordsRecalled },
+            { label: 'Phrases', value: rounds.length },
+            { label: 'Recall WPM', value: finalWpm },
           ]}
           onRetry={reset}
           onExit={exit}
         />
-        <div className="text-center text-sm text-text/40 space-y-1">
-          {roundScores.map((s, i) => (
+        <div className="text-center text-sm text-text/40 space-y-1 font-mono">
+          {rounds.map((r, i) => (
             <p key={i}>
-              Round {i + 1}: {s}%
+              <span className={r.cleared ? 'text-success' : 'text-destructive/70'}>
+                {r.cleared ? '✓' : '✗'}
+              </span>{' '}
+              {r.span} words · {r.hits}/{r.total} recalled
             </p>
           ))}
         </div>
@@ -225,15 +282,17 @@ export const MemoryFlashMode: React.FC = () => {
   return (
     <PlayShell modeId="memory-flash"
       title="Memory Flash"
-      subtitle="Memorize the phrase, then type it blind. Builds chunking."
+      subtitle="Hold the phrase, then type it back blind. It grows until you drop it."
       onExit={exit}
     >
       <PlayTestPanel
         stats={[
-          { label: 'Round', value: `${round}/${TOTAL_ROUNDS}`, accent: true },
+          { label: 'Span', value: `${span}`, accent: true },
+          { label: 'Best', value: bestSpan > 0 ? bestSpan : '—' },
           {
-            label: 'Avg so far',
-            value: roundScores.length ? `${avgSoFar}%` : '—',
+            label: 'Lives',
+            value: lives,
+            tone: lives <= 1 ? 'danger' : 'default',
           },
           {
             label: 'Phase',
@@ -254,8 +313,8 @@ export const MemoryFlashMode: React.FC = () => {
             <Button
               size="sm"
               onClick={() => {
-                setRound(1);
-                startRound(1);
+                setSpan(START_SPAN);
+                startRound(START_SPAN);
               }}
             >
               Start session
@@ -264,12 +323,11 @@ export const MemoryFlashMode: React.FC = () => {
             <Button
               size="sm"
               onClick={() => {
-                const next = round + 1;
-                setRound(next);
-                startRound(next);
+                setSpan(nextSpan);
+                startRound(nextSpan);
               }}
             >
-              Next round
+              {lastScore?.perfect ? `Next · ${nextSpan} words` : 'Try again'}
             </Button>
           ) : undefined
         }
@@ -278,8 +336,10 @@ export const MemoryFlashMode: React.FC = () => {
         {phase === 'ready' && (
           <div className="px-8 pb-10 pt-1 text-center">
             <p className="text-text/60 max-w-md mx-auto leading-relaxed">
-              A phrase flashes on screen, then disappears. Type it back from
-              memory. {TOTAL_ROUNDS} rounds — the phrases get longer each time.
+              A phrase flashes on screen, then vanishes. Type it back from
+              memory. Get it exactly right and the next phrase is a word
+              longer; miss and it shrinks and costs a life. Three lives — the
+              longest phrase you hold is your span.
             </p>
           </div>
         )}
@@ -312,30 +372,59 @@ export const MemoryFlashMode: React.FC = () => {
               trailingAnchor
               className="min-h-[9rem] py-12"
             />
-            <PanelHint>
-              {typed.length === 0 ? (
-                <>
-                  Type what you remember · <Kbd>enter</Kbd> to submit
-                </>
-              ) : (
-                <>
-                  {typed.length} chars · target was ~
-                  {phrase.split(/\s+/).length} words · <Kbd>enter</Kbd> to submit
-                </>
-              )}
+            {/* One slot per word in the hidden phrase — you always know how far
+                you have left to reach, which is recall, not guesswork. */}
+            <div
+              className="flex items-center justify-center gap-1.5 px-8"
+              aria-label={`${typedWordCount} of ${span} words typed`}
+            >
+              {Array.from({ length: span }, (_, i) => (
+                <span
+                  key={i}
+                  className={cn(
+                    'h-1 w-6 rounded-full transition-colors duration-150',
+                    i < typedWordCount ? 'bg-accent' : 'bg-text/15'
+                  )}
+                />
+              ))}
+            </div>
+            <PanelHint className="mt-0 pt-3">
+              {typedWordCount} of {span} words · <Kbd>enter</Kbd> to submit
             </PanelHint>
           </>
         )}
 
-        {phase === 'round-result' && (
-          <div className="px-8 pb-9 pt-1 text-center space-y-3">
+        {phase === 'round-result' && lastScore && (
+          <div className="px-8 pb-9 pt-1 text-center space-y-4">
             <p className="text-5xl font-bold font-mono tabular-nums">
-              {lastRoundAcc}%
+              {lastScore.hits}
+              <span className="text-text/35">/{lastScore.total}</span>
             </p>
-            <p className="font-mono text-text/70 max-w-lg mx-auto">{phrase}</p>
-            <p className="text-sm text-text/45">
-              You typed:{' '}
-              <span className="text-text/70 font-mono">{typed || '(empty)'}</span>
+            {/* The phrase and the attempt merged into one line: what you held,
+                what slipped, what you invented. */}
+            <p className="font-mono text-lg max-w-xl mx-auto text-balance">
+              {lastScore.diff.map((w, i) => (
+                <span
+                  key={i}
+                  className={cn(
+                    w.mark === 'hit' && 'text-text',
+                    w.mark === 'missed' && 'text-text/35 line-through',
+                    w.mark === 'extra' && 'text-destructive/75'
+                  )}
+                >
+                  {w.word}{' '}
+                </span>
+              ))}
+            </p>
+            <p
+              className={cn(
+                'text-sm',
+                lastScore.perfect ? 'text-success' : 'text-text/45'
+              )}
+            >
+              {lastScore.perfect
+                ? `Held it — ${span} words up to ${nextSpan}`
+                : `Life lost — ${span} words down to ${nextSpan}, ${lives} left`}
             </p>
           </div>
         )}

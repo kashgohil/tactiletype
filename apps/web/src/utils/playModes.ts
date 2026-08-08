@@ -89,12 +89,12 @@ export const PLAY_MODES: PlayModeMeta[] = [
     title: 'Memory Flash',
     tagline: 'See it. Hide it. Type it back.',
     description:
-      'A phrase flashes briefly, then vanishes. Type it from memory. Builds chunking and keyboard confidence without staring at the line.',
+      'A phrase flashes briefly, then vanishes. Type it from memory. Hold it and the next one grows — the longest phrase you can carry is your span.',
     howToPlay: [
       'Memorize the phrase while it is visible',
       'When it hides, type what you remember',
-      'Score rewards accuracy of recall + speed',
-      'Later rounds show longer phrases',
+      'Exactly right → the next phrase is a word longer',
+      'A word missing → it shrinks and costs a life (3 total)',
     ],
     skill: 'Chunking & recall',
     accent: 'violet',
