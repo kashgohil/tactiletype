@@ -4,6 +4,7 @@
   "installCommand": "bun install --frozen-lockfile",
   "buildCommand": "bun run --filter=web build",
   "outputDirectory": "apps/web/dist",
+  "trailingSlash": false,
   "git": {
     "deploymentEnabled": false
   },
@@ -11,7 +12,14 @@
     { "source": "/test", "destination": "/", "statusCode": 301 },
     { "source": "/test/", "destination": "/", "statusCode": 301 }
   ],
-  "rewrites": [{ "source": "/(.*)", "destination": "/index.html" }],
+  "rewrites": [
+    { "source": "/profile", "destination": "/app.html" },
+    { "source": "/settings", "destination": "/app.html" },
+    { "source": "/analytics", "destination": "/app.html" },
+    { "source": "/auth/:path*", "destination": "/app.html" },
+    { "source": "/u/:username", "destination": "/app.html" },
+    { "source": "/multiplayer/room/:roomId", "destination": "/app.html" }
+  ],
   "headers": [
     {
       "source": "/(.*)",

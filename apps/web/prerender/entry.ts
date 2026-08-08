@@ -41,6 +41,12 @@ export type PrerenderRoute = {
   noscript: string;
   /** Sitemap entry. Omitted for pages that shouldn't be listed. */
   sitemap?: { changefreq: string; priority: string; lastmod: string };
+  /**
+   * Drop the canonical tag entirely. Only the shells below set this: they are
+   * served under many URLs, so any single canonical they carried would be a
+   * claim about a page the visitor is not on.
+   */
+  noCanonical?: boolean;
 };
 
 /**
@@ -375,6 +381,68 @@ export function buildSitemap(routes: PrerenderRoute[]): string {
   return `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${entries}\n</urlset>\n`;
 }
 
+/**
+ * Two shells that are not routes.
+ *
+ * Every URL that isn't a prerendered file used to be answered with the
+ * homepage's HTML: `index, follow`, canonical `/`, homepage title. That made
+ * `/profile` look indexable to a crawler that doesn't run JavaScript, and made
+ * a mistyped URL a 200 instead of a 404.
+ *
+ * `app.html` is the destination for the private and dynamic routes enumerated
+ * in `vercel.json`; `404.html` is what Vercel serves, with a 404 status, when
+ * nothing else matches. Both are `noindex` and neither carries a canonical.
+ */
+export const SHELL_PAGES: { file: string; route: PrerenderRoute }[] = [
+  {
+    file: '404.html',
+    route: {
+      path: '/404',
+      meta: {
+        title: 'Page not found | tactiletype',
+        description: 'That page does not exist on tactiletype.',
+        path: '/404',
+        robots: 'noindex, nofollow',
+      },
+      jsonLd: [],
+      noCanonical: true,
+      noscript: [
+        '<h1>Page not found</h1>',
+        '<p>That URL does not exist on tactiletype. These do:</p>',
+        '<ul>',
+        '<li><a href="/">Free typing test</a></li>',
+        '<li><a href="/practice">Typing practice and drills</a></li>',
+        '<li><a href="/play">Typing games and training modes</a></li>',
+        '<li><a href="/guides">Typing guides</a></li>',
+        '</ul>',
+      ].join(''),
+    },
+  },
+  {
+    file: 'app.html',
+    route: {
+      path: '/app',
+      meta: {
+        title: 'tactiletype',
+        description: 'Your tactiletype account and live typing sessions.',
+        path: '/app',
+        robots: 'noindex, nofollow',
+      },
+      jsonLd: [],
+      noCanonical: true,
+      noscript: [
+        '<h1>tactiletype</h1>',
+        '<p>This part of tactiletype is private or live, and needs JavaScript to run.</p>',
+        '<ul>',
+        '<li><a href="/">Free typing test</a></li>',
+        '<li><a href="/login">Log in</a></li>',
+        '<li><a href="/guides">Typing guides</a></li>',
+        '</ul>',
+      ].join(''),
+    },
+  },
+];
+
 /** `Free Typing Test - Check Your WPM | tactiletype` -> `Free Typing Test - Check Your WPM`. */
 function shortTitle(title: string): string {
   return title.split('|')[0].trim();
@@ -460,6 +528,7 @@ export function buildLlmsTxt(routes: PrerenderRoute[]): string {
 
   return lines.join('\n');
 }
+
 /** Head constants the writer needs but shouldn't re-derive. */
 export const HEAD = {
   siteName: SITE_NAME,

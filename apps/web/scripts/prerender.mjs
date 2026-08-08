@@ -8,9 +8,10 @@
  * Every per-route tag was invisible to them, and every shared link previewed as
  * the homepage.
  *
- * Netlify resolves `/practice` to `dist/practice/index.html` before falling
- * through to the SPA rule, so writing these files is enough - `_redirects`
- * needs no change.
+ * Vercel resolves `/practice` to `dist/practice/index.html` before it consults
+ * the rewrites in `vercel.json`, so writing these files is enough. The rewrites
+ * only have to name the routes that have no file: the private and dynamic ones,
+ * which are pointed at the `noindex` `app.html` shell this script also writes.
  *
  * This is deliberately NOT full SSR. It rewrites the head and adds a
  * `<noscript>` mirror of the copy; the interactive app still mounts client-side
@@ -25,7 +26,7 @@ const here = dirname(fileURLToPath(import.meta.url));
 const root = resolve(here, '..');
 const dist = join(root, 'dist');
 
-const { getPrerenderRoutes, buildSitemap, buildLlmsTxt, HEAD } = await import(
+const { getPrerenderRoutes, buildSitemap, buildLlmsTxt, SHELL_PAGES, HEAD } = await import(
   new URL('../dist-ssr/entry.js', import.meta.url).href
 );
 
@@ -57,6 +58,10 @@ function replaceCanonical(html, href) {
   return html.replace(re, `<link rel="canonical" href="${escAttr(href)}" />`);
 }
 
+function removeCanonical(html) {
+  return html.replace(/[ \t]*<link[^>]*\srel="canonical"[^>]*>\n?/i, '');
+}
+
 /**
  * JSON-LD goes in verbatim - it is already JSON, and escaping it would corrupt
  * it. The one real hazard is a literal `</script>` inside a string value, which
@@ -82,7 +87,7 @@ function buildPage(route) {
   html = replaceTitle(html, meta.title);
   html = replaceMeta(html, 'name', 'description', meta.description);
   html = replaceMeta(html, 'name', 'robots', meta.robots ?? 'index, follow');
-  html = replaceCanonical(html, canonical);
+  html = route.noCanonical ? removeCanonical(html) : replaceCanonical(html, canonical);
 
   html = replaceMeta(html, 'property', 'og:title', meta.title);
   html = replaceMeta(html, 'property', 'og:description', meta.description);
@@ -126,6 +131,12 @@ for (const route of routes) {
   written++;
 }
 
+// `404.html` and `app.html`: same template, noindex, no canonical, written to
+// fixed filenames instead of route directories.
+for (const shell of SHELL_PAGES) {
+  await writeFile(join(dist, shell.file), buildPage(shell.route), 'utf8');
+}
+
 // Both generated rather than checked in, so they can't fall behind the routes.
 const sitemap = buildSitemap(routes);
 await writeFile(join(dist, 'sitemap.xml'), sitemap, 'utf8');
@@ -133,7 +144,9 @@ const listed = routes.filter((r) => r.sitemap).length;
 
 await writeFile(join(dist, 'llms.txt'), buildLlmsTxt(routes), 'utf8');
 
-console.log(`prerender: wrote ${written} pages, sitemap with ${listed} urls, llms.txt`);
+console.log(
+  `prerender: wrote ${written} pages, ${SHELL_PAGES.length} shells, sitemap with ${listed} urls, llms.txt`
+);
 for (const route of routes) {
   console.log(`  ${route.sitemap ? '+' : ' '} ${route.path}`);
 }

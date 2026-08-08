@@ -157,9 +157,12 @@ export const PAGE_META: Record<string, PageMeta> = {
 };
 
 /**
- * Fallback for paths this table doesn't know. Netlify's SPA rule answers every
- * unknown path with 200 + the shell, so an unrecognised URL is a soft 404 -
- * `noindex` keeps junk paths from self-canonicalising into the index.
+ * Fallback for paths this table doesn't know.
+ *
+ * Unknown URLs are answered by `dist/404.html` with a real 404 status, but the
+ * client router also reaches this resolver for in-app paths that have no entry
+ * (an invented `/play/:mode`, say), so `noindex` here keeps junk paths from
+ * self-canonicalising into the index either way.
  */
 const DEFAULT_META: PageMeta = {
   title: 'tactiletype - Free Typing Test & Trainer',
