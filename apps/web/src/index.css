@@ -281,21 +281,25 @@
     display: none !important;
   }
 
+  /* Returns the print root from its off-screen parking spot to the page flow.
+     It is positioned rather than hidden so the report can measure itself for
+     pagination — see the note in ReportPrintPortal. */
   body.printing-report #report-print-root {
     display: block !important;
+    position: static !important;
+    left: auto !important;
+    top: auto !important;
+    width: auto !important;
   }
 
-  /* A metric, a chart, or a keycap row split across a page break reads as a
-     printing fault rather than a design choice. */
-  [data-report-block] {
-    break-inside: avoid;
-  }
+  /* The report paginates itself into explicit `[data-report-page]` boxes, each
+     exactly one content box tall, because a running footer needs a page number
+     and CSS cannot supply one — `@page` margin boxes and `counter(page)` are
+     specified but unimplemented in every major browser. Nothing here needs to
+     break that content further.
 
-  [data-report-section] {
-    break-before: auto;
-  }
-
-  /* A heading stranded at the foot of a page loses the block it introduces. */
+     A heading stranded at the foot of a page still loses the block it
+     introduces, so this stays for anything else the app prints. */
   h2,
   h3 {
     break-after: avoid;
