@@ -3,11 +3,23 @@ import { X } from 'lucide-react';
 import type React from 'react';
 import { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
+import { APP_COPY } from '@/content/app-copy';
 import { CreateRoomModal } from '../components/multiplayer/CreateRoomModal';
 import { RoomBrowser } from '../components/multiplayer/RoomBrowser';
 import { useAuth } from '../contexts';
 import { useMultiplayer } from '../hooks/useMultiplayer';
 import { multiplayerApi } from '../services/multiplayerApi';
+
+/** Authored once in `content/app-copy.ts`; the prerenderer mirrors the same strings. */
+const COPY = APP_COPY['/multiplayer'];
+
+/** H1 and intro, shown in both the signed-out and signed-in states. */
+const MultiplayerHeader: React.FC = () => (
+  <header className="space-y-2.5 max-w-2xl">
+    <h1 className="text-3xl md:text-[2.5rem] font-bold tracking-tight leading-[1.15]">{COPY.h1}</h1>
+    <p className="text-text/50 leading-relaxed text-[15px]">{COPY.intro}</p>
+  </header>
+);
 
 export const Multiplayer: React.FC = () => {
   const navigate = useNavigate();
@@ -71,15 +83,61 @@ export const Multiplayer: React.FC = () => {
   };
 
   if (!user) {
+    // Signed out is the state a crawler always sees, so this branch carries
+    // the page's H1 and its explanation of what multiplayer is. It used to be
+    // a bare "Authentication Required" card, which left an indexable URL with
+    // nothing on it to index.
     return (
-      <div className="grow flex items-center justify-center">
-        <div className="text-center">
-          <h2 className="text-2xl font-bold mb-4">Authentication Required</h2>
-          <p className="text-text/50 mb-6">Please log in to access multiplayer features.</p>
-          <Button asChild>
-            <Link to="/login">Go to Login</Link>
-          </Button>
-        </div>
+      <div className="space-y-10">
+        <MultiplayerHeader />
+
+        <section className="max-w-3xl space-y-4">
+          <h2 className="text-lg font-semibold tracking-tight">{COPY.steps?.heading}</h2>
+          <ol className="space-y-3">
+            {(COPY.steps?.items ?? []).map((step, i) => (
+              <li key={step} className="flex gap-3.5">
+                <span className="mt-0.5 size-6 shrink-0 rounded-full bg-accent/[0.12] text-accent text-xs font-semibold flex items-center justify-center tabular-nums">
+                  {i + 1}
+                </span>
+                <span className="text-text/70 leading-relaxed">{step}</span>
+              </li>
+            ))}
+          </ol>
+        </section>
+
+        <section className="rounded-2xl border border-accent/15 bg-accent/[0.05] p-5 sm:p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4 max-w-3xl">
+          <div>
+            <h2 className="font-semibold tracking-tight">Racing needs an account</h2>
+            <p className="text-sm text-text/45 mt-1 max-w-md leading-relaxed">
+              Rooms are tied to a username so results and progress survive the race. Creating one is
+              free.
+            </p>
+          </div>
+          <div className="flex gap-2 shrink-0">
+            <Button asChild>
+              <Link to="/register">Create account</Link>
+            </Button>
+            <Button asChild variant="outline">
+              <Link to="/login">Log in</Link>
+            </Button>
+          </div>
+        </section>
+
+        <p className="text-sm text-text/45 max-w-3xl leading-relaxed">
+          Would rather not sign up?{' '}
+          <Link
+            to="/play/$mode"
+            params={{ mode: 'ghost-race' }}
+            className="text-accent underline-offset-2 hover:underline"
+          >
+            Ghost Race
+          </Link>{' '}
+          runs the same pacing pressure against a caret that types at a fixed WPM, and{' '}
+          <Link to="/" className="text-accent underline-offset-2 hover:underline">
+            the typing test
+          </Link>{' '}
+          needs no account at all.
+        </p>
       </div>
     );
   }
@@ -95,6 +153,10 @@ export const Multiplayer: React.FC = () => {
   return (
     <div>
       <div>
+        <div className="mb-8">
+          <MultiplayerHeader />
+        </div>
+
         {/* Connection Status */}
         <div className="mb-6">
           <div className="flex items-center space-x-2">
