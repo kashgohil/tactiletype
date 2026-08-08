@@ -8,6 +8,11 @@ import type {
 } from '@tactile/types';
 import api from './api';
 
+const MIME_BY_FORMAT: Record<'csv' | 'json', string> = {
+  csv: 'text/csv',
+  json: 'application/json',
+};
+
 export const analyticsApi = {
   // Get analytics overview
   getOverview: async (): Promise<AnalyticsOverview> => {
@@ -150,8 +155,13 @@ export const analyticsApi = {
       responseType: 'blob',
     });
 
-    // Create download link
-    const url = window.URL.createObjectURL(new Blob([response.data]));
+    // Rewrapping a Blob without its type resets Content-Type to empty, so pass
+    // the server's through — the extension alone shouldn't have to carry it.
+    const url = window.URL.createObjectURL(
+      new Blob([response.data], {
+        type: response.headers['content-type'] ?? MIME_BY_FORMAT[format],
+      })
+    );
     const link = document.createElement('a');
     link.href = url;
     link.setAttribute('download', `typing-analytics.${format}`);
