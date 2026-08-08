@@ -481,7 +481,7 @@ export const Analytics: React.FC = () => {
       </div>
 
       {/* Improvement Areas */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
         {/* Most Problematic Characters */}
         <div className={cn(panelSurface, 'p-6')}>
           <h3 className="text-lg mb-4 font-semibold">Characters to Improve</h3>
@@ -552,33 +552,33 @@ export const Analytics: React.FC = () => {
             </div>
           </div>
         </div>
+      </div>
 
-        {/* Goals and Recommendations */}
-        <div className="grid grid-rows-2 gap-6 mb-8">
-          <GoalTracker
-            goals={goalsQuery.data || []}
-            onCreateGoal={handleCreateGoal}
-            onDeleteGoal={handleDeleteGoal}
-          />
+      {/* Goals and Recommendations, side by side on one row */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+        <GoalTracker
+          goals={goalsQuery.data || []}
+          onCreateGoal={handleCreateGoal}
+          onDeleteGoal={handleDeleteGoal}
+        />
 
-          <RecommendationsPanel
-            recommendations={recommendationsQuery.data || []}
-            onMarkAsRead={handleMarkRecommendationAsRead}
-            onMarkAsApplied={handleMarkRecommendationAsApplied}
-            onDismiss={handleDismissRecommendation}
-          />
-        </div>
+        <RecommendationsPanel
+          recommendations={recommendationsQuery.data || []}
+          onMarkAsRead={handleMarkRecommendationAsRead}
+          onMarkAsApplied={handleMarkRecommendationAsApplied}
+          onDismiss={handleDismissRecommendation}
+        />
+      </div>
 
-        {/* Report Generator */}
-        <div className="mb-8">
-          <ReportGenerator
-            progressCharts={dashboardData.progressCharts}
-            errorAnalysis={dashboardData.errorAnalysis}
-            recommendations={recommendationsQuery.data || []}
-            onExportData={handleExportData}
-            hasResults={dashboardData.overview.totalTests > 0}
-          />
-        </div>
+      {/* Report generator, spanning both columns — an A4 page needs the width */}
+      <div className="mb-8">
+        <ReportGenerator
+          progressCharts={dashboardData.progressCharts}
+          errorAnalysis={dashboardData.errorAnalysis}
+          recommendations={recommendationsQuery.data || []}
+          onExportData={handleExportData}
+          hasResults={dashboardData.overview.totalTests > 0}
+        />
       </div>
     </div>
   );
