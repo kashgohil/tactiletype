@@ -10,6 +10,8 @@
  * HTML is produced by string building rather than by rendering the app, which
  * keeps the step fast and immune to browser-only globals.
  */
+import { getAppCopy } from '@/content/app-copy';
+import { PLAY_MODE_PAGES, type PlayModePage } from '@/content/play-modes';
 import { GUIDES, latestGuideUpdate } from '@/content/registry';
 import type { Block, ContentPage } from '@/content/types';
 import { typingTestPage } from '@/content/typing-test';
@@ -20,10 +22,13 @@ import {
   DEFAULT_OG_IMAGE_SIZE,
   defaultGraph,
   type PageMeta,
+  playModeGraph,
+  playModeTrail,
   resolvePageMeta,
   SITE_NAME,
   TWITTER_CARD_TYPE,
 } from '@/lib/seo';
+import { getPlayMode } from '@/utils/playModes';
 
 export type PrerenderRoute = {
   /** Route path, e.g. `/guides/what-is-wpm`. */
@@ -69,8 +74,16 @@ const SITEMAP: Record<string, { changefreq: string; priority: string }> = {
 /** Guides all share one weighting. */
 const GUIDE_SITEMAP = { changefreq: 'monthly', priority: '0.8' };
 
+/**
+ * Play modes rank below the hub that links them. They carry real copy now, so
+ * they belong in the sitemap; they are still six variations on one idea, so
+ * they should not outrank `/play` itself.
+ */
+const PLAY_MODE_SITEMAP = { changefreq: 'monthly', priority: '0.6' };
+
 function sitemapFor(path: string, lastmod: string): PrerenderRoute['sitemap'] {
   if (path.startsWith('/guides/')) return { ...GUIDE_SITEMAP, lastmod };
+  if (path.startsWith('/play/')) return { ...PLAY_MODE_SITEMAP, lastmod };
   const entry = SITEMAP[path];
   return entry ? { ...entry, lastmod } : undefined;
 }
@@ -152,11 +165,57 @@ function contentNoscript(page: ContentPage): string {
   return parts.join('');
 }
 
-/** Minimal mirror for interactive app routes, which have no prose to mirror. */
+/**
+ * Mirror for a `/play/:mode` page.
+ *
+ * The game itself cannot be mirrored - it is the JavaScript. What can be
+ * mirrored is everything the page says about the game, which is the half a
+ * crawler was missing entirely before these pages had copy.
+ */
+function playModeNoscript(page: PlayModePage, h1: string): string {
+  const parts = [
+    `<h1>${esc(h1)}</h1>`,
+    `<p>${inline(page.intro)}</p>`,
+    ...page.sections.map(
+      (s) => `<section><h2>${esc(s.heading)}</h2>${s.blocks.map(blockHtml).join('')}</section>`
+    ),
+    `<section><h2>Frequently asked questions</h2>${page.faq
+      .map((f) => `<h3>${esc(f.q)}</h3><p>${inline(f.a)}</p>`)
+      .join('')}</section>`,
+    `<p>${esc(h1)} is an interactive typing game and needs JavaScript to play.</p>`,
+    `<nav><h2>Related</h2><ul>${page.related
+      .map((r) => `<li><a href="${r.to}">${esc(r.label)}</a> - ${esc(r.hint)}</li>`)
+      .join('')}</ul></nav>`,
+  ];
+  return parts.join('');
+}
+
+/**
+ * Mirror for interactive app routes.
+ *
+ * Most have no prose beyond their meta, so the mirror is the title, the
+ * description, and a route out to the pages that do. Where a route has
+ * authored copy in `content/app-copy.ts`, that copy is used instead - the
+ * static HTML then says what the rendered page says rather than a summary of it.
+ */
 function appNoscript(meta: PageMeta): string {
+  const copy = getAppCopy(meta.path);
+  const head = copy
+    ? [
+        `<h1>${esc(copy.h1)}</h1>`,
+        `<p>${esc(copy.intro)}</p>`,
+        ...(copy.steps
+          ? [
+              `<section><h2>${esc(copy.steps.heading)}</h2><ol>${copy.steps.items
+                .map((i) => `<li>${esc(i)}</li>`)
+                .join('')}</ol></section>`,
+            ]
+          : []),
+      ]
+    : [`<h1>${esc(meta.title.split('|')[0].trim())}</h1>`, `<p>${esc(meta.description)}</p>`];
+
   return [
-    `<h1>${esc(meta.title.split('|')[0].trim())}</h1>`,
-    `<p>${esc(meta.description)}</p>`,
+    ...head,
     `<p>tactiletype is an interactive typing trainer and needs JavaScript to run the test itself. These pages explain how it works without it:</p>`,
     `<ul>`,
     `<li><a href="/typing-test">What a typing test measures</a></li>`,
@@ -222,6 +281,26 @@ export function getPrerenderRoutes(): PrerenderRoute[] {
         },
       ],
       noscript: contentNoscript(page),
+      sitemap: sitemapFor(page.path, page.updated),
+    });
+  }
+
+  for (const page of PLAY_MODE_PAGES) {
+    const meta = resolvePageMeta(page.path);
+    // The visible H1 comes from PLAY_MODES via PlayShell; reading it from the
+    // same record keeps the static mirror and the mounted app in agreement.
+    const h1 = getPlayMode(page.mode)?.title ?? page.mode;
+    routes.push({
+      path: page.path,
+      meta,
+      jsonLd: [
+        { id: 'jsonld-default', json: JSON.stringify(defaultGraph()) },
+        {
+          id: 'jsonld-play-mode',
+          json: JSON.stringify(playModeGraph(page, playModeTrail(page, h1))),
+        },
+      ],
+      noscript: playModeNoscript(page, h1),
       sitemap: sitemapFor(page.path, page.updated),
     });
   }
