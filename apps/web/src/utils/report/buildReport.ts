@@ -184,12 +184,12 @@ function writeSummary(
   )} at the keyboard.`;
 
   if (!previous.length) {
-    return `${opening} This is your first stretch of practice in this window, so there is nothing yet to compare it against — the next report will show movement.`;
+    return `${opening} This is your first stretch of practice in this window, so there is nothing yet to compare it against - the next report will show movement.`;
   }
 
   const prevWpm = Math.round(mean(previous.map((r) => r.wpm)));
   if (!wpmDelta.comparable || wpmDelta.direction === 'flat') {
-    return `${opening} That holds level with the ${prevWpm} WPM you averaged over the preceding ${periodDays} days — steady ground to push from.`;
+    return `${opening} That holds level with the ${prevWpm} WPM you averaged over the preceding ${periodDays} days - steady ground to push from.`;
   }
 
   const movement = wpmDelta.direction === 'up' ? 'up' : 'down';
@@ -203,12 +203,12 @@ function writeClosing(rows: ReportResultRow[], wpmDelta: ReportDelta): string {
   if (wpmDelta.comparable && wpmDelta.direction === 'up') {
     return `Speed is moving in the right direction and your ceiling this period was ${round1(
       best
-    )} WPM. Keep the sessions frequent rather than long — the gains here came from turning up regularly.`;
+    )} WPM. Keep the sessions frequent rather than long - the gains here came from turning up regularly.`;
   }
   if (wpmDelta.comparable && wpmDelta.direction === 'down') {
     return `Speed dipped this period, which most often follows a push on accuracy or a change of material. Your ceiling was still ${round1(
       best
-    )} WPM, so the range is intact — rebuild the average with short, unhurried sessions.`;
+    )} WPM, so the range is intact - rebuild the average with short, unhurried sessions.`;
   }
   return `Your ceiling this period was ${round1(
     best
@@ -274,7 +274,9 @@ export function buildReport({
     },
     {
       key: 'wpm',
-      label: 'Average speed',
+      // Abbreviated because these labels set uppercase and letter-spaced in a
+      // narrow column; the detailed table below has room for the full word.
+      label: 'Avg speed',
       value: `${Math.round(avgWpm)}`,
       caption: 'words per minute',
       delta: wpmDelta,
@@ -282,7 +284,7 @@ export function buildReport({
     },
     {
       key: 'accuracy',
-      label: 'Average accuracy',
+      label: 'Avg accuracy',
       value: `${round1(avgAccuracy)}%`,
       caption: `${totalErrors} ${totalErrors === 1 ? 'error' : 'errors'} in total`,
       delta: accuracyDelta,
@@ -330,7 +332,7 @@ export function buildReport({
           label: 'Slowest test',
           value: current.length
             ? `${round1(Math.min(...current.map((r) => r.wpm)))} WPM`
-            : '—',
+            : '-',
         },
         { label: 'Average speed', value: `${round1(avgWpm)} WPM` },
         { label: 'Average accuracy', value: `${round1(avgAccuracy)}%` },
@@ -338,21 +340,21 @@ export function buildReport({
           label: 'Best accuracy',
           value: current.length
             ? `${round1(Math.max(...current.map((r) => r.accuracy)))}%`
-            : '—',
+            : '-',
         },
         { label: 'Total errors', value: String(totalErrors) },
         {
           label: 'Errors per test',
           value: current.length
             ? String(round1(totalErrors / current.length))
-            : '—',
+            : '-',
         },
         { label: 'Time practised', value: formatDuration(totalTime) },
         {
           label: 'Average session',
           value: current.length
             ? formatDuration(totalTime / current.length)
-            : '—',
+            : '-',
         },
       ]
     : [];
@@ -361,7 +363,7 @@ export function buildReport({
     title: `${PERIOD_NAME[period]} typing report`,
     period,
     periodLabel: PERIOD_NAME[period],
-    rangeLabel: `${shortDate(from)} – ${shortDate(to)}, ${to.getFullYear()}`,
+    rangeLabel: `${shortDate(from)} - ${shortDate(to)}, ${to.getFullYear()}`,
     generatedAt: formatDate(to),
     summary: current.length
       ? writeSummary(current, previous, days, wpmDelta)
