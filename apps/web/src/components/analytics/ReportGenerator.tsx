@@ -12,6 +12,7 @@ import {
   downloadReportHtml,
   downloadReportJson,
   printReport,
+  whenImagesReady,
 } from '@/utils/report/exportReport';
 import { withChartImages } from '@/utils/report/renderChartImage';
 import type { ErrorAnalysisSummary, ProgressChart } from '@tactile/types';
@@ -31,6 +32,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '../ui/select';
+import { A4Frame } from './report/A4Frame';
 import { ReportDocument } from './report/ReportDocument';
 import { ReportPrintPortal } from './report/ReportPrintPortal';
 
@@ -47,6 +49,12 @@ const FORMAT_ACTION: Record<ReportFormat, string> = {
   pdf: 'Generate PDF',
   html: 'Download HTML',
   json: 'Download JSON',
+};
+
+const FORMAT_HINT: Record<ReportFormat, string> = {
+  pdf: "Opens your browser's print dialog — choose Save as PDF as the destination.",
+  html: 'A single file with styles, fonts and charts inlined; it opens anywhere, offline.',
+  json: 'The figures behind the report, without the charts drawn from them.',
 };
 
 export const ReportGenerator: React.FC<ReportGeneratorProps> = ({
@@ -101,12 +109,23 @@ export const ReportGenerator: React.FC<ReportGeneratorProps> = ({
   const isEmpty = report !== null && report.testCount === 0;
   const hasAnyResult = (rowsQuery.data?.length ?? 0) > 0;
 
-  // Printing waits a commit so the portal is in the DOM before the dialog opens.
+  // Printing waits a commit so the portal is in the DOM, then waits again for
+  // its images to decode — the dialog captures what is painted when it opens.
   useEffect(() => {
     if (!pendingPrint || !report) return;
-    printReport(report);
-    setPendingPrint(false);
-    setIsGenerating(false);
+    let cancelled = false;
+
+    (async () => {
+      await whenImagesReady(document.getElementById('report-print-root'));
+      if (cancelled) return;
+      printReport(report);
+      setPendingPrint(false);
+      setIsGenerating(false);
+    })();
+
+    return () => {
+      cancelled = true;
+    };
   }, [pendingPrint, report]);
 
   const handleGenerate = async () => {
@@ -139,33 +158,44 @@ export const ReportGenerator: React.FC<ReportGeneratorProps> = ({
     setSections((current) => ({ ...current, [key]: value === true }));
 
   return (
-    <Panel
-      title="Generate report"
-      description="Built in your browser from data already loaded — nothing is sent anywhere."
-      action={
-        <>
-          <Button
-            onClick={() => onExportData('csv')}
-            size="sm"
-            variant="ghost"
-            disabled={!hasResults}
-          >
-            Export CSV
-          </Button>
-          <Button
-            onClick={() => onExportData('json')}
-            size="sm"
-            variant="ghost"
-            disabled={!hasResults}
-          >
-            Export JSON
-          </Button>
-        </>
-      }
-    >
-      <div className="grid lg:grid-cols-[minmax(0,19rem)_minmax(0,1fr)] gap-8">
-        {/* Configuration */}
-        <div className="flex flex-col gap-5">
+    // No panel header: the heading and its actions live in the left column, so
+    // the page opposite them starts at the very top of the panel.
+    <Panel>
+      {/* Controls beside the page, an even split. Half of the shell is narrower
+          than A4's 794px, so the page scales to roughly 70% — proportions and
+          measure hold, it just reads smaller. */}
+      <div className="grid lg:grid-cols-2 gap-8">
+        {/* Heading, configuration and actions. `self-start` stops the grid
+            stretching this column to the height of the page beside it. */}
+        <div className="flex flex-col gap-5 self-start">
+          <div>
+            <h2 className="text-base font-semibold tracking-tight">
+              Generate report
+            </h2>
+            <p className="text-sm text-text/45 mt-1 leading-relaxed">
+              Built in your browser from data already loaded — nothing is sent
+              anywhere.
+            </p>
+            <div className="flex items-center gap-2 mt-3 -ml-3">
+              <Button
+                onClick={() => onExportData('csv')}
+                size="sm"
+                variant="ghost"
+                disabled={!hasResults}
+              >
+                Export CSV
+              </Button>
+              <Button
+                onClick={() => onExportData('json')}
+                size="sm"
+                variant="ghost"
+                disabled={!hasResults}
+              >
+                Export JSON
+              </Button>
+            </div>
+          </div>
+
           <div className="flex flex-col gap-4">
             <div>
               <Label className="text-text/50 mb-2">Time period</Label>
@@ -242,7 +272,9 @@ export const ReportGenerator: React.FC<ReportGeneratorProps> = ({
             </div>
           </div>
 
-          <div className="flex flex-col gap-2">
+          {/* Action closes the left column, directly under the settings it
+              applies to. */}
+          <div className="pt-5 border-t border-accent/15 flex flex-col gap-3">
             <Button
               onClick={handleGenerate}
               disabled={isGenerating || isEmpty || !report}
@@ -264,27 +296,15 @@ export const ReportGenerator: React.FC<ReportGeneratorProps> = ({
                 </>
               )}
             </Button>
-            {format === 'pdf' && (
-              <p className="text-xs text-text/45 leading-relaxed">
-                Opens your browser's print dialog — choose{' '}
-                <span className="text-text/70">Save as PDF</span> as the
-                destination.
-              </p>
-            )}
+            <p className="text-xs text-text/45 leading-relaxed">
+              {FORMAT_HINT[format]}
+            </p>
           </div>
         </div>
 
-        {/* Preview */}
-        <div className="min-w-0">
-          <div className="flex items-center justify-between gap-3 mb-3">
-            <h4 className="text-sm font-medium">Preview</h4>
-            {report && !isEmpty && (
-              <span className="text-xs text-text/45 tabular-nums">
-                {report.rangeLabel}
-              </span>
-            )}
-          </div>
-
+        {/* The page itself, unlabelled and unframed — a document needs no
+            caption to say it is one. */}
+        <div className="min-w-0" ref={previewRef}>
           {rowsQuery.isLoading && (
             <div className="flex flex-col gap-3">
               <Skeleton className="h-8 w-2/3" />
@@ -330,12 +350,13 @@ export const ReportGenerator: React.FC<ReportGeneratorProps> = ({
             </div>
           )}
 
+          {/* Capped and scrollable: a report runs to several thousand pixels,
+              and without a ceiling it sets the height of the whole panel. */}
           {report && !isEmpty && (
-            <div
-              ref={previewRef}
-              className="max-h-[34rem] overflow-y-auto rounded-lg border border-accent/15 p-4 bg-accent/[0.06]"
-            >
-              <ReportDocument report={report} />
+            <div className="max-h-[42rem] overflow-y-auto rounded-lg border border-accent/15 bg-accent/[0.06] p-4 sm:p-6">
+              <A4Frame>
+                <ReportDocument report={report} />
+              </A4Frame>
             </div>
           )}
         </div>
