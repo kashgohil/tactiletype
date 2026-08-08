@@ -16,7 +16,7 @@ services:
     restart: unless-stopped
     healthcheck:
       # Uses bun rather than curl, which this image does not ship, and checks
-      # this container rather than the public hostname — an external URL would
+      # this container rather than the public hostname - an external URL would
       # report healthy while the container is broken behind a cached CDN
       # response, and unhealthy during any DNS or TLS blip.
       test:

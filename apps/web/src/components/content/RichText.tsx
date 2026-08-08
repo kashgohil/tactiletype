@@ -8,7 +8,7 @@ import type React from 'react';
  *
  * Deliberately not Markdown. Content lives in `src/content/*` as data so the
  * same strings can render as React, as plain text for the prerendered
- * `<noscript>` mirror, and as JSON-LD — and a full Markdown pipeline would drag
+ * `<noscript>` mirror, and as JSON-LD - and a full Markdown pipeline would drag
  * a parser into all three. Two constructs cover every case the copy needs.
  */
 const TOKEN = /\[([^\]]+)\]\(([^)]+)\)|`([^`]+)`/g;

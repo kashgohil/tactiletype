@@ -9,13 +9,13 @@ export const Route = createRootRoute({
   // is a trap here: `main` keeps the default `flex-shrink: 1`, so on any page
   // taller than the viewport it gets squeezed down to its min-height, its
   // content spills out of the box, and the footer is laid out right after that
-  // squeezed box — hanging in the middle of the page. Letting the document
+  // squeezed box - hanging in the middle of the page. Letting the document
   // scroll means nothing shrinks and the footer always lands after the content.
   component: () => (
     <div className="min-h-svh w-full flex flex-col">
       <Seo />
       <Navbar />
-      {/* `grow` (basis auto), not `flex-1` (basis 0) — with a zero basis the
+      {/* `grow` (basis auto), not `flex-1` (basis 0) - with a zero basis the
           box is sized from leftover space and tall content spills past its
           padding, so the bottom gutter collapses against the footer.
           `shrink-0` so main can never be compressed below its content.

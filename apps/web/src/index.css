@@ -3,7 +3,7 @@
 
 /* Saira, self-hosted. One variable file per subset covers 100–900, so the whole
    weight range costs a single request instead of one per weight.
-   `font-display: swap` keeps text painted during the fetch — the alternative is
+   `font-display: swap` keeps text painted during the fetch - the alternative is
    invisible text, which is worse for LCP than a brief fallback flash.
    Subsets are split so Latin readers never download the extended ranges. */
 @font-face {
@@ -98,15 +98,15 @@
   --font-saira: "Saira", sans-serif;
   --font-sans: "Saira", ui-sans-serif, system-ui, sans-serif;
 
-  /* One shell width every screen shares — header, page content, and footer
+  /* One shell width every screen shares - header, page content, and footer
      all align to `max-w-shell`. Change it here and the whole app follows. */
   --container-shell: 80rem;
 
   /* The header is a fixed height so pages can fill exactly what's left of the
-     viewport. Navbar pins itself to this — don't let its content grow past it. */
+     viewport. Navbar pins itself to this - don't let its content grow past it. */
   --height-nav: 3.75rem;
 
-  /* Deliberate type scale — geometric, ~1.2 minor-third steps */
+  /* Deliberate type scale - geometric, ~1.2 minor-third steps */
   --text-hero: 4.5rem;
   --text-hero--line-height: 1;
   --text-hero--letter-spacing: -0.03em;
@@ -114,39 +114,39 @@
   --text-display--line-height: 1.05;
   --text-display--letter-spacing: -0.02em;
 
-  /* Authored per theme — three colors, set by ThemeProvider at runtime */
+  /* Authored per theme - three colors, set by ThemeProvider at runtime */
   --color-primary: var(--theme-primary, #edebe1);
   --color-text: var(--theme-text, #333333);
   --color-accent: var(--theme-accent, #ceb11e);
   /* Higher-contrast of text/primary against the accent, picked by ThemeProvider */
   --color-on-accent: var(--theme-on-accent, #fefefe);
 
-  /* Derived ramp — every surface tints from the three authored colors */
+  /* Derived ramp - every surface tints from the three authored colors */
   --color-surface: color-mix(in oklab, var(--color-text) 4%, var(--color-primary));
   --color-surface-2: color-mix(in oklab, var(--color-text) 9%, var(--color-primary));
   --color-line: color-mix(in oklab, var(--color-text) 15%, var(--color-primary));
   --color-muted: color-mix(in oklab, var(--color-text) 55%, var(--color-primary));
-  /* Opaque accent wash — the accent tint without any transparency */
+  /* Opaque accent wash - the accent tint without any transparency */
   --color-surface-accent: color-mix(in oklab, var(--color-accent) 30%, var(--color-primary));
 
-  /* Status hues — the ONLY colors allowed to sit outside the theme ramp, because
+  /* Status hues - the ONLY colors allowed to sit outside the theme ramp, because
      they carry meaning the accent can't (a mistyped key must read as wrong even
      when the accent is itself red). Every wrong/right/warning/ghost signal in the
-     app resolves to one of these — never to a raw Tailwind palette color.
+     app resolves to one of these - never to a raw Tailwind palette color.
      Each is muted toward the theme so it still belongs to the current skin. */
   --color-error: oklch(0.645 0.246 16.44);
   --color-success: oklch(0.7 0.15 155);
   --color-warning: oklch(0.78 0.15 80);
-  /* The second racer in Ghost Race — a rival, not an error or a success. */
+  /* The second racer in Ghost Race - a rival, not an error or a success. */
   --color-ghost: oklch(0.72 0.14 235);
 
-  /* Report sheet — the third documented exception to the theme ramp, after the
+  /* Report sheet - the third documented exception to the theme ramp, after the
      status hues. An analytics report is a print artefact: it is saved as a PDF,
      opened as a standalone HTML file outside the app, and put on paper. A dark
      skin rendered onto A4 floods the page with ink and reads as a bug, and a
      shared HTML file has no ThemeProvider to read from at all. So the sheet
      fixes its own ink-on-paper palette and every report surface derives from
-     these two — never from --color-accent.
+     these two - never from --color-accent.
      Confined to `components/analytics/report/`. Nothing else may use them. */
   --color-report-paper: #ffffff;
   --color-report-ink: #17171a;
@@ -181,14 +181,14 @@
 }
 
 /* Fills everything below the sticky header, so the footer starts exactly at the
-   fold and has to be scrolled to. The footer itself stays in normal flow — it is
+   fold and has to be scrolled to. The footer itself stays in normal flow - it is
    pushed down, never fixed or floating over the content.
 
-   Applied once to `<main>` in `__root.tsx`, so EVERY route gets it — the footer
+   Applied once to `<main>` in `__root.tsx`, so EVERY route gets it - the footer
    is below the fold everywhere, not just on the test and results screens.
 
    Only `--height-nav` is subtracted: main is border-box, so its own `py-10` is
-   already inside this height. Don't subtract the padding again — that lifts the
+   already inside this height. Don't subtract the padding again - that lifts the
    footer back into view by exactly that much.
 
    min-height (not height) so taller content grows the box instead of being
@@ -198,15 +198,15 @@
 }
 
 /* ---------------------------------------------------------------------------
-   The surface contract. Two scales, no exceptions — if a value isn't listed
+   The surface contract. Two scales, no exceptions - if a value isn't listed
    here it doesn't belong in a className.
 
    RADIUS  (one step per level of nesting, so depth reads at a glance)
      rounded-2xl   page-level panels and cards            → `panelSurface`
      rounded-lg    blocks nested inside a panel, the typing slab, modals
-     rounded-md    controls — buttons, inputs, chips, badges
+     rounded-md    controls - buttons, inputs, chips, badges
      rounded-full  pills, avatars, dots, progress tracks
-     rounded-sm    rows inside a popover/menu (shadcn's own step — primitives only)
+     rounded-sm    rows inside a popover/menu (shadcn's own step - primitives only)
    `rounded-xl`, `rounded-xs` and bare `rounded` are drift. Don't reintroduce them.
 
    FILLS  (accent-tinted, so every surface follows the theme picker)
@@ -220,8 +220,8 @@
      border-accent/10  hairline dividing rows inside a panel
      border-accent/15  panel edge, control-group edge
      border-accent/30  accent panel, selected, hover-emphasis
-     border-line       neutral chrome only — nav, footer, form controls
-   A panel never contains another panel — see `components/ui/panel.tsx`.
+     border-line       neutral chrome only - nav, footer, form controls
+   A panel never contains another panel - see `components/ui/panel.tsx`.
 
    Status hues (--color-error/-success/-warning/-ghost) are the only non-accent
    colors. Raw Tailwind palette classes (gray-, rose-, sky-, emerald-…) do not
@@ -256,7 +256,7 @@
    The document is portalled to `#report-print-root`, a direct child of <body>,
    so print can hide its siblings outright instead of the usual visibility
    trick. That matters: `visibility: hidden` leaves the app's boxes occupying
-   space, and an absolutely-positioned sheet — the usual workaround — breaks
+   space, and an absolutely-positioned sheet - the usual workaround - breaks
    across pages badly. Removing the siblings from flow entirely lets the sheet
    paginate as ordinary static content.
 
@@ -267,7 +267,7 @@
 @media print {
   @page {
     /* No `size` on purpose. This block applies to every print the app does, and
-       forcing A4 would misfit anyone on Letter — the sheet is fluid, so let the
+       forcing A4 would misfit anyone on Letter - the sheet is fluid, so let the
        printer's own paper choice win. */
     margin: 16mm 14mm;
   }
@@ -288,7 +288,7 @@
 
   /* Returns the print root from its off-screen parking spot to the page flow.
      It is positioned rather than hidden so the report can measure itself for
-     pagination — see the note in ReportPrintPortal. */
+     pagination - see the note in ReportPrintPortal. */
   body.printing-report #report-print-root {
     display: block !important;
     position: static !important;
@@ -299,7 +299,7 @@
 
   /* The report paginates itself into explicit `[data-report-page]` boxes, each
      exactly one content box tall, because a running footer needs a page number
-     and CSS cannot supply one — `@page` margin boxes and `counter(page)` are
+     and CSS cannot supply one - `@page` margin boxes and `counter(page)` are
      specified but unimplemented in every major browser. Nothing here needs to
      break that content further.
 

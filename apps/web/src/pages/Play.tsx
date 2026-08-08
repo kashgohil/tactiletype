@@ -68,11 +68,11 @@ export const Play: React.FC = () => {
           Typing games a timer can&apos;t teach
         </h1>
         <p className="text-text/50 leading-relaxed text-[15px]">
-          Six modes, six different rules. Same goal — type faster without falling apart.
+          Six modes, six different rules. Same goal - type faster without falling apart.
         </p>
       </motion.header>
 
-      {/* Mode of the day — same slab as the test panel, so the ranked run
+      {/* Mode of the day - same slab as the test panel, so the ranked run
           reads as the main event on this page. */}
       <motion.button
         type="button"
@@ -157,7 +157,7 @@ export const Play: React.FC = () => {
                     {mode.description}
                   </p>
 
-                  {/* The rule that makes this mode different — authored per
+                  {/* The rule that makes this mode different - authored per
                       mode, previously never shown. */}
                   {mode.howToPlay[1] && (
                     <p className="text-xs font-mono text-text/40 mt-3 leading-relaxed">
@@ -202,7 +202,7 @@ export const Play: React.FC = () => {
           <div>
             <h3 className="font-semibold tracking-tight">Need targeted drills?</h3>
             <p className="text-sm text-text/45 mt-1 max-w-md leading-relaxed">
-              Weak keys, bigrams, and accuracy focus — generated for a skill, not random categories.
+              Weak keys, bigrams, and accuracy focus - generated for a skill, not random categories.
             </p>
           </div>
         </div>

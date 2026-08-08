@@ -90,7 +90,7 @@ authRoutes.post('/register', zValidator('json', registerSchema), async (c) => {
 // Login endpoint.
 //
 // The throttle sits ahead of the validator so a flood of malformed bodies still
-// counts toward nothing — only the 401s the handler returns do.
+// counts toward nothing - only the 401s the handler returns do.
 authRoutes.post('/login', loginRateLimit(), zValidator('json', loginSchema), async (c) => {
   try {
     const { email, password } = c.req.valid('json');
@@ -151,7 +151,7 @@ authRoutes.get('/me', async (c) => {
     return c.json({ error: 'Invalid token' }, 401);
   }
 
-  // Past this point the token is known good, so nothing below may answer 401 —
+  // Past this point the token is known good, so nothing below may answer 401 -
   // this is the endpoint the client trusts to decide whether a session is over,
   // and a database hiccup here used to read as "your token is bad".
   try {

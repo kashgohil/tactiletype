@@ -7,7 +7,7 @@ export const accuracyVsSpeed: ContentPage = {
     'Accuracy wins, and the reason is arithmetic: one wrong character costs three or more keystrokes to fix. Here is the maths, the threshold to hold, and when to push speed.',
   h1: 'Accuracy vs speed',
   intro:
-    'Accuracy matters more than speed, and it is not close. A mistake costs at least three keystrokes to repair — noticing, backspacing, retyping — against the one keystroke it took to make. That asymmetry means a typist at 60 WPM and 98% accuracy finishes real work ahead of one at 75 WPM and 90%, while finding it less tiring. Hold accuracy above 95% and treat speed as the thing that follows.',
+    'Accuracy matters more than speed, and it is not close. A mistake costs at least three keystrokes to repair - noticing, backspacing, retyping - against the one keystroke it took to make. That asymmetry means a typist at 60 WPM and 98% accuracy finishes real work ahead of one at 75 WPM and 90%, while finding it less tiring. Hold accuracy above 95% and treat speed as the thing that follows.',
   updated: '2026-08-07',
   sections: [
     {
@@ -16,7 +16,7 @@ export const accuracyVsSpeed: ContentPage = {
       blocks: [
         {
           kind: 'p',
-          text: 'Consider a 500-character passage. At 90% accuracy you make 50 errors. Each one costs you the wrong keystroke, at least one backspace, and the correct keystroke — three keystrokes minimum, often more when the error is several characters back by the time you notice it.',
+          text: 'Consider a 500-character passage. At 90% accuracy you make 50 errors. Each one costs you the wrong keystroke, at least one backspace, and the correct keystroke - three keystrokes minimum, often more when the error is several characters back by the time you notice it.',
         },
         {
           kind: 'stat',
@@ -28,7 +28,7 @@ export const accuracyVsSpeed: ContentPage = {
         },
         {
           kind: 'p',
-          text: "So the 90% typist spends roughly 650 keystrokes producing 500 characters. The 98% typist spends about 530. Even if the careful typist's fingers move 20% slower, they press far fewer keys — and they finish first.",
+          text: "So the 90% typist spends roughly 650 keystrokes producing 500 characters. The 98% typist spends about 530. Even if the careful typist's fingers move 20% slower, they press far fewer keys - and they finish first.",
         },
         {
           kind: 'note',
@@ -88,7 +88,7 @@ export const accuracyVsSpeed: ContentPage = {
       blocks: [
         {
           kind: 'p',
-          text: 'The case for accuracy is not a case for typing slowly forever. Once you hold 97% comfortably, further accuracy gains have almost no value — the corrections you are removing are already rare — and the constraint moves to pace.',
+          text: 'The case for accuracy is not a case for typing slowly forever. Once you hold 97% comfortably, further accuracy gains have almost no value - the corrections you are removing are already rare - and the constraint moves to pace.',
         },
         {
           kind: 'p',
@@ -112,7 +112,7 @@ export const accuracyVsSpeed: ContentPage = {
     },
     {
       q: 'Should I fix mistakes while taking a typing test?',
-      a: 'During practice, yes — correcting reinforces the right motion. During a timed benchmark it depends on the scoring: if uncorrected errors are penalised, fixing them is usually worth the keystrokes.',
+      a: 'During practice, yes - correcting reinforces the right motion. During a timed benchmark it depends on the scoring: if uncorrected errors are penalised, fixing them is usually worth the keystrokes.',
     },
     {
       q: 'Why does my speed drop when I try to be accurate?',

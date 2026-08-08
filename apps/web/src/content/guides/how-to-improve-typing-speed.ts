@@ -16,7 +16,7 @@ export const howToImproveTypingSpeed: ContentPage = {
       blocks: [
         {
           kind: 'p',
-          text: 'Almost everyone stalls somewhere between 45 and 70 WPM. The cause is rarely finger speed. It is that a small number of transitions — specific letter pairs, punctuation, capitals, numbers — cost far more than the rest, and normal practice barely touches them.',
+          text: 'Almost everyone stalls somewhere between 45 and 70 WPM. The cause is rarely finger speed. It is that a small number of transitions - specific letter pairs, punctuation, capitals, numbers - cost far more than the rest, and normal practice barely touches them.',
         },
         {
           kind: 'p',
@@ -36,7 +36,7 @@ export const howToImproveTypingSpeed: ContentPage = {
           kind: 'steps',
           items: [
             {
-              title: 'Get accuracy above 95% — first, and before anything else',
+              title: 'Get accuracy above 95% - first, and before anything else',
               text: 'Type slowly enough that you almost never backspace. This will feel like going backwards for about a week. It is the only stage that reliably raises net WPM on its own, because every correction you remove is several keystrokes you get back.',
             },
             {
@@ -49,7 +49,7 @@ export const howToImproveTypingSpeed: ContentPage = {
             },
             {
               title: 'Add pressure, not speed',
-              text: 'Once accuracy holds, put yourself in situations where slowing down is not an option — [a race](/multiplayer), [sudden death, or a ghost of your own best run](/play). Pressure surfaces the transitions that are still fragile.',
+              text: 'Once accuracy holds, put yourself in situations where slowing down is not an option - [a race](/multiplayer), [sudden death, or a ghost of your own best run](/play). Pressure surfaces the transitions that are still fragile.',
             },
             {
               title: 'Re-measure weekly, not daily',
@@ -65,13 +65,13 @@ export const howToImproveTypingSpeed: ContentPage = {
       blocks: [
         {
           kind: 'p',
-          text: 'The 2018 Aalto and Cambridge keystroke study found something that contradicts most typing advice: self-taught typists using six or seven fingers were often as fast as formally trained ten-finger touch typists. What predicted speed was not finger count but consistency — using the same finger for the same key every time, and keeping hands close to the keys.',
+          text: 'The 2018 Aalto and Cambridge keystroke study found something that contradicts most typing advice: self-taught typists using six or seven fingers were often as fast as formally trained ten-finger touch typists. What predicted speed was not finger count but consistency - using the same finger for the same key every time, and keeping hands close to the keys.',
         },
         {
           kind: 'list',
           items: [
             'Worth fixing: looking at the keyboard between words, inconsistent finger assignments, hands drifting far from home position, tension in the forearms.',
-            'Worth fixing: hunting for punctuation, capitals, and numbers — these are where most intermediate typists lose their time.',
+            'Worth fixing: hunting for punctuation, capitals, and numbers - these are where most intermediate typists lose their time.',
             'Not worth rebuilding from scratch: a stable six or seven finger technique that already delivers good accuracy. The retraining cost is high and the evidence for a payoff is weak.',
             'Not worth it for most people: switching to Dvorak or Colemak. The gains reported are modest and contested, and the transition costs months of reduced output.',
           ],
@@ -99,7 +99,7 @@ export const howToImproveTypingSpeed: ContentPage = {
             },
             {
               title: 'Five minutes under pressure',
-              text: 'One timed test or one race. Not five — the goal is to apply the drilling, not to grind for a personal best.',
+              text: 'One timed test or one race. Not five - the goal is to apply the drilling, not to grind for a personal best.',
             },
           ],
         },
@@ -119,7 +119,7 @@ export const howToImproveTypingSpeed: ContentPage = {
         },
         {
           kind: 'p',
-          text: 'Improvement is not linear. Expect a flat stretch after the first gain — that is the point where accuracy work is quietly repaying, before it shows up in the number.',
+          text: 'Improvement is not linear. Expect a flat stretch after the first gain - that is the point where accuracy work is quietly repaying, before it shows up in the number.',
         },
       ],
     },
@@ -131,7 +131,7 @@ export const howToImproveTypingSpeed: ContentPage = {
     },
     {
       q: 'Should I look at the keyboard while typing?',
-      a: 'Try not to, but do not treat it as the primary problem. Glancing down costs time and breaks rhythm, yet the larger cost for most intermediate typists is inconsistent finger assignment — using different fingers for the same key on different occasions.',
+      a: 'Try not to, but do not treat it as the primary problem. Glancing down costs time and breaks rhythm, yet the larger cost for most intermediate typists is inconsistent finger assignment - using different fingers for the same key on different occasions.',
     },
     {
       q: 'Is it better to type fast or accurately when practising?',
@@ -139,7 +139,7 @@ export const howToImproveTypingSpeed: ContentPage = {
     },
     {
       q: 'Do typing games actually help?',
-      a: 'Yes, for one specific thing: holding technique under pressure. They are poor substitutes for targeted drills, because they do not concentrate practice on your weak transitions — but they surface which transitions collapse when you cannot slow down.',
+      a: 'Yes, for one specific thing: holding technique under pressure. They are poor substitutes for targeted drills, because they do not concentrate practice on your weak transitions - but they surface which transitions collapse when you cannot slow down.',
     },
     {
       q: 'Will a mechanical keyboard make me type faster?',
@@ -153,7 +153,7 @@ export const howToImproveTypingSpeed: ContentPage = {
   sources: [
     {
       label:
-        'Dhakal, Feit, Kristensson & Oulasvirta — Observations on Typing from 136 Million Keystrokes (CHI 2018)',
+        'Dhakal, Feit, Kristensson & Oulasvirta - Observations on Typing from 136 Million Keystrokes (CHI 2018)',
       href: 'https://userinterfaces.aalto.fi/136Mkeystrokes/',
     },
   ],

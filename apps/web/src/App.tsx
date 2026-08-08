@@ -12,7 +12,7 @@ declare module '@tanstack/react-query' {
     mutationMeta: {
       /**
        * Set when a mutation reports its own failures. "That didn't save" is
-       * wrong for anything that isn't a write — a download, say — and two
+       * wrong for anything that isn't a write - a download, say - and two
        * toasts for one error is worse than the wrong words.
        */
       ownsErrorToast?: boolean;

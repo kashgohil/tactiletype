@@ -11,13 +11,13 @@ import { Button } from './ui/button';
 import { Popover, PopoverContent, PopoverTrigger } from './ui/popover';
 import { Tooltip, TooltipContent, TooltipTrigger } from './ui/tooltip';
 
-/** Themes author three colors; every other tone is derived — same `color-mix`
+/** Themes author three colors; every other tone is derived - same `color-mix`
  *  ramp `index.css` builds for the live theme, just inline so a swatch can
  *  render a theme that isn't applied yet. */
 const mix = (color: string, pct: number, into: string) =>
   `color-mix(in oklab, ${color} ${pct}%, ${into})`;
 
-/** The current theme as a three-wedge disc — the trigger IS a swatch, so the
+/** The current theme as a three-wedge disc - the trigger IS a swatch, so the
  *  nav always shows which theme is live (and morphs while previewing). */
 const ThemeOrb: React.FC<{ theme: Theme; className?: string }> = ({ theme, className }) => (
   <span

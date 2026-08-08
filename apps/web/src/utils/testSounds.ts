@@ -1,5 +1,5 @@
 /**
- * Lightweight Web Audio beeps — no asset files.
+ * Lightweight Web Audio beeps - no asset files.
  * Off by default; called only when preferences enable sound.
  */
 

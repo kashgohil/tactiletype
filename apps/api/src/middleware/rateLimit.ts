@@ -4,14 +4,14 @@ import type { Context, MiddlewareHandler } from 'hono';
  * Failure throttling for credential endpoints.
  *
  * Only *failed* attempts are counted, so somebody who signs in correctly ten
- * times in a row is never throttled — the budget exists to make guessing
+ * times in a row is never throttled - the budget exists to make guessing
  * expensive, not to ration logins.
  *
  * State lives in this process and is lost on restart. That is the honest limit
  * of this approach: a deploy hands every attacker a fresh budget, and a second
  * API container would keep its own tally. Both are acceptable while the API is
  * one container, and the fix when it stops being one is to move the counters
- * into Postgres — the shape below does not change.
+ * into Postgres - the shape below does not change.
  */
 
 const WINDOW_MS = 15 * 60 * 1000; // 15 minutes
@@ -26,7 +26,7 @@ const MAX_FAILURES_PER_IP = 10;
 /**
  * The per-account budget is deliberately looser than the per-IP one. Any single
  * host burns through its own budget first, so locking a specific victim out
- * takes several distinct IPs and twenty wrong guesses — a real distributed
+ * takes several distinct IPs and twenty wrong guesses - a real distributed
  * attack, which is exactly the case worth blocking. Were this the tighter of
  * the two, anyone could freeze anyone else's account by failing to log in as
  * them.
@@ -71,8 +71,8 @@ const sweepExpired = (now: number): void => {
  *
  * `X-Forwarded-For` is the fallback, and the LAST entry is the one to read:
  * nginx builds it with `$proxy_add_x_forwarded_for`, which appends the real
- * peer to any value the client supplied. Taking the first entry — the usual
- * instinct — reads a field the attacker wrote, letting them mint a fresh
+ * peer to any value the client supplied. Taking the first entry - the usual
+ * instinct - reads a field the attacker wrote, letting them mint a fresh
  * budget per request.
  */
 const clientIp = (c: Context): string => {
@@ -86,7 +86,7 @@ const clientIp = (c: Context): string => {
     if (peer) return peer.slice(0, MAX_KEY_LENGTH);
   }
 
-  // No proxy headers at all — direct access in local development. One shared
+  // No proxy headers at all - direct access in local development. One shared
   // bucket is the safe reading: it throttles rather than exempts.
   return 'unknown';
 };
@@ -179,7 +179,7 @@ export const failureRateLimit = (options: {
       return;
     }
 
-    // Proof the real owner is here — forgive the earlier fumbling so they are
+    // Proof the real owner is here - forgive the earlier fumbling so they are
     // not throttled on their next visit.
     if (status < 400) {
       for (const guard of guards) buckets.delete(guard.key);

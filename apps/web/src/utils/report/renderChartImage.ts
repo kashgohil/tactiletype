@@ -36,7 +36,7 @@ const UNITS: Record<ReportChart['type'], string> = {
   time_spent: '',
 };
 
-/** Print needs real pixels — 2x keeps lines crisp at 300dpi without bloating the file. */
+/** Print needs real pixels - 2x keeps lines crisp at 300dpi without bloating the file. */
 const SCALE = 2;
 const WIDTH = 720;
 const HEIGHT = 260;
@@ -126,7 +126,7 @@ export function renderChartImage(chart: ReportChart): string | undefined {
     },
   });
 
-  // Synchronous because animation is off — the canvas is complete on return.
+  // Synchronous because animation is off - the canvas is complete on return.
   const image = canvas.toDataURL('image/png');
   instance.destroy();
   return image;

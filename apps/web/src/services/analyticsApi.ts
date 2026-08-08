@@ -152,7 +152,7 @@ export const analyticsApi = {
    *
    * Shares the export endpoint rather than adding one: it already returns
    * exactly these fields for the signed-in user, and reading it over XHR has no
-   * download side effect — Content-Disposition only applies to navigation.
+   * download side effect - Content-Disposition only applies to navigation.
    */
   getResultRows: async (): Promise<ReportResultRow[]> => {
     const response = await api.get('/api/analytics/export?format=json');
@@ -166,7 +166,7 @@ export const analyticsApi = {
     });
 
     // Rewrapping a Blob without its type resets Content-Type to empty, so pass
-    // the server's through — the extension alone shouldn't have to carry it.
+    // the server's through - the extension alone shouldn't have to carry it.
     const url = window.URL.createObjectURL(
       new Blob([response.data], {
         type: response.headers['content-type'] ?? MIME_BY_FORMAT[format],

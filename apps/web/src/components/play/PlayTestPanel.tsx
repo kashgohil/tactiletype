@@ -48,7 +48,7 @@ export function PlayTestPanel({
   stats?: PanelStat[];
   actions?: React.ReactNode;
   onRestart?: () => void;
-  /** 0..1 remaining — draws the shrinking timer rail under the toolbar. */
+  /** 0..1 remaining - draws the shrinking timer rail under the toolbar. */
   meter?: number | null;
   meterTone?: 'accent' | 'danger';
   meterActive?: boolean;
@@ -98,7 +98,7 @@ export function PlayTestPanel({
   );
 }
 
-/** Centred hint line under the surface — "type to start", rules, etc. */
+/** Centred hint line under the surface - "type to start", rules, etc. */
 export function PanelHint({
   children,
   className,

@@ -9,7 +9,7 @@
  * the homepage.
  *
  * Netlify resolves `/practice` to `dist/practice/index.html` before falling
- * through to the SPA rule, so writing these files is enough — `_redirects`
+ * through to the SPA rule, so writing these files is enough - `_redirects`
  * needs no change.
  *
  * This is deliberately NOT full SSR. It rewrites the head and adds a
@@ -58,7 +58,7 @@ function replaceCanonical(html, href) {
 }
 
 /**
- * JSON-LD goes in verbatim — it is already JSON, and escaping it would corrupt
+ * JSON-LD goes in verbatim - it is already JSON, and escaping it would corrupt
  * it. The one real hazard is a literal `</script>` inside a string value, which
  * would end the block early; `<` is escaped to its unicode form to prevent it.
  */
@@ -101,7 +101,7 @@ function buildPage(route) {
 
   // The mirror sits inside #root so it occupies the same slot the app will
   // claim. React's createRoot clears the container on mount, so nothing is
-  // left behind for users — and nothing is hidden from crawlers either, since
+  // left behind for users - and nothing is hidden from crawlers either, since
   // the markup is inside <noscript> rather than styled out of view.
   html = html.replace(
     '<div id="root"></div>',

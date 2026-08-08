@@ -113,7 +113,7 @@ export class WebSocketService {
     this.wsUrl = wsUrl;
   }
 
-  // Connection management — resolves after authenticate succeeds
+  // Connection management - resolves after authenticate succeeds
   connect(token: string): Promise<void> {
     if (this.ws && this.ws.readyState === WebSocket.OPEN && this.isAuthenticated) {
       return Promise.resolve();
@@ -122,7 +122,7 @@ export class WebSocketService {
     // A socket already opening owns the handshake. Without this, a second
     // caller (StrictMode's double effect, or two components mounting at once)
     // replaces this.ws mid-handshake and the first socket's authenticate is
-    // sent into the void — "Cannot send message: WebSocket not connected".
+    // sent into the void - "Cannot send message: WebSocket not connected".
     if (this.connecting) {
       return this.connecting;
     }

@@ -95,7 +95,7 @@ export const ProfileProgressChart: React.FC<ProfileProgressChartProps> = ({
           {/* Reading of the line, stated before the line itself. */}
           <div className="flex items-baseline gap-3 mb-4">
             <span className="text-3xl font-bold font-mono tabular-nums tracking-tight">
-              {latest != null ? Math.round(latest) : '—'}
+              {latest != null ? Math.round(latest) : '-'}
               <span className="text-base text-text/40 ml-1 font-sans font-normal">{unit}</span>
             </span>
             <ChartTrend trend={chart.trend} percentage={chart.trendPercentage} />

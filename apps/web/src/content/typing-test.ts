@@ -3,7 +3,7 @@ import type { ContentPage } from './types';
 /**
  * Informational counterpart to `/`.
  *
- * Deliberately does NOT target "free typing test" — `/` owns that query and has
+ * Deliberately does NOT target "free typing test" - `/` owns that query and has
  * every internal link pointing at it. Two pages chasing one term split the
  * authority and Google picks one anyway. This page takes the explainer intent
  * ("what is a typing test", "how is WPM calculated") and funnels to the app.
@@ -15,7 +15,7 @@ export const typingTestPage: ContentPage = {
     'How a typing test works: what WPM and accuracy actually measure, how raw and net speed differ, and how to read your result instead of just chasing the number.',
   h1: 'What a typing test actually measures',
   intro:
-    'A typing test measures how fast and how accurately you can copy text you have never seen before. Speed is reported in words per minute (WPM), where one "word" is a fixed five characters, and accuracy is the share of characters you got right on the first attempt. A one-minute test is enough to place you within a few WPM of your true speed. [Take one now](/) — no account, no install.',
+    'A typing test measures how fast and how accurately you can copy text you have never seen before. Speed is reported in words per minute (WPM), where one "word" is a fixed five characters, and accuracy is the share of characters you got right on the first attempt. A one-minute test is enough to place you within a few WPM of your true speed. [Take one now](/) - no account, no install.',
   updated: '2026-08-07',
   sections: [
     {
@@ -24,7 +24,7 @@ export const typingTestPage: ContentPage = {
       blocks: [
         {
           kind: 'p',
-          text: 'Every test follows the same shape. You are shown a passage, a timer starts on your first keystroke, and you copy the text as it scrolls. When the timer runs out — or you finish the passage — the test compares what you typed against what you were shown, character by character.',
+          text: 'Every test follows the same shape. You are shown a passage, a timer starts on your first keystroke, and you copy the text as it scrolls. When the timer runs out - or you finish the passage - the test compares what you typed against what you were shown, character by character.',
         },
         {
           kind: 'p',
@@ -39,7 +39,7 @@ export const typingTestPage: ContentPage = {
             },
             {
               title: 'Every character is checked',
-              text: 'Not every word. A single wrong letter in a long word does not void the whole word — it costs you exactly one character.',
+              text: 'Not every word. A single wrong letter in a long word does not void the whole word - it costs you exactly one character.',
             },
             {
               title: 'Speed and accuracy are scored separately',
@@ -55,7 +55,7 @@ export const typingTestPage: ContentPage = {
       blocks: [
         {
           kind: 'p',
-          text: 'WPM stands for words per minute, but it does not count words. It counts characters and divides by five, because real words vary wildly in length and counting them directly would make "a an the" worth as much as "extraordinary circumstances". The five-character convention — including the space after each word — has been the standard since mechanical typewriter tests, and it is what makes results comparable across sites and decades.',
+          text: 'WPM stands for words per minute, but it does not count words. It counts characters and divides by five, because real words vary wildly in length and counting them directly would make "a an the" worth as much as "extraordinary circumstances". The five-character convention - including the space after each word - has been the standard since mechanical typewriter tests, and it is what makes results comparable across sites and decades.',
         },
         {
           kind: 'stat',
@@ -70,7 +70,7 @@ export const typingTestPage: ContentPage = {
         },
         {
           kind: 'p',
-          text: 'The 52 WPM figure comes from a 2018 Aalto University and University of Cambridge study of 136 million keystrokes — the broadest public dataset on typing that exists. It is a useful anchor, but it skews toward people who volunteered for a typing study. Treat it as a landmark, not a target. [The full WPM breakdown lives here](/guides/what-is-wpm).',
+          text: 'The 52 WPM figure comes from a 2018 Aalto University and University of Cambridge study of 136 million keystrokes - the broadest public dataset on typing that exists. It is a useful anchor, but it skews toward people who volunteered for a typing study. Treat it as a landmark, not a target. [The full WPM breakdown lives here](/guides/what-is-wpm).',
         },
       ],
     },
@@ -86,13 +86,13 @@ export const typingTestPage: ContentPage = {
           kind: 'list',
           items: [
             'A small gap means you are typing at a speed you can actually control.',
-            'A large gap means you are outrunning your accuracy — your raw speed is real, but you are spending it on corrections.',
+            'A large gap means you are outrunning your accuracy - your raw speed is real, but you are spending it on corrections.',
             'A gap that widens as the test goes on usually means fatigue or tension, not a skill ceiling.',
           ],
         },
         {
           kind: 'note',
-          text: 'If your net WPM is more than about 10% below your raw WPM, slowing down will make you faster. That is not a paradox — every correction costs more keystrokes than the character it fixes.',
+          text: 'If your net WPM is more than about 10% below your raw WPM, slowing down will make you faster. That is not a paradox - every correction costs more keystrokes than the character it fixes.',
         },
       ],
     },
@@ -131,7 +131,7 @@ export const typingTestPage: ContentPage = {
             },
             {
               title: 'Then find the specific keys',
-              text: 'Most people lose most of their time to a handful of letter pairs. Guessing which ones is unreliable — [targeted drills](/practice) work from your actual error history instead.',
+              text: 'Most people lose most of their time to a handful of letter pairs. Guessing which ones is unreliable - [targeted drills](/practice) work from your actual error history instead.',
             },
           ],
         },
@@ -148,9 +148,9 @@ export const typingTestPage: ContentPage = {
         {
           kind: 'list',
           items: [
-            'Timed and word-count tests on [the main test page](/) — the classic format, with quotes, code, and symbols as source text.',
+            'Timed and word-count tests on [the main test page](/) - the classic format, with quotes, code, and symbols as source text.',
             'Drills on [the practice page](/practice) that rebuild the specific keys and letter pairs you keep missing.',
-            '[Play modes](/play) that change the failure condition instead of the clock — sudden death, ghost races, and more.',
+            '[Play modes](/play) that change the failure condition instead of the clock - sudden death, ghost races, and more.',
             'A shared [daily challenge](/daily) so your result is comparable to everyone else who typed that day.',
             '[Multiplayer races](/multiplayer) against live opponents, where pacing beats raw speed.',
           ],
@@ -187,11 +187,11 @@ export const typingTestPage: ContentPage = {
   sources: [
     {
       label:
-        'Dhakal, Feit, Kristensson & Oulasvirta — Observations on Typing from 136 Million Keystrokes (CHI 2018)',
+        'Dhakal, Feit, Kristensson & Oulasvirta - Observations on Typing from 136 Million Keystrokes (CHI 2018)',
       href: 'https://userinterfaces.aalto.fi/136Mkeystrokes/',
     },
     {
-      label: 'Words per minute — the five-character standard',
+      label: 'Words per minute - the five-character standard',
       href: 'https://en.wikipedia.org/wiki/Words_per_minute',
     },
   ],
@@ -199,7 +199,7 @@ export const typingTestPage: ContentPage = {
     {
       label: 'What is WPM?',
       to: '/guides/what-is-wpm',
-      hint: 'The metric in full — raw, net, and what the averages actually say.',
+      hint: 'The metric in full - raw, net, and what the averages actually say.',
     },
     {
       label: 'How to improve typing speed',

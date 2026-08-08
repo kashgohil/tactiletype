@@ -29,7 +29,7 @@ const REVOCATION_CACHE_MAX_ENTRIES = 10_000;
 
 const revocationCache = new Map<string, { version: number; expiresAt: number }>();
 
-/** The token is not acceptable — bad signature, expired, or revoked. Answer 401. */
+/** The token is not acceptable - bad signature, expired, or revoked. Answer 401. */
 export class InvalidTokenError extends Error {
   override readonly name = 'InvalidTokenError';
 }
@@ -128,7 +128,7 @@ export const signAccessToken = (user: TokenSubject): Promise<string> =>
  *
  * Throws InvalidTokenError when the token is genuinely no good, and
  * RevocationCheckUnavailableError when it might be fine but cannot be
- * confirmed. Callers must keep those apart — see the note on the latter.
+ * confirmed. Callers must keep those apart - see the note on the latter.
  */
 export const verifyAccessToken = async (token: string): Promise<AccessTokenPayload> => {
   let payload: AccessTokenPayload;

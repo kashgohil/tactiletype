@@ -48,14 +48,14 @@ const FORMAT_ACTION: Record<ReportFormat, string> = {
 };
 
 const FORMAT_HINT: Record<ReportFormat, string> = {
-  pdf: "Opens your browser's print dialog — choose Save as PDF as the destination.",
+  pdf: "Opens your browser's print dialog - choose Save as PDF as the destination.",
   html: 'A single file with styles, fonts and charts inlined; it opens anywhere, offline.',
   json: 'The figures behind the report, without the charts drawn from them.',
 };
 
 /**
  * The tickboxes, each paired with what to say when the section has nothing
- * behind it — a box you can tick for a section that will not print is a lie
+ * behind it - a box you can tick for a section that will not print is a lie
  * about what you are about to get.
  */
 const INCLUDE_OPTIONS: Array<{
@@ -134,7 +134,7 @@ export const ReportGenerator: React.FC<ReportGeneratorProps> = ({
     if (!fullReport) return null;
     const model = applySections(fullReport, sections);
     // Rasterised for the preview too, so what is on screen is exactly what
-    // prints — no second chart implementation to drift out of sync.
+    // prints - no second chart implementation to drift out of sync.
     return { ...model, charts: withChartImages(model.charts) };
   }, [fullReport, sections]);
 
@@ -142,7 +142,7 @@ export const ReportGenerator: React.FC<ReportGeneratorProps> = ({
   const hasAnyResult = (rowsQuery.data?.length ?? 0) > 0;
 
   // Printing waits a commit so the portal is in the DOM, then waits again for
-  // its images to decode — the dialog captures what is painted when it opens.
+  // its images to decode - the dialog captures what is painted when it opens.
   useEffect(() => {
     if (!pendingPrint || !report) return;
     let cancelled = false;
@@ -192,7 +192,7 @@ export const ReportGenerator: React.FC<ReportGeneratorProps> = ({
     // the page opposite them starts at the very top of the panel.
     <Panel>
       {/* Controls beside the page, an even split. Half of the shell is narrower
-          than A4's 794px, so the page scales to roughly 70% — proportions and
+          than A4's 794px, so the page scales to roughly 70% - proportions and
           measure hold, it just reads smaller. */}
       <div className="grid lg:grid-cols-2 gap-8">
         {/* Heading, configuration and actions. `self-start` stops the grid
@@ -201,7 +201,7 @@ export const ReportGenerator: React.FC<ReportGeneratorProps> = ({
           <div>
             <h2 className="text-base font-semibold tracking-tight">Generate report</h2>
             <p className="text-sm text-text/45 mt-1 leading-relaxed">
-              Built in your browser from data already loaded — nothing is sent anywhere.
+              Built in your browser from data already loaded - nothing is sent anywhere.
             </p>
             <div className="flex items-center gap-2 mt-3 -ml-3">
               <Button
@@ -246,9 +246,9 @@ export const ReportGenerator: React.FC<ReportGeneratorProps> = ({
                   <SelectValue placeholder="Select report format" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="pdf">PDF — via your print dialog</SelectItem>
-                  <SelectItem value="html">HTML — a single self-contained file</SelectItem>
-                  <SelectItem value="json">JSON — the figures behind it</SelectItem>
+                  <SelectItem value="pdf">PDF - via your print dialog</SelectItem>
+                  <SelectItem value="html">HTML - a single self-contained file</SelectItem>
+                  <SelectItem value="json">JSON - the figures behind it</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -279,7 +279,7 @@ export const ReportGenerator: React.FC<ReportGeneratorProps> = ({
                     />
                     {option.label}
                     {!isAvailable && (
-                      <span className="text-xs text-text/35">— {option.emptyNote}</span>
+                      <span className="text-xs text-text/35">- {option.emptyNote}</span>
                     )}
                   </Label>
                 );
@@ -315,7 +315,7 @@ export const ReportGenerator: React.FC<ReportGeneratorProps> = ({
           </div>
         </div>
 
-        {/* The page itself, unlabelled and unframed — a document needs no
+        {/* The page itself, unlabelled and unframed - a document needs no
             caption to say it is one. */}
         <div className="min-w-0" ref={previewRef}>
           {rowsQuery.isLoading && (

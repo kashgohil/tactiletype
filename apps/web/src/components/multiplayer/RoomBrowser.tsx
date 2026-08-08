@@ -96,7 +96,7 @@ export const RoomBrowser: React.FC<RoomBrowserProps> = ({
           <div className="space-y-1">
             <h2 className="font-medium">No rooms yet</h2>
             <p className="text-sm text-text/60">
-              Be the first — a room stays open until everyone leaves.
+              Be the first - a room stays open until everyone leaves.
             </p>
           </div>
           <Button onClick={onCreateRoom}>

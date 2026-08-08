@@ -20,7 +20,7 @@ export const users = pgTable(
     username: varchar('username', { length: 50 }).notNull().unique(),
     passwordHash: varchar('password_hash', { length: 255 }),
     avatarUrl: varchar('avatar_url', { length: 500 }),
-    // Bumped to invalidate every access token this user holds at once — the
+    // Bumped to invalidate every access token this user holds at once - the
     // kill switch for a session model that otherwise keeps no server-side state.
     tokenVersion: integer('token_version').default(0).notNull(),
     createdAt: timestamp('created_at').defaultNow().notNull(),

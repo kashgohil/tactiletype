@@ -10,7 +10,7 @@ interface AchievementsPanelProps {
   isLoading?: boolean;
 }
 
-/** Rarity reads as a dot, not a border — badges sit flat on the panel. */
+/** Rarity reads as a dot, not a border - badges sit flat on the panel. */
 const rarityDot: Record<string, string> = {
   common: 'bg-text/25',
   rare: 'bg-accent/50',
@@ -27,7 +27,7 @@ export const AchievementsPanel: React.FC<AchievementsPanelProps> = ({
   }
 
   const unlocked = achievements.filter((a) => a.unlocked).length;
-  // Earned first — a wall of locked rows buries what the user actually did.
+  // Earned first - a wall of locked rows buries what the user actually did.
   const ordered = [...achievements].sort((a, b) => Number(b.unlocked) - Number(a.unlocked));
 
   return (

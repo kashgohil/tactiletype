@@ -156,7 +156,7 @@ export const Profile: React.FC = () => {
         </Panel>
       ) : (
         <>
-          {/* Headline numbers first — the reason anyone opens this page. */}
+          {/* Headline numbers first - the reason anyone opens this page. */}
           <MetricHierarchy stats={stats} />
 
           <RecommendedExerciseCard recommendation={recommendation} />

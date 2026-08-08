@@ -5,8 +5,8 @@ import { pageToText, stripLinks } from '@/content/types';
 /**
  * Canonical public site origin (no trailing slash).
  *
- * Confirmed 2026-08-07 as the permanent public domain. Everything URL-shaped —
- * canonicals, the sitemap, JSON-LD `@id`s, OG tags — derives from this one
+ * Confirmed 2026-08-07 as the permanent public domain. Everything URL-shaped -
+ * canonicals, the sitemap, JSON-LD `@id`s, OG tags - derives from this one
  * constant, so a future move is a single edit plus redirects.
  */
 export const SITE_URL = 'https://trytactiletype.com';
@@ -14,7 +14,7 @@ export const SITE_URL = 'https://trytactiletype.com';
 export const SITE_NAME = 'tactiletype';
 
 /**
- * Support address — the one inbox the site publishes, on `/contact`, in the
+ * Support address - the one inbox the site publishes, on `/contact`, in the
  * privacy policy, and as `Organization.email`. It is a personal Gmail rather
  * than a domain address, so it carries no entity signal for `trytactiletype.com`;
  * a `support@trytactiletype.com` forward would, if the domain ever gets mail.
@@ -26,7 +26,7 @@ export const SITE_EMAIL = 'kashyapgohil476@gmail.com';
  *
  * Each one is an independent reference point search engines and answer models
  * use to resolve "tactiletype" into a single thing rather than an unverified
- * domain. Only list profiles that are public, live, and actually ours — a dead
+ * domain. Only list profiles that are public, live, and actually ours - a dead
  * link here is worse than an absent one. GitHub is the only one that exists
  * today; there is no X or Discord presence to claim.
  */
@@ -45,7 +45,7 @@ export const TWITTER_CARD_TYPE = 'summary_large_image';
 export type PageMeta = {
   title: string;
   description: string;
-  /** Path only, e.g. `/practice` — becomes absolute canonical. */
+  /** Path only, e.g. `/practice` - becomes absolute canonical. */
   path: string;
   robots?: string;
   ogType?: string;
@@ -57,9 +57,9 @@ const NOINDEX = 'noindex, nofollow';
 /** Static meta for known public and private routes. */
 export const PAGE_META: Record<string, PageMeta> = {
   '/': {
-    title: 'Free Typing Test — Check Your WPM | tactiletype',
+    title: 'Free Typing Test - Check Your WPM | tactiletype',
     description:
-      'Take a free online typing test. Measure words per minute (WPM) and accuracy, then train with drills and play modes. No install — start typing now.',
+      'Take a free online typing test. Measure words per minute (WPM) and accuracy, then train with drills and play modes. No install - start typing now.',
     path: '/',
     robots: INDEX,
   },
@@ -73,7 +73,7 @@ export const PAGE_META: Record<string, PageMeta> = {
   '/play': {
     title: 'Typing Games & Training Modes | tactiletype',
     description:
-      'Six typing modes — Sudden Death, Ghost Race, Weak Storm, and more — that train speed without the same old timed test.',
+      'Six typing modes - Sudden Death, Ghost Race, Weak Storm, and more - that train speed without the same old timed test.',
     path: '/play',
     robots: INDEX,
   },
@@ -147,7 +147,7 @@ export const PAGE_META: Record<string, PageMeta> = {
     robots: NOINDEX,
   },
   '/guides': {
-    title: 'Typing Guides — Speed, Accuracy & Practice | tactiletype',
+    title: 'Typing Guides - Speed, Accuracy & Practice | tactiletype',
     description:
       'Plain-language guides to typing: what WPM measures, how to actually get faster, why accuracy wins, and how code typing differs from prose.',
     path: '/guides',
@@ -157,11 +157,11 @@ export const PAGE_META: Record<string, PageMeta> = {
 
 /**
  * Fallback for paths this table doesn't know. Netlify's SPA rule answers every
- * unknown path with 200 + the shell, so an unrecognised URL is a soft 404 —
+ * unknown path with 200 + the shell, so an unrecognised URL is a soft 404 -
  * `noindex` keeps junk paths from self-canonicalising into the index.
  */
 const DEFAULT_META: PageMeta = {
-  title: 'tactiletype — Free Typing Test & Trainer',
+  title: 'tactiletype - Free Typing Test & Trainer',
   description:
     'Free typing test and trainer. Measure WPM and accuracy, practice weak spots, play training modes, and race in multiplayer.',
   path: '/',
@@ -196,7 +196,7 @@ export function resolvePageMeta(pathname: string): PageMeta {
     };
   }
 
-  // /test is redirected to / — keep meta aligned if hit before redirect
+  // /test is redirected to / - keep meta aligned if hit before redirect
   if (path === '/test') return PAGE_META['/'];
 
   // Play mode detail
@@ -208,29 +208,29 @@ export function resolvePageMeta(pathname: string): PageMeta {
       .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
       .join(' ');
     return {
-      title: `${label} — Typing Mode | tactiletype`,
-      description: `Play ${label} on tactiletype — a training mode that builds speed and accuracy beyond a basic timer.`,
+      title: `${label} - Typing Mode | tactiletype`,
+      description: `Play ${label} on tactiletype - a training mode that builds speed and accuracy beyond a basic timer.`,
       path,
       robots: INDEX,
     };
   }
 
   // Public profile. Noindex until the server can tell us the account is
-  // actually public — this resolver only sees the path, so indexing here would
+  // actually public - this resolver only sees the path, so indexing here would
   // publish "This profile is private." and "User not found." shells to search.
   // Lift once profile meta is prerendered/SSR'd (audit item 2.4).
   const profile = path.match(/^\/u\/([^/]+)$/);
   if (profile) {
     const username = decodeURIComponent(profile[1]);
     return {
-      title: `${username} — Typing Profile | tactiletype`,
+      title: `${username} - Typing Profile | tactiletype`,
       description: `View ${username}'s typing stats and progress on tactiletype.`,
       path,
       robots: NOINDEX,
     };
   }
 
-  // Multiplayer rooms — ephemeral
+  // Multiplayer rooms - ephemeral
   if (path.startsWith('/multiplayer/room')) {
     return {
       title: 'Race Room | tactiletype',
@@ -322,7 +322,7 @@ export function webPageSchema(meta: { path: string; title: string; description: 
 
 /**
  * Only emit this where the questions and answers are actually visible on the
- * page — Google treats FAQ markup that doesn't match rendered content as spam.
+ * page - Google treats FAQ markup that doesn't match rendered content as spam.
  */
 export function faqPageSchema(items: { q: string; a: string }[], path: string): Schema {
   return {
@@ -356,7 +356,7 @@ function articleSchema(page: ContentPage): Schema {
     description: page.description,
     articleBody: pageToText(page),
     url: absoluteUrl(page.path),
-    // No dedicated author entity yet — the organisation stands in, which is
+    // No dedicated author entity yet - the organisation stands in, which is
     // accurate and keeps E-E-A-T signals pointing at one resolvable brand.
     author: { '@id': ORGANIZATION_ID },
     publisher: { '@id': ORGANIZATION_ID },

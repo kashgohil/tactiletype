@@ -10,7 +10,7 @@ export type ReportPeriod = 'week' | 'month' | 'quarter' | 'year';
 export type ReportFormat = 'pdf' | 'html' | 'json';
 
 /**
- * Rolling windows, not calendar ones — the picker says "Last Month", and a
+ * Rolling windows, not calendar ones - the picker says "Last Month", and a
  * calendar month would report two days of data when run on the 2nd.
  */
 export const PERIOD_DAYS: Record<ReportPeriod, number> = {
@@ -216,7 +216,7 @@ export interface BuildReportInput {
   errorAnalysis?: ErrorAnalysisSummary;
   recommendations: UserRecommendation[];
   period: ReportPeriod;
-  /** Injected so the caller controls "now" — keeps this pure and testable. */
+  /** Injected so the caller controls "now" - keeps this pure and testable. */
   now?: Date;
 }
 
@@ -311,7 +311,7 @@ export function buildReport({
         trendPercentage,
       };
     })
-    // A single point draws a dot, not a trend — not worth a page of paper.
+    // A single point draws a dot, not a trend - not worth a page of paper.
     .filter((chart) => chart.points.length >= 2);
 
   const stats: ReportStatRow[] = current.length

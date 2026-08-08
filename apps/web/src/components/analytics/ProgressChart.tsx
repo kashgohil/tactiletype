@@ -49,7 +49,7 @@ function unitFor(type: string): string {
 
 /**
  * Trend delta as a standalone chip so the surrounding panel can place it in
- * its header — the chart no longer draws a header of its own.
+ * its header - the chart no longer draws a header of its own.
  */
 export const ChartTrend: React.FC<{
   trend: ProgressChartType['trend'];
@@ -86,7 +86,7 @@ interface ProgressChartProps {
 }
 
 /**
- * Plot only — no surface, no title, no caption. Whoever renders it owns the
+ * Plot only - no surface, no title, no caption. Whoever renders it owns the
  * framing, which keeps charts from sitting in a box inside a box.
  */
 export const ProgressChart: React.FC<ProgressChartProps> = ({ chart, height = 240, className }) => {

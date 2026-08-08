@@ -17,7 +17,7 @@ type Phase = 'ready' | 'running' | 'dead';
 
 const STREAM_SIZE = 80;
 const REFILL_AT = 30;
-/** Words per rendered window — the passage only re-flows on this boundary. */
+/** Words per rendered window - the passage only re-flows on this boundary. */
 const WINDOW = 12;
 
 function wpmFrom(correctChars: number, startMs: number | null, endMs: number): number {
@@ -152,7 +152,7 @@ export const SuddenDeathMode: React.FC = () => {
 
       const expected = currentWord;
       // The stream renders a space between words and the caret parks on it, so
-      // the space is a key you press — advancing for you meant the space the
+      // the space is a key you press - advancing for you meant the space the
       // player could plainly see was the one keystroke that ended the run.
       const expectedChar = typed.length === expected.length ? ' ' : expected[typed.length]!;
       recordKeyAttempt(expectedChar, e.key === expectedChar);
@@ -232,7 +232,7 @@ export const SuddenDeathMode: React.FC = () => {
     <PlayShell
       modeId="sudden-death"
       title="Sudden Death"
-      subtitle="One wrong key ends the run. Type clean — survive."
+      subtitle="One wrong key ends the run. Type clean - survive."
       onExit={exit}
     >
       {phase === 'ready' && !isDaily && (
@@ -267,7 +267,7 @@ export const SuddenDeathMode: React.FC = () => {
       <PlayTestPanel
         stats={[
           { label: 'Words', value: wordsCleared, accent: true },
-          { label: 'WPM', value: phase === 'running' ? liveWpm : '—' },
+          { label: 'WPM', value: phase === 'running' ? liveWpm : '-' },
           {
             label: 'Lives',
             value: lives,
@@ -287,7 +287,7 @@ export const SuddenDeathMode: React.FC = () => {
         />
         {phase === 'ready' && (
           <PanelHint>
-            <Kbd>type</Kbd> to start — the first mistake ends the run
+            <Kbd>type</Kbd> to start - the first mistake ends the run
           </PanelHint>
         )}
       </PlayTestPanel>

@@ -111,7 +111,7 @@ export const Settings: React.FC = () => {
     },
   });
 
-  // Typing preferences are device-local, so guests get them too — only the
+  // Typing preferences are device-local, so guests get them too - only the
   // account/profile sections need a login.
   if (!user) {
     return (

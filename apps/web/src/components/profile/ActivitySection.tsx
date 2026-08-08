@@ -21,7 +21,7 @@ export const ActivitySection: React.FC<ActivitySectionProps> = ({
   } else if (currentStreak === 0) {
     narrative = `You've completed ${totalTests} test${totalTests === 1 ? '' : 's'} this year. Jump back in to restart your streak.`;
   } else if (currentStreak >= longestStreak && currentStreak >= 3) {
-    narrative = `🔥 ${currentStreak}-day streak — matching your best. Keep the fire going.`;
+    narrative = `🔥 ${currentStreak}-day streak - matching your best. Keep the fire going.`;
   } else if (currentStreak === 1) {
     narrative = 'Day 1 of a new streak. Come back tomorrow to build momentum.';
   } else {

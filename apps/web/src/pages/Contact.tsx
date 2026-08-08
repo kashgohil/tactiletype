@@ -24,7 +24,7 @@ const REACH: Channel[] = [
 
 /**
  * Every category lands in the same inbox. There is one real address, so the
- * categories carry a prefilled subject rather than a per-topic alias — an alias
+ * categories carry a prefilled subject rather than a per-topic alias - an alias
  * nobody reads is worse than no alias, and mail sent to one bounces silently.
  */
 const supportMailto = (subject: string) =>
@@ -82,7 +82,7 @@ const FAQ = [
   },
   {
     q: 'Can I export my typing statistics?',
-    a: 'Yes — visit your Analytics page to view and export your detailed typing statistics and progress reports.',
+    a: 'Yes - visit your Analytics page to view and export your detailed typing statistics and progress reports.',
   },
   {
     q: 'Is tactiletype free to use?',
@@ -90,7 +90,7 @@ const FAQ = [
   },
 ];
 
-/** A borderless row — panels never nest, so channels separate by spacing only. */
+/** A borderless row - panels never nest, so channels separate by spacing only. */
 function ChannelRow({ icon, title, description, href, cta }: Channel) {
   return (
     <div className="flex items-start gap-3">
@@ -115,7 +115,7 @@ export const Contact: React.FC = () => {
   return (
     <div className="space-y-8">
       {/* FAQPage markup is safe here only because the same questions and
-          answers render visibly below — Google treats FAQ schema that doesn't
+          answers render visibly below - Google treats FAQ schema that doesn't
           match the page as a manual-action offence. */}
       <JsonLd
         id="content"
@@ -138,7 +138,7 @@ export const Contact: React.FC = () => {
           Contact & support
         </h1>
         <p className="text-text/50 max-w-2xl leading-relaxed text-[15px]">
-          Questions about tactiletype, a bug to report, or an idea worth building — pick the channel
+          Questions about tactiletype, a bug to report, or an idea worth building - pick the channel
           that fits and we'll get back to you.
         </p>
       </header>

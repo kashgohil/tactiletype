@@ -279,7 +279,7 @@ export const WeakStormMode: React.FC = () => {
           </span>
         ))}
         {weakStats.length === 0 && (
-          <span className="text-text/35">(defaults — play more to personalize)</span>
+          <span className="text-text/35">(defaults - play more to personalize)</span>
         )}
       </div>
 
@@ -296,7 +296,7 @@ export const WeakStormMode: React.FC = () => {
           {
             label: 'Left',
             value:
-              phase === 'running' ? `${Math.ceil((timeLeft * timeLimitMs(level)) / 1000)}s` : '—',
+              phase === 'running' ? `${Math.ceil((timeLeft * timeLimitMs(level)) / 1000)}s` : '-',
             tone: timeLeft < 0.25 && phase === 'running' ? 'danger' : 'default',
           },
         ]}
@@ -319,7 +319,7 @@ export const WeakStormMode: React.FC = () => {
         <PanelHint>
           {phase === 'ready' ? (
             <>
-              <Kbd>type</Kbd> to start — every word is aimed at your weak keys
+              <Kbd>type</Kbd> to start - every word is aimed at your weak keys
             </>
           ) : (
             'Hit the weak keys'

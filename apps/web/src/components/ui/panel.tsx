@@ -5,7 +5,7 @@ import { cn } from '@/lib/utils';
  * The single surface recipe for dashboard-style content.
  *
  * Rule: a panel never contains another panel. Anything that needs separating
- * inside one uses spacing, a divider, or type weight — not a second fill.
+ * inside one uses spacing, a divider, or type weight - not a second fill.
  */
 export const panelSurface = 'rounded-2xl border border-accent/15 bg-accent/[0.05]';
 
@@ -13,7 +13,7 @@ interface PanelProps extends Omit<React.HTMLAttributes<HTMLElement>, 'title'> {
   title?: React.ReactNode;
   description?: React.ReactNode;
   icon?: React.ReactNode;
-  /** Right side of the header row — toggles, counts, links. */
+  /** Right side of the header row - toggles, counts, links. */
   action?: React.ReactNode;
   /** `accent` lifts a panel out of the stack (used for the "next step" card). */
   tone?: 'default' | 'accent';

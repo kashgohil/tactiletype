@@ -77,7 +77,7 @@ export const whatIsWpm: ContentPage = {
         },
         {
           kind: 'p',
-          text: 'Both numbers deserve an asterisk. Study participants opted into a typing experiment, which selects for people who type a lot and are curious about their speed. The same study found that self-taught typists using six or seven fingers were often as fast as formally trained touch typists — a result worth remembering before you rebuild your technique from scratch.',
+          text: 'Both numbers deserve an asterisk. Study participants opted into a typing experiment, which selects for people who type a lot and are curious about their speed. The same study found that self-taught typists using six or seven fingers were often as fast as formally trained touch typists - a result worth remembering before you rebuild your technique from scratch.',
         },
       ],
     },
@@ -89,7 +89,7 @@ export const whatIsWpm: ContentPage = {
           kind: 'list',
           items: [
             'CPM (characters per minute) is simply WPM × 5. Some tests report it because it avoids the "words" abstraction entirely.',
-            'Accuracy is the share of characters correct on the first attempt — the companion metric that makes WPM meaningful. [More on the trade-off](/guides/accuracy-vs-speed).',
+            'Accuracy is the share of characters correct on the first attempt - the companion metric that makes WPM meaningful. [More on the trade-off](/guides/accuracy-vs-speed).',
             'Consistency measures how much your speed varies across the test. Steady output at 60 WPM is more useful than bursts between 40 and 90.',
             'KSPC (keystrokes per character) counts everything you pressed per character produced. Anything meaningfully above 1.0 is correction overhead.',
           ],
@@ -118,7 +118,7 @@ export const whatIsWpm: ContentPage = {
     },
     {
       q: 'Does WPM include mistakes?',
-      a: 'Raw WPM does — it counts every character you typed regardless of correctness. Net WPM does not; it applies a penalty for uncorrected errors. When a site quotes a single WPM figure it is usually net.',
+      a: 'Raw WPM does - it counts every character you typed regardless of correctness. Net WPM does not; it applies a penalty for uncorrected errors. When a site quotes a single WPM figure it is usually net.',
     },
     {
       q: 'What is the fastest typing speed ever recorded?',
@@ -132,11 +132,11 @@ export const whatIsWpm: ContentPage = {
   sources: [
     {
       label:
-        'Dhakal, Feit, Kristensson & Oulasvirta — Observations on Typing from 136 Million Keystrokes (CHI 2018)',
+        'Dhakal, Feit, Kristensson & Oulasvirta - Observations on Typing from 136 Million Keystrokes (CHI 2018)',
       href: 'https://userinterfaces.aalto.fi/136Mkeystrokes/',
     },
     {
-      label: 'Words per minute — definition and the five-character standard',
+      label: 'Words per minute - definition and the five-character standard',
       href: 'https://en.wikipedia.org/wiki/Words_per_minute',
     },
   ],

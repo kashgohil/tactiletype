@@ -516,7 +516,7 @@ export const Analytics: React.FC = () => {
         />
       </div>
 
-      {/* Report generator, spanning both columns — an A4 page needs the width */}
+      {/* Report generator, spanning both columns - an A4 page needs the width */}
       <div className="mb-8">
         <ReportGenerator
           progressCharts={dashboardData.progressCharts}

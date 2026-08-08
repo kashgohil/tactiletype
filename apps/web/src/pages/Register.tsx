@@ -124,7 +124,7 @@ export const Register: React.FC = () => {
 
       <div className="mt-6">
         {/* Two rules either side of the label, rather than one rule masked by an
-            opaque chip — the card fill is translucent, so a mask would show. */}
+            opaque chip - the card fill is translucent, so a mask would show. */}
         <div className="flex items-center gap-3 text-sm">
           <span className="h-px flex-1 bg-line" />
           <span className="text-muted">Or sign up with</span>

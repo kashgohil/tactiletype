@@ -112,7 +112,7 @@ interface ContentArticleProps {
  * JSON-LD graph (WebPage + Article + BreadcrumbList + FAQPage).
  *
  * The FAQ markup is emitted only because the questions are also rendered
- * visibly below — schema that doesn't match the page is a manual-action risk.
+ * visibly below - schema that doesn't match the page is a manual-action risk.
  */
 export const ContentArticle: React.FC<ContentArticleProps> = ({ page, trail, cta }) => {
   return (

@@ -3,8 +3,8 @@ import { useEffect, useMemo, useRef } from 'react';
 /**
  * A window-level shortcut that ignores the keystroke still in flight.
  *
- * Play modes hand off between screens on a keypress — submitting a round with
- * enter, dying on a wrong key — and the screen that appears binds its shortcut
+ * Play modes hand off between screens on a keypress - submitting a round with
+ * enter, dying on a wrong key - and the screen that appears binds its shortcut
  * while that same event is still bubbling to `window`, so it would fire on the
  * key that summoned it. Arming after a beat also absorbs the keys a player is
  * still typing when a run ends under them.
@@ -15,7 +15,7 @@ export function useArmedHotkey(
   { enabled = true, delayMs = 400 }: { enabled?: boolean; delayMs?: number } = {}
 ) {
   const latest = useRef(handler);
-  // `keys` is rebuilt every render, so the serialised form stands in for it —
+  // `keys` is rebuilt every render, so the serialised form stands in for it -
   // depending on the array itself would rebind the listener in a loop.
   const signature = JSON.stringify(keys);
   const watched = useMemo(() => new Set<string>(JSON.parse(signature)), [signature]);

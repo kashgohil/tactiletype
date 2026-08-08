@@ -17,7 +17,7 @@ export const getCsrfTokenFromCookie = (): string | null => {
 };
 
 // Concurrent writes (a result submit plus its analytics follow-up, say) must not
-// each mint their own token — the last cookie written would invalidate the rest.
+// each mint their own token - the last cookie written would invalidate the rest.
 let inflightRefresh: Promise<string | null> | null = null;
 
 /**

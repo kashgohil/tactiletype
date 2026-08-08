@@ -238,7 +238,7 @@ export const WordStormMode: React.FC = () => {
           {
             label: 'Left',
             value:
-              phase === 'running' ? `${Math.ceil((timeLeft * timeLimitMs(level)) / 1000)}s` : '—',
+              phase === 'running' ? `${Math.ceil((timeLeft * timeLimitMs(level)) / 1000)}s` : '-',
             tone: timeLeft < 0.25 && phase === 'running' ? 'danger' : 'default',
           },
         ]}

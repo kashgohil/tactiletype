@@ -112,7 +112,7 @@ challengeRoutes.get('/daily/leaderboard', async (c) => {
   }
 });
 
-// Mode of the day (rotating play mode — not the same quote test)
+// Mode of the day (rotating play mode - not the same quote test)
 challengeRoutes.get('/daily/mode', async (c) => {
   try {
     const mode = getDailyModeForDate();

@@ -22,7 +22,7 @@ export const WeakSpotsPanel: React.FC<WeakSpotsPanelProps> = ({ errorAnalysis, i
     <Panel
       title="Weak spots"
       icon={<Crosshair className="size-4 text-accent" />}
-      description="From recent error analytics — one click starts a drill."
+      description="From recent error analytics - one click starts a drill."
       bodyClassName="flex flex-col"
     >
       {chars.length === 0 && words.length === 0 ? (

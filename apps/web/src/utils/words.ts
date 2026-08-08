@@ -1,5 +1,5 @@
 /**
- * Word banks and quotes — re-exported from @tactile/content packs.
+ * Word banks and quotes - re-exported from @tactile/content packs.
  * Kept as a thin adapter so existing imports continue to work.
  */
 import {

@@ -13,7 +13,7 @@ export type RecommendedExercise = {
 };
 
 /**
- * Rule-based recommendations — prefer unique play modes over more categories.
+ * Rule-based recommendations - prefer unique play modes over more categories.
  * 1. Weak keys → Weak Storm (adaptive)
  * 2. Curriculum incomplete → next lesson
  * 3. Low accuracy → accuracy drill
@@ -32,7 +32,7 @@ export function buildRecommendation(input: {
     return {
       id: 'weak-storm',
       title: `Weak Storm: ${weakKeys.map((k) => k.toUpperCase()).join(' ')}`,
-      description: 'Rising-timer storm aimed at the keys you miss most — not the same free test.',
+      description: 'Rising-timer storm aimed at the keys you miss most - not the same free test.',
       reason: 'Weak keys detected from your recent typing',
       href: '/play/weak-storm',
       priority: 5,
@@ -80,7 +80,7 @@ export function buildRecommendation(input: {
       id: 'streak',
       title: 'Keep your streak',
       description: 'A quick 30-second test keeps the fire going.',
-      reason: 'Streak at risk — no practice in 20h+',
+      reason: 'Streak at risk - no practice in 20h+',
       href: '/test?mode=timer&duration=30',
       priority: 3,
     };
@@ -91,7 +91,7 @@ export function buildRecommendation(input: {
     id: 'daily-mode',
     title: "Today's play mode",
     description:
-      'A rotating ranked mode (Sudden Death, Storm, Ghost…) — different rules every UTC day.',
+      'A rotating ranked mode (Sudden Death, Storm, Ghost…) - different rules every UTC day.',
     reason: 'Keep skills sharp with daily variety',
     href: '/daily',
     priority: 1,

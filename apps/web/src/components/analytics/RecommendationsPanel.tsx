@@ -72,7 +72,7 @@ export const RecommendationsPanel: React.FC<RecommendationsPanelProps> = ({
 
     return (
       // Nested inside a panel, so: no second border, just the tint. Unread is a
-      // left rail rather than a ring — it doesn't compete with the panel edge.
+      // left rail rather than a ring - it doesn't compete with the panel edge.
       <div
         className={cn(
           'p-4 rounded-lg bg-accent/[0.06] transition-colors',

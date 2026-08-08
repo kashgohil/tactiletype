@@ -4,7 +4,7 @@
  * Scoring a memorised phrase character-by-character punishes the wrong thing:
  * drop a single letter early and every later character is offset, so a phrase
  * you remembered almost perfectly scores near zero. Memory works in words, so
- * the alignment does too — a longest-common-subsequence over words, which
+ * the alignment does too - a longest-common-subsequence over words, which
  * tolerates a dropped or invented word and keeps the rest in step.
  */
 
@@ -23,7 +23,7 @@ export interface RecallScore {
   total: number;
   /** Words typed that aren't in the phrase. */
   extras: number;
-  /** Characters of the recalled words — the basis for recall WPM. */
+  /** Characters of the recalled words - the basis for recall WPM. */
   hitChars: number;
   /** Whole phrase back with nothing invented. */
   perfect: boolean;

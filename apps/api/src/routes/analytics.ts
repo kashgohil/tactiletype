@@ -99,7 +99,7 @@ analytics.get('/trends', async (c) => {
     const limit = parseInt(c.req.query('limit') || '30', 10);
 
     // Both branches below are read for the same four chart fields, so they only
-    // have to agree on that shape — the daily branch returns raw rows, the
+    // have to agree on that shape - the daily branch returns raw rows, the
     // aggregated one returns rolled-up periods.
     let insights: Array<{
       date: Date;

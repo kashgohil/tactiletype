@@ -141,7 +141,7 @@ export class ConnectionManager {
     }
 
     if (room.status !== 'waiting' && room.status !== 'countdown') {
-      return { ok: false, error: 'Race already started — join as spectator' };
+      return { ok: false, error: 'Race already started - join as spectator' };
     }
 
     if (room.participants.size >= room.maxPlayers && !room.participants.has(userId)) {

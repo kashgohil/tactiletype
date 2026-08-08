@@ -16,7 +16,7 @@ import { EASE_OUT, uiTransition } from '@/lib/motion';
 import { cn } from '@/lib/utils';
 import { getHomeRow } from '@/utils/keyboardLayouts';
 
-/** Only drills with a real training purpose — not “another text type”. */
+/** Only drills with a real training purpose - not “another text type”. */
 const DRILLS = [
   {
     id: 'keys',
@@ -104,7 +104,7 @@ export const Practice: React.FC = () => {
           Typing practice, one weak spot at a time
         </h1>
         <p className="text-text/50 max-w-2xl leading-relaxed text-[15px]">
-          Generated for a skill — keys, bigrams, hard words. For game-like training, use{' '}
+          Generated for a skill - keys, bigrams, hard words. For game-like training, use{' '}
           <Link to="/play" className="text-accent underline-offset-2 hover:underline">
             Play modes
           </Link>
@@ -126,7 +126,7 @@ export const Practice: React.FC = () => {
             <div>
               <h2 className="text-lg font-semibold tracking-tight">Want something different?</h2>
               <p className="text-sm text-text/48 mt-1 max-w-md leading-relaxed">
-                Lesson Path, Weak Storm, Sudden Death, Ghost Race — each with different rules, not
+                Lesson Path, Weak Storm, Sudden Death, Ghost Race - each with different rules, not
                 the same test with a new label.
               </p>
             </div>
@@ -151,7 +151,7 @@ export const Practice: React.FC = () => {
             <div>
               <h2 className="text-lg font-semibold tracking-tight">{drillPreview.title}</h2>
               <p className="text-sm text-text/45 mt-1">
-                Preview — start when ready. Result saves with exercise metadata.
+                Preview - start when ready. Result saves with exercise metadata.
               </p>
             </div>
             <div className="flex gap-2">
@@ -171,7 +171,7 @@ export const Practice: React.FC = () => {
         <section>
           <h2 className="text-base font-semibold mb-1 tracking-tight">Drill types</h2>
           <p className="text-sm text-text/40 mb-4">
-            Still the main typing screen — text is generated for one skill.
+            Still the main typing screen - text is generated for one skill.
           </p>
           <div className="grid sm:grid-cols-2 gap-3">
             {DRILLS.map((ex, i) => {

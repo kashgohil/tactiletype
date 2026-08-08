@@ -1,6 +1,6 @@
 import { HARD_WORDS, TOP_200_WORDS, TOP_1000_WORDS, uniqueWords } from '@tactile/content';
 
-/** Unique play modes — each has different rules, not just different text. */
+/** Unique play modes - each has different rules, not just different text. */
 export type PlayModeId =
   | 'sudden-death'
   | 'word-storm'
@@ -27,7 +27,7 @@ export const PLAY_MODES: PlayModeMeta[] = [
     title: 'Lesson Path',
     tagline: 'Unlock the keyboard step by step',
     description:
-      'Ten lessons with different rules: home-row only, no-backspace, accuracy gates, char streaks, speed checks. Pass to unlock the next — a real curriculum, not more categories.',
+      'Ten lessons with different rules: home-row only, no-backspace, accuracy gates, char streaks, speed checks. Pass to unlock the next - a real curriculum, not more categories.',
     howToPlay: [
       'Open the path map and start the first unlocked lesson',
       'Each lesson has its own pass rule (accuracy, streak, speed…)',
@@ -48,7 +48,7 @@ export const PLAY_MODES: PlayModeMeta[] = [
       'Your weak keys are tracked from every session',
       'Words are generated to hit those keys hard',
       'Clear them before the timer runs out',
-      'Levels speed up — stay alive with 3 lives',
+      'Levels speed up - stay alive with 3 lives',
     ],
     skill: 'Adaptive targeting',
     accent: 'rose',
@@ -59,7 +59,7 @@ export const PLAY_MODES: PlayModeMeta[] = [
     title: 'Sudden Death',
     tagline: 'One wrong key ends the run',
     description:
-      'Type an endless stream of words. A single mistake kills the run. Survive as long as you can — accuracy under pressure builds real speed.',
+      'Type an endless stream of words. A single mistake kills the run. Survive as long as you can - accuracy under pressure builds real speed.',
     howToPlay: [
       'Start typing; the clock starts on your first key',
       'Any wrong character ends the run immediately',
@@ -74,12 +74,12 @@ export const PLAY_MODES: PlayModeMeta[] = [
     title: 'Word Storm',
     tagline: 'One word. Rising heat. Don’t miss.',
     description:
-      'Words appear one at a time with a shrinking timer. Clear them before time runs out. Levels get faster — trains burst speed and focus.',
+      'Words appear one at a time with a shrinking timer. Clear them before time runs out. Levels get faster - trains burst speed and focus.',
     howToPlay: [
       'Only one word is shown at a time',
       'Type it fully before the timer hits zero',
       'Every 5 words the time window shrinks',
-      'Miss or timeout costs a life — 3 lives total',
+      'Miss or timeout costs a life - 3 lives total',
     ],
     skill: 'Burst speed & focus',
     accent: 'amber',
@@ -89,7 +89,7 @@ export const PLAY_MODES: PlayModeMeta[] = [
     title: 'Memory Flash',
     tagline: 'See it. Hide it. Type it back.',
     description:
-      'A phrase flashes briefly, then vanishes. Type it from memory. Hold it and the next one grows — the longest phrase you can carry is your span.',
+      'A phrase flashes briefly, then vanishes. Type it from memory. Hold it and the next one grows - the longest phrase you can carry is your span.',
     howToPlay: [
       'Memorize the phrase while it is visible',
       'When it hides, type what you remember',
@@ -107,7 +107,7 @@ export const PLAY_MODES: PlayModeMeta[] = [
       'Race a ghost that types at a fixed target WPM. Stay ahead of the ghost to win. Perfect for pacing practice and PB chases.',
     howToPlay: [
       'Pick a target pace (or use a saved ghost)',
-      'Start typing — the ghost advances at that WPM',
+      'Start typing - the ghost advances at that WPM',
       'Finish the passage before the ghost does',
       'Win = finish first; also track your WPM vs target',
     ],

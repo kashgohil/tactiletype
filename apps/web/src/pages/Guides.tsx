@@ -7,12 +7,12 @@ import { absoluteUrl, breadcrumbSchema, WEBSITE_ID, webPageSchema } from '@/lib/
 
 const meta = {
   path: '/guides',
-  title: 'Typing Guides — Speed, Accuracy & Practice | tactiletype',
+  title: 'Typing Guides - Speed, Accuracy & Practice | tactiletype',
   description:
     'Plain-language guides to typing: what WPM measures, how to actually get faster, why accuracy wins, and how code typing differs from prose.',
 };
 
-/** Hub for the guide cluster — exists to pass authority down to the guides. */
+/** Hub for the guide cluster - exists to pass authority down to the guides. */
 export const Guides: React.FC = () => {
   const graph = {
     '@context': 'https://schema.org',
@@ -46,7 +46,7 @@ export const Guides: React.FC = () => {
         </h1>
         <p className="text-[17px] text-text/60 max-w-3xl leading-relaxed">
           What the numbers mean, what actually makes you faster, and what to ignore. Written to be
-          read once and acted on — not to fill a page.
+          read once and acted on - not to fill a page.
         </p>
       </header>
 

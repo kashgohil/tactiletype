@@ -248,7 +248,7 @@ export const GhostRaceMode: React.FC = () => {
         stats={[
           {
             label: 'You',
-            value: phase === 'racing' ? liveWpm : '\u2014',
+            value: phase === 'racing' ? liveWpm : '-',
             accent: true,
           },
           { label: 'Ghost', value: pace },

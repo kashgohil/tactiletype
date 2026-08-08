@@ -53,7 +53,7 @@ const META: Record<DailyModeId, { title: string; tagline: string; description: s
   'weak-storm': {
     title: 'Weak Storm',
     tagline: 'Your mistakes, on a timer',
-    description: 'Adaptive storm — still ranks by WPM so the field stays comparable.',
+    description: 'Adaptive storm - still ranks by WPM so the field stays comparable.',
   },
 };
 

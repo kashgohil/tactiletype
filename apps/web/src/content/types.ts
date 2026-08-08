@@ -6,7 +6,7 @@
  * into `dist/`, and as JSON-LD for search and answer engines. Authoring in JSX
  * would mean maintaining three drifting copies of every sentence.
  *
- * Inline links use a minimal `[label](/path)` syntax — see `RichText`.
+ * Inline links use a minimal `[label](/path)` syntax - see `RichText`.
  */
 
 export type Block =
@@ -14,11 +14,11 @@ export type Block =
   | { kind: 'p'; text: string }
   /** Unordered list of short points. */
   | { kind: 'list'; items: string[] }
-  /** Numbered, titled steps — renders as an ordered list. */
+  /** Numbered, titled steps - renders as an ordered list. */
   | { kind: 'steps'; items: { title: string; text: string }[] }
   /** Figure row. Keep to 2–4; these are the numbers answer engines quote. */
   | { kind: 'stat'; items: { value: string; label: string }[] }
-  /** Set-apart aside. Use sparingly — one per section at most. */
+  /** Set-apart aside. Use sparingly - one per section at most. */
   | { kind: 'note'; text: string };
 
 export type Section = {
@@ -39,7 +39,7 @@ export type ContentPage = {
   title: string;
   /** `<meta name="description">`; keep to ~155 chars. */
   description: string;
-  /** Visible H1. Should differ from `title` — one is a headline, one is a SERP entry. */
+  /** Visible H1. Should differ from `title` - one is a headline, one is a SERP entry. */
   h1: string;
   /**
    * The answer-first paragraph. Answer engines quote this more than anything

@@ -12,8 +12,8 @@ export const optionalAuthMiddleware = async (c: any, next: any) => {
     try {
       c.set('user', await verifyAccessToken(authHeader.substring(7)));
     } catch {
-      // Anonymous is a valid outcome on these routes, so an unusable token —
-      // for any reason, including an unreachable database — just means no user.
+      // Anonymous is a valid outcome on these routes, so an unusable token -
+      // for any reason, including an unreachable database - just means no user.
     }
   }
 

@@ -66,7 +66,7 @@ export const GoalsPlaceholder: React.FC<GoalsPlaceholderProps> = ({
       </ul>
 
       <p className="text-xs text-text/40 mt-5 leading-relaxed">
-        Custom goals and progress tracking land in a later update. Keep testing — these milestones
+        Custom goals and progress tracking land in a later update. Keep testing - these milestones
         update from your best stats.{' '}
         <Link to="/" className="text-accent hover:underline">
           Practice now

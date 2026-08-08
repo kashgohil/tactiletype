@@ -2,7 +2,7 @@
  * Data source for the prerender step.
  *
  * Built with `vite build --ssr` so it can share the app's TypeScript, path
- * aliases, and — critically — the exact same `lib/seo.ts` and `content/*`
+ * aliases, and - critically - the exact same `lib/seo.ts` and `content/*`
  * modules the runtime uses. Anything that regenerated this list independently
  * would drift from the app within a release or two.
  *
@@ -59,7 +59,7 @@ const SITEMAP: Record<string, { changefreq: string; priority: string }> = {
   '/contact': { changefreq: 'monthly', priority: '0.5' },
   // Indexed on purpose (decision 2026-08-07): they catch brand intent like
   // "tactiletype login" / "sign up for tactiletype". Low priority because they
-  // are entry doors, not content — being listed matters more than being ranked.
+  // are entry doors, not content - being listed matters more than being ranked.
   '/login': { changefreq: 'monthly', priority: '0.4' },
   '/register': { changefreq: 'monthly', priority: '0.4' },
   '/privacy': { changefreq: 'yearly', priority: '0.3' },
@@ -102,7 +102,7 @@ function blockHtml(block: Block): string {
         .join('')}</ol>`;
     case 'stat':
       return `<ul>${block.items
-        .map((i) => `<li><strong>${esc(i.value)}</strong> — ${esc(i.label)}</li>`)
+        .map((i) => `<li><strong>${esc(i.value)}</strong> - ${esc(i.label)}</li>`)
         .join('')}</ul>`;
   }
 }
@@ -112,7 +112,7 @@ function blockHtml(block: Block): string {
  *
  * This is the honest half of the trade-off documented in the audit: without
  * SSR, a crawler that doesn't execute JavaScript sees an empty `#root`. The
- * mirror gives those crawlers — most AI/answer engines among them — the same
+ * mirror gives those crawlers - most AI/answer engines among them - the same
  * words a human reads, generated from the same source, so the two cannot
  * disagree. Google renders the real page and ignores this entirely.
  */
@@ -263,7 +263,7 @@ export function getPrerenderRoutes(): PrerenderRoute[] {
       `<h1>Typing guides</h1>`,
       `<p>What the numbers mean, what actually makes you faster, and what to ignore.</p>`,
       `<ul>${GUIDES.map(
-        (g) => `<li><a href="${g.path}">${esc(g.h1)}</a> — ${esc(g.description)}</li>`
+        (g) => `<li><a href="${g.path}">${esc(g.h1)}</a> - ${esc(g.description)}</li>`
       ).join('')}</ul>`,
     ].join(''),
     sitemap: sitemapFor('/guides', latestGuideUpdate()),

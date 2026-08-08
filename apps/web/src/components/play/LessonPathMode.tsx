@@ -191,7 +191,7 @@ export const LessonPathMode: React.FC = () => {
           } else {
             void endLesson(
               false,
-              `Got ${wpm} WPM / ${acc}% — need ${lesson.minWpm}+ WPM & ${lesson.minAccuracy}%+`,
+              `Got ${wpm} WPM / ${acc}% - need ${lesson.minWpm}+ WPM & ${lesson.minAccuracy}%+`,
               typedLen,
               errSet
             );
@@ -203,7 +203,7 @@ export const LessonPathMode: React.FC = () => {
         if (acc >= minAcc) {
           void endLesson(true, `${acc}% accuracy`, typedLen, errSet);
         } else {
-          void endLesson(false, `${acc}% accuracy — need ${minAcc}%+`, typedLen, errSet);
+          void endLesson(false, `${acc}% accuracy - need ${minAcc}%+`, typedLen, errSet);
         }
         return true;
       }
@@ -279,7 +279,7 @@ export const LessonPathMode: React.FC = () => {
       <PlayShell
         modeId="lesson-path"
         title="Lesson path"
-        subtitle="Unlock the keyboard step by step. Each lesson has a different rule — not the same test twice."
+        subtitle="Unlock the keyboard step by step. Each lesson has a different rule - not the same test twice."
         onExit={exit}
       >
         <div className="flex items-center justify-between gap-4 rounded-2xl border border-accent/15 bg-accent/[0.05] px-4 py-3.5">
@@ -404,12 +404,12 @@ export const LessonPathMode: React.FC = () => {
   const stats = [
     {
       label: 'WPM',
-      value: phase === 'running' ? liveWpm : '—',
+      value: phase === 'running' ? liveWpm : '-',
       accent: true,
     },
     {
       label: 'Accuracy',
-      value: typed.length ? `${accuracyOf(Math.max(0, correctCount), incorrectCount)}%` : '—',
+      value: typed.length ? `${accuracyOf(Math.max(0, correctCount), incorrectCount)}%` : '-',
     },
     lesson.mechanic === 'char_streak'
       ? { label: 'Streak', value: `${streak}/${lesson.streakTarget}` }

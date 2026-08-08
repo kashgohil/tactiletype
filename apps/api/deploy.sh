@@ -53,8 +53,8 @@ check_docker() {
 }
 
 # Refuse to run without an env file. Every required variable has a development
-# fallback in apps/api/src/constants.ts — JWT_SECRET falls back to the literal
-# string 'your-secret-key' — so a missing .env starts a server that looks
+# fallback in apps/api/src/constants.ts - JWT_SECRET falls back to the literal
+# string 'your-secret-key' - so a missing .env starts a server that looks
 # healthy and signs forgeable tokens against a database it cannot reach.
 require_env() {
     if [ ! -f "${ENV_FILE}" ]; then
@@ -111,7 +111,7 @@ deploy_container() {
     # name over ${NETWORK}, which is why that network is not optional.
     #
     # host.docker.internal is mapped so a Postgres running on the VPS host
-    # itself is reachable — inside a container, `localhost` is the container.
+    # itself is reachable - inside a container, `localhost` is the container.
     docker run -d \
         --name "${CONTAINER_NAME}" \
         --network "${NETWORK}" \
@@ -122,7 +122,7 @@ deploy_container() {
         "${REGISTRY}${IMAGE_NAME}:latest"
 
     log "Container deployed successfully!"
-    log "API listening on 127.0.0.1:${PORT} — reach it through Caddy."
+    log "API listening on 127.0.0.1:${PORT} - reach it through Caddy."
 }
 
 # Show container logs

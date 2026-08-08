@@ -30,7 +30,7 @@ export const ProfileEmptyState: React.FC<ProfileEmptyStateProps> = ({ variant = 
         Complete a few typing tests to unlock stats, streaks, and activity insights. Three tests is
         enough to start seeing trends.
       </p>
-      <p className="text-sm text-text/40 mb-6">Structure is here — fill it with practice.</p>
+      <p className="text-sm text-text/40 mb-6">Structure is here - fill it with practice.</p>
       <Button asChild size="lg">
         <Link to="/">
           <Keyboard className="size-4" />

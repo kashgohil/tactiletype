@@ -1,7 +1,7 @@
 # https://trytactiletype.com/robots.txt
 #
 # One group only, on purpose. A crawler obeys the MOST SPECIFIC matching
-# `User-agent` group and ignores every other one — so adding a
+# `User-agent` group and ignores every other one - so adding a
 # `User-agent: Googlebot / Allow: /` block would have exempted Googlebot from
 # the Disallow rules below rather than reinforcing them. Search and AI crawlers
 # (Googlebot, Bingbot, GPTBot, ChatGPT-User, PerplexityBot, ClaudeBot,

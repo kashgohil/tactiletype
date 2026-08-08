@@ -10,7 +10,7 @@ export type LessonMechanic =
   | 'keys_only'
   /** Run fails if accuracy drops below floor after minChars. */
   | 'accuracy_gate'
-  /** Backspace disabled — forces commitment. */
+  /** Backspace disabled - forces commitment. */
   | 'no_backspace'
   /** Must land N consecutive correct chars (resets on error). */
   | 'char_streak'
@@ -123,7 +123,7 @@ export const CURRICULUM: LessonDef[] = [
     id: 'home-row',
     index: 0,
     title: 'Home row',
-    subtitle: 'Fingers rest here — build the foundation.',
+    subtitle: 'Fingers rest here - build the foundation.',
     mechanic: 'keys_only',
     passRule: 'Finish with ≥92% accuracy',
     minAccuracy: 92,
@@ -148,7 +148,7 @@ export const CURRICULUM: LessonDef[] = [
     id: 'full-alpha',
     index: 2,
     title: 'Full alphabet',
-    subtitle: 'Every letter in play — still keep it clean.',
+    subtitle: 'Every letter in play - still keep it clean.',
     mechanic: 'standard',
     passRule: 'Finish with ≥93% accuracy',
     minAccuracy: 93,
@@ -172,7 +172,7 @@ export const CURRICULUM: LessonDef[] = [
     title: 'No erase',
     subtitle: 'Backspace is disabled. Commit to every key.',
     mechanic: 'no_backspace',
-    passRule: 'Finish with ≥90% accuracy — no corrections',
+    passRule: 'Finish with ≥90% accuracy - no corrections',
     minAccuracy: 90,
     wordCount: 28,
     generate: () => wordsFromCharset(ALPHA, 28),
@@ -196,7 +196,7 @@ export const CURRICULUM: LessonDef[] = [
     id: 'numbers',
     index: 6,
     title: 'Number mix',
-    subtitle: 'Digits mixed into words — real-world chaos.',
+    subtitle: 'Digits mixed into words - real-world chaos.',
     mechanic: 'standard',
     passRule: 'Finish with ≥92% accuracy',
     minAccuracy: 92,
@@ -218,7 +218,7 @@ export const CURRICULUM: LessonDef[] = [
     id: 'speed-40',
     index: 8,
     title: 'Speed check · 40',
-    subtitle: 'Accuracy still matters — now add pace.',
+    subtitle: 'Accuracy still matters - now add pace.',
     mechanic: 'speed_check',
     passRule: 'Finish ≥40 WPM and ≥94% accuracy',
     minAccuracy: 94,
@@ -316,7 +316,7 @@ export function markLessonPassed(
   return p;
 }
 
-/** Merge two progress blobs — take the furthest unlock and union of completed. */
+/** Merge two progress blobs - take the furthest unlock and union of completed. */
 export function mergeCurriculumProgress(
   a: CurriculumProgress,
   b: CurriculumProgress

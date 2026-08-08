@@ -40,7 +40,7 @@ export const MultiplayerRoom: React.FC = () => {
 
   // Keyed on `user?.id`, not `user`: a new object identity for the same person
   // must not tear down and rejoin the room. `actions.connect` is likewise held
-  // out on purpose — it is recreated per render.
+  // out on purpose - it is recreated per render.
   // biome-ignore lint/correctness/useExhaustiveDependencies: deliberate join-once-per-room effect
   useEffect(() => {
     if (!user || !roomId) return;
@@ -278,7 +278,7 @@ export const MultiplayerRoom: React.FC = () => {
               </p>
               <p className="text-sm text-text/50">
                 {state.isHost && !isSpectator
-                  ? 'You are the host — press Start when ready (solo is OK).'
+                  ? 'You are the host - press Start when ready (solo is OK).'
                   : isSpectator
                     ? 'You will see the race when it begins.'
                     : 'Hang tight for the countdown.'}

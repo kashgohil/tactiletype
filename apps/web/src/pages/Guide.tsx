@@ -15,7 +15,7 @@ export const Guide: React.FC = () => {
       <div className="grow flex flex-col items-center justify-center text-center gap-4">
         <h1 className="text-2xl font-bold tracking-tight">Guide not found</h1>
         <p className="text-text/50 max-w-md leading-relaxed">
-          That guide doesn't exist — it may have been renamed.
+          That guide doesn't exist - it may have been renamed.
         </p>
         <Button asChild variant="outline">
           <Link to="/guides">

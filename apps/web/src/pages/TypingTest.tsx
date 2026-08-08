@@ -284,7 +284,7 @@ export const TypingTest: React.FC = () => {
           console.error('Failed to submit test result:', error);
           setResultSubmitted(false);
           // A fixed id keeps a burst of failures to a single toast, and the run
-          // is recoverable from here — the stats are still in hand.
+          // is recoverable from here - the stats are still in hand.
           toast.error('Result not saved', {
             id: 'test-result-submit-failed',
             description: 'We could not reach the server. This run is missing from your history.',
@@ -439,13 +439,13 @@ export const TypingTest: React.FC = () => {
         exit: { opacity: 0, y: 20 },
       };
 
-  // `grow`, not `screen-fill` — main already carries the viewport height, so
+  // `grow`, not `screen-fill` - main already carries the viewport height, so
   // growing into it centres the test without stacking a second min-height.
   return (
     <div className="grow flex flex-col gap-4 items-center justify-center">
       {/* SEO: one H1 for the primary landing surface without competing with
           the test chrome. Visually hidden; title/meta carry the SERP story. */}
-      <h1 className="sr-only">Free typing test — check your WPM and accuracy</h1>
+      <h1 className="sr-only">Free typing test - check your WPM and accuracy</h1>
       <CustomPasteModal
         open={pasteOpen}
         onClose={() => setPasteOpen(false)}

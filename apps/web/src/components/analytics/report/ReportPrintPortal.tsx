@@ -18,7 +18,7 @@ export const ReportPrintPortal: React.FC<{ children: React.ReactNode }> = ({ chi
   //
   // The report measures itself to paginate, from a layout effect. React runs
   // layout effects bottom-up, so the child measures before this component's own
-  // effects run — and an element that is not yet in the document reports every
+  // effects run - and an element that is not yet in the document reports every
   // offsetWidth and offsetHeight as 0. Attaching from an effect therefore gave
   // the child nothing to measure: it fell back to one unpaginated page, which
   // printed with no footers and blocks split across sheets.

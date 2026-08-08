@@ -21,7 +21,7 @@ export const codeTypingPractice: ContentPage = {
         {
           kind: 'list',
           items: [
-            'Symbols cluster on the weakest fingers. Brackets, braces, underscores, and pipes all sit under the little fingers or require a modifier — the slowest, least practised reaches on the keyboard.',
+            'Symbols cluster on the weakest fingers. Brackets, braces, underscores, and pipes all sit under the little fingers or require a modifier - the slowest, least practised reaches on the keyboard.',
             'There is no word rhythm. `const x = arr.map((i) => i * 2)` has no repeating pattern your hands can anticipate.',
             'Shift is constant. camelCase, PascalCase, and SCREAMING_SNAKE_CASE all mean modifier presses in the middle of a token, where prose puts them only at the start of a sentence.',
             'Errors are fatal rather than forgiven. A reader silently corrects "teh"; a compiler does not.',
@@ -30,7 +30,7 @@ export const codeTypingPractice: ContentPage = {
         },
         {
           kind: 'note',
-          text: 'This is why a 90 WPM prose typist can drop to 50 WPM on code and feel like they have forgotten how to type. Nothing is wrong — the skill simply does not transfer as completely as it feels like it should.',
+          text: 'This is why a 90 WPM prose typist can drop to 50 WPM on code and feel like they have forgotten how to type. Nothing is wrong - the skill simply does not transfer as completely as it feels like it should.',
         },
       ],
     },
@@ -43,7 +43,7 @@ export const codeTypingPractice: ContentPage = {
           items: [
             {
               title: 'Symbol reaches, in isolation',
-              text: 'Brackets, braces, angle brackets, backticks, pipes, underscores. Drill them as pairs — `()`, `{}`, `[]`, `=>`, `!=`, `::` — because that is how they occur.',
+              text: 'Brackets, braces, angle brackets, backticks, pipes, underscores. Drill them as pairs - `()`, `{}`, `[]`, `=>`, `!=`, `::` - because that is how they occur.',
             },
             {
               title: 'Shift transitions inside words',
@@ -75,7 +75,7 @@ export const codeTypingPractice: ContentPage = {
         },
         {
           kind: 'p',
-          text: 'The real case is narrower and more defensible. Typing that requires conscious attention competes for the attention you were using to hold the problem in your head. When symbol reaches become automatic, the thought survives the transcription. That is worth something — and it is a small, cheap skill to acquire compared to most engineering skills.',
+          text: 'The real case is narrower and more defensible. Typing that requires conscious attention competes for the attention you were using to hold the problem in your head. When symbol reaches become automatic, the thought survives the transcription. That is worth something - and it is a small, cheap skill to acquire compared to most engineering skills.',
         },
         {
           kind: 'p',
@@ -90,7 +90,7 @@ export const codeTypingPractice: ContentPage = {
         {
           kind: 'list',
           items: [
-            'Use the code and symbols source text on [the main test](/) to benchmark where you actually are — the number will be lower than your prose speed, and that gap is the thing you are training.',
+            'Use the code and symbols source text on [the main test](/) to benchmark where you actually are - the number will be lower than your prose speed, and that gap is the thing you are training.',
             'Run [targeted drills](/practice) so symbol pairs get concentrated repetition instead of appearing once per passage.',
             'Use [play modes](/play) to hold technique under pressure once the reaches are reliable.',
             'Re-benchmark on code weekly. Prose speed will not tell you whether any of this worked.',
@@ -110,11 +110,11 @@ export const codeTypingPractice: ContentPage = {
     },
     {
       q: 'Does typing speed matter for programmers?',
-      a: 'Less than commonly claimed. Programming is dominated by reading and thinking, not transcription. The genuine benefit is that automatic typing stops competing for the attention you are using to hold a problem in your head — a real but modest gain.',
+      a: 'Less than commonly claimed. Programming is dominated by reading and thinking, not transcription. The genuine benefit is that automatic typing stops competing for the attention you are using to hold a problem in your head - a real but modest gain.',
     },
     {
       q: 'What is a good typing speed for a programmer?',
-      a: 'Anything above roughly 50 WPM on actual code, held accurately, means typing has stopped being the bottleneck. The figure matters less than the gap between your prose and code speeds — a large gap is the thing worth closing.',
+      a: 'Anything above roughly 50 WPM on actual code, held accurately, means typing has stopped being the bottleneck. The figure matters less than the gap between your prose and code speeds - a large gap is the thing worth closing.',
     },
     {
       q: 'How do I practise typing symbols and brackets?',
@@ -122,13 +122,13 @@ export const codeTypingPractice: ContentPage = {
     },
     {
       q: 'Should programmers learn touch typing properly?',
-      a: 'Consistency matters more than formal ten-finger technique — the large 2018 keystroke study found self-taught six and seven finger typists were often as fast as trained touch typists. Using the same finger for the same key every time is the part that pays.',
+      a: 'Consistency matters more than formal ten-finger technique - the large 2018 keystroke study found self-taught six and seven finger typists were often as fast as trained touch typists. Using the same finger for the same key every time is the part that pays.',
     },
   ],
   sources: [
     {
       label:
-        'Dhakal, Feit, Kristensson & Oulasvirta — Observations on Typing from 136 Million Keystrokes (CHI 2018)',
+        'Dhakal, Feit, Kristensson & Oulasvirta - Observations on Typing from 136 Million Keystrokes (CHI 2018)',
       href: 'https://userinterfaces.aalto.fi/136Mkeystrokes/',
     },
   ],

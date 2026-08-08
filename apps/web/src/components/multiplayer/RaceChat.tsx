@@ -32,7 +32,7 @@ export const RaceChat: React.FC<RaceChatProps> = ({ messages, onSend, disabled }
       </h2>
       <div className="flex-1 overflow-y-auto px-3 py-2 space-y-2 text-sm">
         {messages.length === 0 && (
-          <p className="text-text/40 text-xs text-center py-6">Say hi — keep it friendly.</p>
+          <p className="text-text/40 text-xs text-center py-6">Say hi - keep it friendly.</p>
         )}
         {messages.map((m) => (
           <div key={m.id} className="leading-snug">

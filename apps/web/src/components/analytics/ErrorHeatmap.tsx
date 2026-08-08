@@ -30,7 +30,7 @@ const qwertyLayout = {
 
 /**
  * The heatmap is the one place a sequential scale is warranted, so it is built
- * from the status tokens rather than raw rgba — recolour a theme and the
+ * from the status tokens rather than raw rgba - recolour a theme and the
  * keyboard recolours with it. Alpha carries the magnitude, hue the verdict.
  */
 const ACCURACY_BANDS = [

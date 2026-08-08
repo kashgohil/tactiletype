@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { typingTestPage } from '@/content/typing-test';
 
 /**
- * `/typing-test` — the explainer that feeds `/`.
+ * `/typing-test` - the explainer that feeds `/`.
  *
  * `/` owns the transactional "free typing test" query and holds every internal
  * link; this page takes the informational intent instead ("what is a typing

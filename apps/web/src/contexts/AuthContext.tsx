@@ -28,7 +28,7 @@ function getApiErrorMessage(error: unknown, fallback: string): string {
 /**
  * Log an API failure without logging the request that caused it.
  *
- * An AxiosError carries the whole outgoing request on `error.config` —
+ * An AxiosError carries the whole outgoing request on `error.config` -
  * `config.data` is the serialised body and `config.headers` holds the bearer
  * token. Passing one straight to console.error therefore prints the user's
  * password, in full, into the browser console on every failed sign-in, and
@@ -121,7 +121,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const login = async (email: string, password: string) => {
     try {
-      // Axios post(url, body) — send fields at top level, not under `data`
+      // Axios post(url, body) - send fields at top level, not under `data`
       const response = await api.post('/api/auth/login', { email, password });
 
       const data: AuthResponse = response.data;
@@ -138,7 +138,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const register = React.useCallback(async (email: string, username: string, password: string) => {
     try {
-      // Axios post(url, body) — send fields at top level, not under `data`
+      // Axios post(url, body) - send fields at top level, not under `data`
       const response = await api.post('/api/auth/register', {
         email,
         username,
@@ -164,7 +164,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   }, []);
 
   // Bumps the user's token generation server-side, which invalidates every
-  // token they hold — this device included.
+  // token they hold - this device included.
   const logoutEverywhere = React.useCallback(async () => {
     try {
       await api.post('/api/auth/logout-all');
@@ -180,7 +180,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         localStorage.setItem('auth_token', token);
 
         // verifyToken no longer throws, so its verdict has to be read from the
-        // return value — otherwise a failed callback lands on the app looking
+        // return value - otherwise a failed callback lands on the app looking
         // signed in, with no user.
         if (!(await verifyToken(token))) {
           throw new Error('Could not complete sign in. Please try again.');

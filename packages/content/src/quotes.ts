@@ -17,7 +17,7 @@ export const QUOTES: Array<{ text: string; author: string }> = [
     author: 'William Shakespeare',
   },
   {
-    text: 'Call me Ishmael. Some years ago—never mind how long precisely—having little or no money in my purse, and nothing particular to interest me on shore, I thought I would sail about a little and see the watery part of the world.',
+    text: 'Call me Ishmael. Some years ago-never mind how long precisely-having little or no money in my purse, and nothing particular to interest me on shore, I thought I would sail about a little and see the watery part of the world.',
     author: 'Herman Melville',
   },
   {
@@ -45,7 +45,7 @@ export const QUOTES: Array<{ text: string; author: string }> = [
     author: 'Socrates (attributed)',
   },
   {
-    text: 'Two roads diverged in a wood, and I—I took the one less traveled by, and that has made all the difference.',
+    text: 'Two roads diverged in a wood, and I-I took the one less traveled by, and that has made all the difference.',
     author: 'Robert Frost',
   },
   {
@@ -65,11 +65,11 @@ export const QUOTES: Array<{ text: string; author: string }> = [
     author: 'Abraham Lincoln',
   },
   {
-    text: 'The only thing we have to fear is fear itself—nameless, unreasoning, unjustified terror which paralyzes needed efforts to convert retreat into advance.',
+    text: 'The only thing we have to fear is fear itself-nameless, unreasoning, unjustified terror which paralyzes needed efforts to convert retreat into advance.',
     author: 'Franklin D. Roosevelt',
   },
   {
-    text: 'Ask not what your country can do for you—ask what you can do for your country. Let us never negotiate out of fear. But let us never fear to negotiate.',
+    text: 'Ask not what your country can do for you-ask what you can do for your country. Let us never negotiate out of fear. But let us never fear to negotiate.',
     author: 'John F. Kennedy',
   },
   {
@@ -89,7 +89,7 @@ export const QUOTES: Array<{ text: string; author: string }> = [
     author: 'Johann Wolfgang von Goethe',
   },
   {
-    text: 'Success is not final, failure is not fatal: it is the courage to continue that counts. Continuous effort—not strength or intelligence—is the key to unlocking our potential.',
+    text: 'Success is not final, failure is not fatal: it is the courage to continue that counts. Continuous effort-not strength or intelligence-is the key to unlocking our potential.',
     author: 'Winston Churchill (attributed)',
   },
   {
@@ -101,7 +101,7 @@ export const QUOTES: Array<{ text: string; author: string }> = [
     author: 'Albert Einstein',
   },
   {
-    text: "Stay hungry. Stay foolish. Your time is limited, so don't waste it living someone else's life. Don't be trapped by dogma—which is living with the results of other people's thinking.",
+    text: "Stay hungry. Stay foolish. Your time is limited, so don't waste it living someone else's life. Don't be trapped by dogma-which is living with the results of other people's thinking.",
     author: 'Steve Jobs',
   },
   {

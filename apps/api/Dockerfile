@@ -28,7 +28,7 @@ COPY apps/api/src ./apps/api/src
 EXPOSE 3021
 
 # Migrations are deliberately NOT run here. A build step runs at image-build
-# time, against whatever database the builder can reach — not the one this image
+# time, against whatever database the builder can reach - not the one this image
 # will be deployed against. Run them as their own step before starting the new
 # container: `./apps/api/deploy.sh migrate`.
 

@@ -349,7 +349,7 @@ export const ReportDocument: React.FC<ReportDocumentProps> = ({ report, classNam
       // in millimetres, so its own pixel width gives the conversion.
       const pxPerMm = root.offsetWidth / CONTENT_WIDTH_MM;
 
-      // Zero means no layout yet — detached, or in a display:none subtree.
+      // Zero means no layout yet - detached, or in a display:none subtree.
       // Silently giving up here is what produced a single unpaginated page with
       // no footers, so keep asking for a few frames instead.
       if (!pxPerMm) {

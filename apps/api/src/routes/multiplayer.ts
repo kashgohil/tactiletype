@@ -22,7 +22,7 @@ const createRoomSchema = z.object({
   maxPlayers: z.number().min(2).max(10).default(5),
 });
 
-// Create room — picks a random active text if none provided
+// Create room - picks a random active text if none provided
 multiplayerRoutes.post(
   '/rooms',
   authMiddleware,
@@ -49,7 +49,7 @@ multiplayerRoutes.post(
       }
 
       if (!testTextRow || !textId) {
-        return c.json({ error: 'No test text available — run db:seed' }, 404);
+        return c.json({ error: 'No test text available - run db:seed' }, 404);
       }
 
       const [room] = await db
@@ -106,7 +106,7 @@ multiplayerRoutes.get('/rooms', async (c) => {
     const page = parseInt(c.req.query('page') || '1', 10);
     const limit = Math.min(parseInt(c.req.query('limit') || '20', 10), 50);
     const offset = (page - 1) * limit;
-    // waiting | active | all — active rooms can be spectated
+    // waiting | active | all - active rooms can be spectated
     const statusFilter = c.req.query('status') || 'waiting';
 
     const rooms = await db
@@ -293,7 +293,7 @@ multiplayerRoutes.post('/rooms/:roomId/join', authMiddleware, async (c) => {
     if (!spectate && room.status !== 'waiting') {
       return c.json(
         {
-          error: 'Race already in progress — join as spectator',
+          error: 'Race already in progress - join as spectator',
           canSpectate: true,
         },
         400

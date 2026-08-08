@@ -27,14 +27,14 @@ export function reportFilename(report: ReportModel, extension: string): string {
  * Opens the browser's print dialog for the portalled sheet.
  *
  * The document title is swapped first because that is what browsers offer as
- * the default filename in "Save as PDF" — leaving it would suggest the name of
+ * the default filename in "Save as PDF" - leaving it would suggest the name of
  * whatever page the user was on.
  */
 /**
  * Resolves once every image below `root` has decoded.
  *
  * Printing captures what is painted at the instant it is called, and the print
- * portal mounts fresh <img> elements — so without this the charts and the logo
+ * portal mounts fresh <img> elements - so without this the charts and the logo
  * can be absent from the PDF even though they are visible in the preview.
  */
 export async function whenImagesReady(root: HTMLElement | null): Promise<void> {
@@ -50,7 +50,7 @@ export async function whenImagesReady(root: HTMLElement | null): Promise<void> {
 export function printReport(report: ReportModel): void {
   const previous = document.title;
   document.title = reportFilename(report, 'pdf').replace(/\.pdf$/, '');
-  // Only while this class is set does print hide the rest of the app — see the
+  // Only while this class is set does print hide the rest of the app - see the
   // print block in index.css.
   document.body.classList.add('printing-report');
 
@@ -69,7 +69,7 @@ export function printReport(report: ReportModel): void {
 }
 
 export function downloadReportJson(report: ReportModel): void {
-  // Chart images are megabytes of base64 and meaningless in a data file — the
+  // Chart images are megabytes of base64 and meaningless in a data file - the
   // points they were drawn from are already here.
   const { charts, ...rest } = report;
   const payload = {
@@ -141,7 +141,7 @@ async function inlineFont(): Promise<string> {
 }
 
 /**
- * The sheet fills its container by design — on the analytics page an A4 frame
+ * The sheet fills its container by design - on the analytics page an A4 frame
  * supplies the width. A saved file has no such frame, so it sets the page size
  * itself and centres it on a desk-coloured backdrop.
  */
@@ -158,7 +158,7 @@ const STANDALONE_SHELL = `
 /**
  * Serialises the sheet with every image turned into a data URI.
  *
- * Charts already carry theirs, but the logo is an ordinary path — fine in the
+ * Charts already carry theirs, but the logo is an ordinary path - fine in the
  * app, a broken image the moment the file is opened from a download folder.
  * Works on a clone so the live preview is left alone.
  */
@@ -189,7 +189,7 @@ const escapeHtml = (value: string): string =>
   value.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 
 /**
- * Serialises the live sheet into a file that stands on its own — styles, font
+ * Serialises the live sheet into a file that stands on its own - styles, font
  * and charts all inlined, so it renders identically with no network at all.
  */
 export async function downloadReportHtml(report: ReportModel, sheet: HTMLElement): Promise<void> {

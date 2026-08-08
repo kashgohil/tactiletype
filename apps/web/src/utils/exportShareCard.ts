@@ -121,7 +121,7 @@ export async function shareCardImage(
     await navigator.share({
       files: [file],
       title: `${stats.displayName} on TactileType`,
-      text: `${stats.displayName} — ${Math.round(Number(stats.bestWpm))} WPM on TactileType`,
+      text: `${stats.displayName} - ${Math.round(Number(stats.bestWpm))} WPM on TactileType`,
     });
     return 'shared';
   }

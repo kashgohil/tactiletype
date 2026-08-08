@@ -31,8 +31,8 @@ api.interceptors.request.use(async (config) => {
 });
 
 // A failed `responseType: 'blob'` request carries its error body as a Blob, so
-// every reader downstream — the CSRF retry below, describeError, per-mutation
-// handlers — looks for `data.error`, finds undefined, and falls back to
+// every reader downstream - the CSRF retry below, describeError, per-mutation
+// handlers - looks for `data.error`, finds undefined, and falls back to
 // "Request failed with status code 500". Unwrap it back into the `{ error }`
 // shape the rest of the app already speaks. Registered first so the retry below
 // can recognise a CSRF rejection on a download too.
@@ -46,7 +46,7 @@ api.interceptors.response.use(undefined, async (error) => {
 
   if (body) {
     try {
-      // Assign only once parsing succeeds — a non-JSON body (proxy HTML, a
+      // Assign only once parsing succeeds - a non-JSON body (proxy HTML, a
       // truncated stream) has no error field to recover, so leaving the
       // original in place lets the generic axios message stand.
       response.data = JSON.parse(body);

@@ -10,7 +10,7 @@ export type CharStatus = 'correct' | 'incorrect' | 'current' | 'pending';
 
 type CaretBox = { x: number; y: number; w: number; h: number };
 
-/** A second caret drawn on the same line — e.g. the ghost pace marker. */
+/** A second caret drawn on the same line - e.g. the ghost pace marker. */
 export interface SurfaceMarker {
   index: number;
   /** Tailwind classes for the marker body. */
@@ -32,7 +32,7 @@ export interface TypingSurfaceProps {
   /** Char-level code tints (main test only). */
   codeTokens?: CodeToken[] | null;
   markers?: SurfaceMarker[];
-  /** Center the block — used by the one-word arcade modes. */
+  /** Center the block - used by the one-word arcade modes. */
   center?: boolean;
   /** Lets the caret park one slot past the last character. */
   trailingAnchor?: boolean;
@@ -122,7 +122,7 @@ export const TypingSurface: React.FC<TypingSurfaceProps> = ({
       ro.disconnect();
       container.removeEventListener('scroll', measure);
     };
-    // `markers` is rebuilt on every render, so `markerKey` stands in for it —
+    // `markers` is rebuilt on every render, so `markerKey` stands in for it -
     // depending on the array itself would remeasure in a loop.
   }, [
     caretIndex,
@@ -158,7 +158,7 @@ export const TypingSurface: React.FC<TypingSurfaceProps> = ({
     let className = 'relative ';
     switch (charStatus) {
       case 'correct':
-        // No fill behind typed characters — the colour shift alone marks them.
+        // No fill behind typed characters - the colour shift alone marks them.
         className += hi ? 'text-text opacity-100 border-b-2 border-accent/70' : 'text-text';
         break;
       case 'incorrect':
@@ -284,7 +284,7 @@ export const TypingSurface: React.FC<TypingSurfaceProps> = ({
 
   return (
     // Both rules read the `role` ternary below as "no role at all". The surface
-    // always has one — textbox when it takes keys, group when it only displays.
+    // always has one - textbox when it takes keys, group when it only displays.
     // biome-ignore lint/a11y/noStaticElementInteractions: role is set, just not statically
     // biome-ignore lint/a11y/useAriaPropsSupportedByRole: role is set, just not statically
     <div

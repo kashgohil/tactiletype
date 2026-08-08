@@ -111,7 +111,7 @@ export const GoalTracker: React.FC<GoalTrackerProps> = ({ goals, onCreateGoal, o
         </Button>
       }
     >
-      {/* Create Goal Form — separated by a rule, not by a second fill. */}
+      {/* Create Goal Form - separated by a rule, not by a second fill. */}
       {showCreateForm && (
         <form onSubmit={handleSubmit} className="mb-5 pb-5 border-b border-accent/10">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -180,7 +180,7 @@ export const GoalTracker: React.FC<GoalTrackerProps> = ({ goals, onCreateGoal, o
         </form>
       )}
 
-      {/* Goals list — rows on the panel, split by rules. */}
+      {/* Goals list - rows on the panel, split by rules. */}
       {goals.length === 0 ? (
         <div className="text-center py-8">
           <Target className="text-accent/60 mx-auto mb-3 size-8" />

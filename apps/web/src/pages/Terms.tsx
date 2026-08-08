@@ -8,7 +8,7 @@ export const Terms: React.FC = () => {
           Terms of Service
         </h1>
         <p className="text-text/50 max-w-2xl leading-relaxed text-[15px]">
-          The rules for using TactileType — what we provide, what we ask of you, and where the
+          The rules for using TactileType - what we provide, what we ask of you, and where the
           limits are.
         </p>
       </header>

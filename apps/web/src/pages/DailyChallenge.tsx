@@ -158,7 +158,7 @@ export const DailyChallenge: React.FC = () => {
           The daily typing challenge
         </h1>
         <p className="text-text/50 max-w-2xl leading-relaxed text-[15px]">
-          Two challenges, one day. A shared quote race and a rotating play mode — different rules so
+          Two challenges, one day. A shared quote race and a rotating play mode - different rules so
           you&apos;re not just replaying the same test.
         </p>
       </motion.header>
@@ -251,7 +251,7 @@ export const DailyChallenge: React.FC = () => {
             <Trophy className="size-4 text-accent" />
             Quote board
           </h2>
-          <BoardList entries={quoteEntries} empty="No finishes yet — be the first." />
+          <BoardList entries={quoteEntries} empty="No finishes yet - be the first." />
         </motion.section>
 
         <motion.section

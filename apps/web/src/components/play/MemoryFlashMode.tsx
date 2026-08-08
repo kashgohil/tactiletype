@@ -21,14 +21,14 @@ type Phase = 'ready' | 'flash' | 'type' | 'round-result' | 'over';
  * The run is a memory-span ladder, not a fixed set of rounds: hold the phrase
  * and the next one is a word longer, drop it and it shrinks and costs a life.
  * Everyone converges on the longest phrase they can actually hold, and that
- * span — not an average percentage — is the score.
+ * span - not an average percentage - is the score.
  */
 const START_SPAN = 4;
 const MIN_SPAN = 3;
 const MAX_SPAN = 16;
 const START_LIVES = 3;
 
-/** Longer phrases get more time, but less time per word — that's the ramp. */
+/** Longer phrases get more time, but less time per word - that's the ramp. */
 function flashDuration(span: number): number {
   return Math.min(5200, 1200 + span * 320);
 }
@@ -46,7 +46,7 @@ interface RoundRecord {
 
 const STEPS = [
   'A phrase appears. Read it while the rail drains.',
-  'The phrase hides itself — nothing left to look at.',
+  'The phrase hides itself - nothing left to look at.',
   'Type it back from memory and press enter.',
 ];
 
@@ -58,7 +58,7 @@ const RULES: { term: string; detail: string }[] = [
   },
   {
     term: 'score',
-    detail: 'The longest phrase you typed back whole — your span.',
+    detail: 'The longest phrase you typed back whole - your span.',
   },
 ];
 
@@ -235,14 +235,14 @@ export const MemoryFlashMode: React.FC = () => {
         return;
       }
       if (e.key.length !== 1) return;
-      // Overshooting is scored as invented words, not a hard stop — but the
+      // Overshooting is scored as invented words, not a hard stop - but the
       // input still needs a ceiling.
       if (buffer.current.length > phrase.length + 24) return;
 
       const next = buffer.current + e.key;
       buffer.current = next;
       setTyped(next);
-      // Landing the phrase exactly submits it — no reason to make someone
+      // Landing the phrase exactly submits it - no reason to make someone
       // press enter to confirm what they already got right.
       if (next.trim().replace(/\s+/g, ' ') === phrase) {
         void finishRound(next);
@@ -289,7 +289,7 @@ export const MemoryFlashMode: React.FC = () => {
           }
           isNewBest={isNewBest}
           stats={[
-            { label: 'Span', value: bestSpan > 0 ? bestSpan : '—' },
+            { label: 'Span', value: bestSpan > 0 ? bestSpan : '-' },
             { label: 'Words recalled', value: wordsRecalled },
             { label: 'Phrases', value: rounds.length },
             { label: 'Recall WPM', value: finalWpm },
@@ -385,7 +385,7 @@ export const MemoryFlashMode: React.FC = () => {
       <PlayTestPanel
         stats={[
           { label: 'Span', value: `${span}`, accent: true },
-          { label: 'Best', value: bestSpan > 0 ? bestSpan : '—' },
+          { label: 'Best', value: bestSpan > 0 ? bestSpan : '-' },
           {
             label: 'Lives',
             value: lives,
@@ -418,7 +418,7 @@ export const MemoryFlashMode: React.FC = () => {
               interactive={false}
               center
             />
-            <PanelHint>Memorize — it hides when the rail empties</PanelHint>
+            <PanelHint>Memorize - it hides when the rail empties</PanelHint>
           </>
         )}
 
@@ -435,7 +435,7 @@ export const MemoryFlashMode: React.FC = () => {
               trailingAnchor
               className="min-h-[9rem] py-12"
             />
-            {/* One slot per word in the hidden phrase — you always know how far
+            {/* One slot per word in the hidden phrase - you always know how far
                 you have left to reach, which is recall, not guesswork. */}
             <div
               className="flex items-center justify-center gap-1.5 px-8"
@@ -482,8 +482,8 @@ export const MemoryFlashMode: React.FC = () => {
             </p>
             <p className={cn('text-sm', lastScore.perfect ? 'text-success' : 'text-text/45')}>
               {lastScore.perfect
-                ? `Held it — ${span} words up to ${nextSpan}`
-                : `Life lost — ${span} words down to ${nextSpan}, ${lives} left`}
+                ? `Held it - ${span} words up to ${nextSpan}`
+                : `Life lost - ${span} words down to ${nextSpan}, ${lives} left`}
             </p>
             <p className="text-[11px] font-mono text-text/40">
               press <Kbd>enter</Kbd> to keep going

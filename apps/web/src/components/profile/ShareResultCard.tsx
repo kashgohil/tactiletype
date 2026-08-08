@@ -15,7 +15,7 @@ interface ShareResultCardProps {
   onClose: () => void;
 }
 
-/** Shareable profile/result card — copy text, download PNG, or Web Share image. */
+/** Shareable profile/result card - copy text, download PNG, or Web Share image. */
 export const ShareResultCard: React.FC<ShareResultCardProps> = ({
   username,
   displayName,
@@ -39,7 +39,7 @@ export const ShareResultCard: React.FC<ShareResultCardProps> = ({
       ? `${Math.round(resultWpm)} WPM · ${Number(resultAccuracy ?? 0).toFixed(1)}% accuracy`
       : `best ${Math.round(Number(bestWpm))} WPM · ${Number(avgAccuracy).toFixed(1)}% avg accuracy · ${totalTests} tests`;
 
-  const blurb = `${displayName} on TactileType — ${statsLine}\n${url}`;
+  const blurb = `${displayName} on TactileType - ${statsLine}\n${url}`;
 
   const cardStats = {
     displayName,

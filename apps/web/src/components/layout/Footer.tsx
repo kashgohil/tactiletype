@@ -25,7 +25,7 @@ const COMPETE: FooterLink[] = [
 
 /**
  * The only sitewide link into the content cluster. Guides that nothing links to
- * are crawled late and ranked worse — descriptive anchor text here is what
+ * are crawled late and ranked worse - descriptive anchor text here is what
  * carries them, which is also why these say "How to improve typing speed"
  * rather than "Read more".
  */
@@ -103,7 +103,7 @@ export function Footer() {
               tactiletype
             </Link>
             <p className="text-sm text-text/50 mt-3 leading-relaxed max-w-xs">
-              A typing trainer that measures what you actually type — real drills, honest numbers,
+              A typing trainer that measures what you actually type - real drills, honest numbers,
               and modes that train more than raw speed.
             </p>
           </div>

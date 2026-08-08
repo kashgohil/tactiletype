@@ -3,7 +3,7 @@ import { useEffect } from 'react';
 /**
  * Injects a JSON-LD block for the lifetime of the mounting component.
  *
- * Rendering `<script>` from JSX is unreliable — React treats its children as
+ * Rendering `<script>` from JSX is unreliable - React treats its children as
  * text but the tag never executes as a module, and on route change the old
  * block can linger. Managing the node by `id` in an effect keeps exactly one
  * block per key and guarantees it is removed when the page unmounts, so two
