@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { APP_COPY } from '@/content/app-copy';
 import { CreateRoomModal } from '../components/multiplayer/CreateRoomModal';
 import { RoomBrowser } from '../components/multiplayer/RoomBrowser';
+import { ShareRoomDialog } from '../components/multiplayer/ShareRoomDialog';
 import { useAuth } from '../contexts';
 import { useMultiplayer } from '../hooks/useMultiplayer';
 import { multiplayerApi } from '../services/multiplayerApi';
@@ -26,6 +27,7 @@ export const Multiplayer: React.FC = () => {
   const { user } = useAuth();
   const [multiplayerState, multiplayerActions] = useMultiplayer(user?.id);
   const [showCreateModal, setShowCreateModal] = useState(false);
+  const [createdRoomId, setCreatedRoomId] = useState<string | null>(null);
   const [connecting, setConnecting] = useState(false);
   const [actionError, setActionError] = useState<string | null>(null);
 
@@ -70,9 +72,17 @@ export const Multiplayer: React.FC = () => {
     }
   };
 
-  const handleRoomCreated = async (roomId: string) => {
-    if (!user) return;
+  // Creation no longer walks straight into the room. The host gets the link
+  // first, because an empty room is the worst place to go looking for it.
+  const handleRoomCreated = (roomId: string) => {
     setActionError(null);
+    setCreatedRoomId(roomId);
+  };
+
+  const enterCreatedRoom = async () => {
+    const roomId = createdRoomId;
+    if (!user || !roomId) return;
+    setCreatedRoomId(null);
     try {
       // Host already DB-joined on create; still ensure WS join
       multiplayerActions.joinRoom(roomId, user.id, user.username);
@@ -232,6 +242,12 @@ export const Multiplayer: React.FC = () => {
           isOpen={showCreateModal}
           onClose={() => setShowCreateModal(false)}
           onRoomCreated={handleRoomCreated}
+        />
+
+        <ShareRoomDialog
+          roomId={createdRoomId}
+          onOpenChange={(open) => !open && setCreatedRoomId(null)}
+          onEnterRoom={enterCreatedRoom}
         />
       </div>
     </div>

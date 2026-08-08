@@ -3,6 +3,7 @@ import { Crown, Eye, LogOut, Play, Trophy } from 'lucide-react';
 import type React from 'react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { RaceChat } from '@/components/multiplayer/RaceChat';
+import { CopyRoomLinkButton } from '@/components/multiplayer/RoomLink';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { useAuth } from '../contexts';
@@ -196,13 +197,14 @@ export const MultiplayerRoom: React.FC = () => {
           </h1>
           <p className="text-xs text-text/50 font-mono">{roomId}</p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
           {state.isHost && isWaiting && !isSpectator && (
             <Button onClick={() => actions.startRace()}>
               <Play className="size-4" />
               Start race
             </Button>
           )}
+          <CopyRoomLinkButton roomId={roomId} />
           <Button variant="outline" onClick={leave}>
             <LogOut className="size-4" />
             Leave
