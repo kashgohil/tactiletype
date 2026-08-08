@@ -96,7 +96,10 @@ export const MultiplayerRoom: React.FC = () => {
         (st) => setLocalIndex(st.currentIndex)
       );
       setEngine(e);
-      setTimeout(() => inputRef.current?.focus(), 50);
+      // `preventScroll`: the typing surface sits below the fold on a tall
+      // room, and a plain focus() scrolls it into view, dragging the footer up
+      // with it the moment the race starts.
+      setTimeout(() => inputRef.current?.focus({ preventScroll: true }), 50);
     }
     if (isWaiting || isCountdown || isSpectator) {
       setEngine(null);
