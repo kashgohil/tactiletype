@@ -360,7 +360,13 @@ export const ReportDocument: React.FC<ReportDocumentProps> = ({
 }) => {
   const blocks = buildBlocks(report);
   const measure = useRef<HTMLDivElement>(null);
-  const [pages, setPages] = useState<number[][] | null>(null);
+  // Carries the block count it was packed from. Toggling a section re-renders
+  // with a shorter list one frame before the layout effect repacks, and page
+  // indexes from the longer list would point at blocks that no longer exist.
+  const [layout, setLayout] = useState<{
+    blockCount: number;
+    pages: number[][];
+  } | null>(null);
 
   useLayoutEffect(() => {
     const root = measure.current;
@@ -388,9 +394,14 @@ export const ReportDocument: React.FC<ReportDocumentProps> = ({
       ).map((element) => element.offsetHeight);
 
       if (!heights.length) return;
-      setPages(
-        packPages(heights, PAGE_CONTENT_MM * pxPerMm, footer?.offsetHeight ?? 0)
-      );
+      setLayout({
+        blockCount: heights.length,
+        pages: packPages(
+          heights,
+          PAGE_CONTENT_MM * pxPerMm,
+          footer?.offsetHeight ?? 0
+        ),
+      });
     };
 
     remeasure();
@@ -412,7 +423,13 @@ export const ReportDocument: React.FC<ReportDocumentProps> = ({
     // Re-measures whenever the report changes: a toggled section, a new period.
   }, [report]);
 
-  const laidOut = pages ?? [blocks.map((_, i) => i)];
+  // A layout packed from a different set of blocks is stale by definition; one
+  // unpaginated page is the right thing to show for the frame it takes the
+  // effect to repack.
+  const laidOut =
+    layout?.blockCount === blocks.length
+      ? layout.pages
+      : [blocks.map((_, i) => i)];
 
   return (
     <>
