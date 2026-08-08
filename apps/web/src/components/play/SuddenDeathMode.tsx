@@ -156,13 +156,16 @@ export const SuddenDeathMode: React.FC = () => {
 
       if (e.key.length !== 1) return;
 
-      const next = typed + e.key;
       const expected = currentWord;
-      const expectedChar = expected[typed.length];
-      if (expectedChar) recordKeyAttempt(expectedChar, e.key === expectedChar);
+      // The stream renders a space between words and the caret parks on it, so
+      // the space is a key you press — advancing for you meant the space the
+      // player could plainly see was the one keystroke that ended the run.
+      const expectedChar =
+        typed.length === expected.length ? ' ' : expected[typed.length]!;
+      recordKeyAttempt(expectedChar, e.key === expectedChar);
 
       // Wrong character → lose a life / die
-      if (e.key !== expected[typed.length]) {
+      if (e.key !== expectedChar) {
         const newErrors = errors + 1;
         setErrors(newErrors);
         const remaining = lives - 1;
@@ -176,22 +179,21 @@ export const SuddenDeathMode: React.FC = () => {
         return;
       }
 
-      setTyped(next);
       setCorrectChars((c) => c + 1);
 
-      // Word complete (space not required — finishing the word advances)
-      if (next.length === expected.length) {
-        const cleared = wordsCleared + 1;
-        setWordsCleared(cleared);
+      // The closing space clears the word and moves the caret to the next one.
+      if (expectedChar === ' ') {
+        setWordsCleared(wordsCleared + 1);
         setTyped('');
         const nextIndex = wordIndex + 1;
-        let nextWords = words;
         if (nextIndex >= words.length - REFILL_AT) {
-          nextWords = [...words, ...pickWords(STREAM_SIZE, 'medium')];
-          setWords(nextWords);
+          setWords([...words, ...pickWords(STREAM_SIZE, 'medium')]);
         }
         setWordIndex(nextIndex);
+        return;
       }
+
+      setTyped(typed + e.key);
     },
     [
       phase,
