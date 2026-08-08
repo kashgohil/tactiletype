@@ -572,9 +572,11 @@ export const Analytics: React.FC = () => {
         {/* Report Generator */}
         <div className="mb-8">
           <ReportGenerator
-            overview={dashboardData.overview}
             progressCharts={dashboardData.progressCharts}
+            errorAnalysis={dashboardData.errorAnalysis}
+            recommendations={recommendationsQuery.data || []}
             onExportData={handleExportData}
+            hasResults={dashboardData.overview.totalTests > 0}
           />
         </div>
       </div>

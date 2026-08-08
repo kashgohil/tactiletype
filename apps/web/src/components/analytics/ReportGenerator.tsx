@@ -1,6 +1,25 @@
-import type { AnalyticsOverview, ProgressChart } from '@tactile/types';
-import { BarChart, Check, Mail } from 'lucide-react';
-import React, { useState } from 'react';
+import { Skeleton } from '@/components/ui/skeleton';
+import { analyticsApi } from '@/services/analyticsApi';
+import { describeError } from '@/utils/describeError';
+import {
+  buildReport,
+  PERIOD_DAYS,
+  type ReportFormat,
+  type ReportPeriod,
+  type ReportSections,
+} from '@/utils/report/buildReport';
+import {
+  downloadReportHtml,
+  downloadReportJson,
+  printReport,
+} from '@/utils/report/exportReport';
+import { withChartImages } from '@/utils/report/renderChartImage';
+import type { ErrorAnalysisSummary, ProgressChart } from '@tactile/types';
+import type { UserRecommendation } from '@tactile/types';
+import { useQuery } from '@tanstack/react-query';
+import { Download, FileText, Mail, Printer } from 'lucide-react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { toast } from 'sonner';
 import { Button } from '../ui/button';
 import { Checkbox } from '../ui/checkbox';
 import { Label } from '../ui/label';
@@ -12,383 +31,345 @@ import {
   SelectTrigger,
   SelectValue,
 } from '../ui/select';
+import { ReportDocument } from './report/ReportDocument';
+import { ReportPrintPortal } from './report/ReportPrintPortal';
 
 interface ReportGeneratorProps {
-  overview: AnalyticsOverview;
   progressCharts: ProgressChart[];
+  errorAnalysis?: ErrorAnalysisSummary;
+  recommendations: UserRecommendation[];
   onExportData: (format: 'csv' | 'json') => void;
+  /** Disables the raw-data buttons when there is nothing to export. */
+  hasResults: boolean;
 }
 
-interface ReportData {
-  period: 'week' | 'month' | 'quarter' | 'year';
-  includeCharts: boolean;
-  includeDetailedStats: boolean;
-  includeRecommendations: boolean;
-  format: 'pdf' | 'html' | 'json';
-}
+const FORMAT_ACTION: Record<ReportFormat, string> = {
+  pdf: 'Generate PDF',
+  html: 'Download HTML',
+  json: 'Download JSON',
+};
 
 export const ReportGenerator: React.FC<ReportGeneratorProps> = ({
-  overview,
   progressCharts,
+  errorAnalysis,
+  recommendations,
   onExportData,
+  hasResults,
 }) => {
-  const [reportData, setReportData] = useState<ReportData>({
-    period: 'month',
-    includeCharts: true,
-    includeDetailedStats: true,
-    includeRecommendations: true,
-    format: 'pdf',
+  const [period, setPeriod] = useState<ReportPeriod>('month');
+  const [format, setFormat] = useState<ReportFormat>('pdf');
+  const [sections, setSections] = useState<ReportSections>({
+    charts: true,
+    detailedStats: true,
+    recommendations: true,
   });
   const [isGenerating, setIsGenerating] = useState(false);
+  const [pendingPrint, setPendingPrint] = useState(false);
+  const previewRef = useRef<HTMLDivElement>(null);
 
-  const generateReport = async () => {
+  // The overview endpoint is lifetime-scoped, so a period-accurate report has
+  // to work from the rows themselves. Cached, because this also backs the live
+  // preview and every config change re-derives from it.
+  const rowsQuery = useQuery({
+    queryKey: ['analytics', 'resultRows'],
+    queryFn: analyticsApi.getResultRows,
+    staleTime: 5 * 60 * 1000,
+  });
+
+  const report = useMemo(() => {
+    if (!rowsQuery.data) return null;
+    const model = buildReport({
+      rows: rowsQuery.data,
+      charts: progressCharts,
+      errorAnalysis,
+      recommendations,
+      period,
+      sections,
+    });
+    // Rasterised for the preview too, so what is on screen is exactly what
+    // prints — no second chart implementation to drift out of sync.
+    return { ...model, charts: withChartImages(model.charts) };
+  }, [
+    rowsQuery.data,
+    progressCharts,
+    errorAnalysis,
+    recommendations,
+    period,
+    sections,
+  ]);
+
+  const isEmpty = report !== null && report.testCount === 0;
+  const hasAnyResult = (rowsQuery.data?.length ?? 0) > 0;
+
+  // Printing waits a commit so the portal is in the DOM before the dialog opens.
+  useEffect(() => {
+    if (!pendingPrint || !report) return;
+    printReport(report);
+    setPendingPrint(false);
+    setIsGenerating(false);
+  }, [pendingPrint, report]);
+
+  const handleGenerate = async () => {
+    if (!report || isEmpty) return;
     setIsGenerating(true);
     try {
-      // TODO: Implement actual report generation
-      await new Promise((resolve) => setTimeout(resolve, 2000)); // Simulate generation
-
-      // For now, just export the data
-      onExportData('json');
-
-      console.log('Report generated with settings:', reportData);
+      if (format === 'json') {
+        downloadReportJson(report);
+      } else if (format === 'html') {
+        const sheet = previewRef.current?.querySelector<HTMLElement>(
+          '[data-report-sheet]'
+        );
+        if (!sheet) throw new Error('The report preview is not ready yet.');
+        await downloadReportHtml(report, sheet);
+      } else {
+        setPendingPrint(true);
+        return; // the effect above finishes this one
+      }
     } catch (error) {
-      console.error('Failed to generate report:', error);
+      toast.error('Report failed', {
+        id: 'report-generate-failed',
+        description: describeError(error),
+      });
     } finally {
-      setIsGenerating(false);
+      if (format !== 'pdf') setIsGenerating(false);
     }
   };
 
-  const getReportPreview = () => {
-    const currentDate = new Date();
-    const periodMap = {
-      week: 'Weekly',
-      month: 'Monthly',
-      quarter: 'Quarterly',
-      year: 'Annual',
-    };
-
-    return {
-      title: `${periodMap[reportData.period]} Typing Performance Report`,
-      date: currentDate.toLocaleDateString('en-US', {
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric',
-      }),
-      sections: [
-        'Executive Summary',
-        'Performance Overview',
-        ...(reportData.includeCharts
-          ? ['Progress Charts', 'Trend Analysis']
-          : []),
-        ...(reportData.includeDetailedStats
-          ? ['Detailed Statistics', 'Error Analysis']
-          : []),
-        ...(reportData.includeRecommendations
-          ? ['Improvement Recommendations']
-          : []),
-        'Conclusion',
-      ],
-    };
-  };
-
-  const reportPreview = getReportPreview();
-
-  const formatTime = (seconds: number): string => {
-    const hours = Math.floor(seconds / 3600);
-    const minutes = Math.floor((seconds % 3600) / 60);
-
-    if (hours > 0) {
-      return `${hours}h ${minutes}m`;
-    }
-    return `${minutes}m`;
-  };
-
-  const getImprovementInsight = () => {
-    const wpmChart = progressCharts.find((chart) => chart.type === 'wpm');
-    const accuracyChart = progressCharts.find(
-      (chart) => chart.type === 'accuracy'
-    );
-
-    const insights = [];
-
-    if (wpmChart && wpmChart.trendPercentage > 0) {
-      insights.push(
-        `Speed improved by ${wpmChart.trendPercentage.toFixed(1)}%`
-      );
-    }
-
-    if (accuracyChart && accuracyChart.trendPercentage > 0) {
-      insights.push(
-        `Accuracy improved by ${accuracyChart.trendPercentage.toFixed(1)}%`
-      );
-    }
-
-    if (overview.improvementRate > 0) {
-      insights.push(
-        `Overall improvement rate: ${overview.improvementRate.toFixed(1)}%`
-      );
-    }
-
-    return insights.length > 0
-      ? insights
-      : ['Continue practicing to see improvement trends'];
-  };
+  const toggle = (key: keyof ReportSections) => (value: boolean | string) =>
+    setSections((current) => ({ ...current, [key]: value === true }));
 
   return (
     <Panel
       title="Generate report"
+      description="Built in your browser from data already loaded — nothing is sent anywhere."
       action={
         <>
-          <Button onClick={() => onExportData('csv')} size="sm" variant="ghost">
+          <Button
+            onClick={() => onExportData('csv')}
+            size="sm"
+            variant="ghost"
+            disabled={!hasResults}
+          >
             Export CSV
           </Button>
           <Button
             onClick={() => onExportData('json')}
             size="sm"
             variant="ghost"
+            disabled={!hasResults}
           >
             Export JSON
           </Button>
         </>
       }
     >
-
-      <div className="flex flex-col gap-4">
-        {/* Report Configuration */}
-        <div>
-          <h4 className="text-md font-medium mb-4">Report Configuration</h4>
-
-          <div className="space-y-4">
-            <div className="flex flex-col md:flex-row gap-4 w-full">
-              {/* Time Period */}
-              <div className="flex-1">
-                <label className="block text-sm font-medium text-text/50 mb-2">
-                  Time Period
-                </label>
-                <Select
-                  value={reportData.period}
-                  onValueChange={(value) =>
-                    setReportData({
-                      ...reportData,
-                      period: value as 'week' | 'month' | 'quarter' | 'year',
-                    })
-                  }
-                >
-                  <SelectTrigger className="w-full">
-                    <SelectValue placeholder="Select time period" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="week">Last Week</SelectItem>
-                    <SelectItem value="month">Last Month</SelectItem>
-                    <SelectItem value="quarter">Last Quarter</SelectItem>
-                    <SelectItem value="year">Last Year</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              {/* Report Format */}
-              <div className="flex-1">
-                <label className="block text-sm font-medium text-text/50 mb-2">
-                  Format
-                </label>
-                <Select
-                  value={reportData.format}
-                  onValueChange={(value) =>
-                    setReportData({
-                      ...reportData,
-                      format: value as 'pdf' | 'html' | 'json',
-                    })
-                  }
-                >
-                  <SelectTrigger className="w-full">
-                    <SelectValue placeholder="Select report format" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="pdf">PDF Report</SelectItem>
-                    <SelectItem value="html">HTML Report</SelectItem>
-                    <SelectItem value="json">JSON Data</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-
-            {/* Include Options */}
+      <div className="grid lg:grid-cols-[minmax(0,19rem)_minmax(0,1fr)] gap-8">
+        {/* Configuration */}
+        <div className="flex flex-col gap-5">
+          <div className="flex flex-col gap-4">
             <div>
-              <Label className="text-text/50 mb-2">Include in Report</Label>
-              <div className="space-y-2">
-                <Label
-                  htmlFor="report-includecharts"
-                  className="font-normal cursor-pointer"
-                >
-                  <Checkbox
-                    id="report-includecharts"
-                    checked={reportData.includeCharts}
-                    onCheckedChange={(v) =>
-                      setReportData({
-                        ...reportData,
-                        includeCharts: v === true,
-                      })
-                    }
-                  />
-                  Progress Charts & Visualizations
-                </Label>
-
-                <Label
-                  htmlFor="report-includedetailedstats"
-                  className="font-normal cursor-pointer"
-                >
-                  <Checkbox
-                    id="report-includedetailedstats"
-                    checked={reportData.includeDetailedStats}
-                    onCheckedChange={(v) =>
-                      setReportData({
-                        ...reportData,
-                        includeDetailedStats: v === true,
-                      })
-                    }
-                  />
-                  Detailed Statistics & Error Analysis
-                </Label>
-
-                <Label
-                  htmlFor="report-includerecommendations"
-                  className="font-normal cursor-pointer"
-                >
-                  <Checkbox
-                    id="report-includerecommendations"
-                    checked={reportData.includeRecommendations}
-                    onCheckedChange={(v) =>
-                      setReportData({
-                        ...reportData,
-                        includeRecommendations: v === true,
-                      })
-                    }
-                  />
-                  Improvement Recommendations
-                </Label>
-              </div>
+              <Label className="text-text/50 mb-2">Time period</Label>
+              <Select
+                value={period}
+                onValueChange={(value) => setPeriod(value as ReportPeriod)}
+              >
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Select time period" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="week">Last week</SelectItem>
+                  <SelectItem value="month">Last month</SelectItem>
+                  <SelectItem value="quarter">Last quarter</SelectItem>
+                  <SelectItem value="year">Last year</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
 
-            {/* Generate Button */}
+            <div>
+              <Label className="text-text/50 mb-2">Format</Label>
+              <Select
+                value={format}
+                onValueChange={(value) => setFormat(value as ReportFormat)}
+              >
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Select report format" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="pdf">PDF — via your print dialog</SelectItem>
+                  <SelectItem value="html">HTML — a single self-contained file</SelectItem>
+                  <SelectItem value="json">JSON — the figures behind it</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+
+          <div>
+            <Label className="text-text/50 mb-2">Include</Label>
+            <div className="space-y-2">
+              <Label
+                htmlFor="report-charts"
+                className="font-normal cursor-pointer"
+              >
+                <Checkbox
+                  id="report-charts"
+                  checked={sections.charts}
+                  onCheckedChange={toggle('charts')}
+                />
+                Progress charts
+              </Label>
+              <Label
+                htmlFor="report-stats"
+                className="font-normal cursor-pointer"
+              >
+                <Checkbox
+                  id="report-stats"
+                  checked={sections.detailedStats}
+                  onCheckedChange={toggle('detailedStats')}
+                />
+                Detailed statistics &amp; errors
+              </Label>
+              <Label
+                htmlFor="report-recommendations"
+                className="font-normal cursor-pointer"
+              >
+                <Checkbox
+                  id="report-recommendations"
+                  checked={sections.recommendations}
+                  onCheckedChange={toggle('recommendations')}
+                />
+                Recommendations
+              </Label>
+            </div>
+          </div>
+
+          <div className="flex flex-col gap-2">
             <Button
-              onClick={generateReport}
-              disabled={isGenerating}
-              className="w-full flex items-center justify-center"
+              onClick={handleGenerate}
+              disabled={isGenerating || isEmpty || !report}
+              className="w-full flex items-center justify-center gap-2"
             >
               {isGenerating ? (
                 <>
-                  <div className="animate-spin rounded-full h-4 w-4 border-2 border-current/30 border-t-current mr-2" />
-                  Generating Report...
+                  <div className="animate-spin rounded-full h-4 w-4 border-2 border-current/30 border-t-current" />
+                  Preparing…
                 </>
               ) : (
-                <div className="flex items-center gap-2">
-                  <BarChart /> Generate Report
-                </div>
+                <>
+                  {format === 'pdf' ? (
+                    <Printer className="size-4" />
+                  ) : (
+                    <Download className="size-4" />
+                  )}
+                  {FORMAT_ACTION[format]}
+                </>
               )}
             </Button>
+            {format === 'pdf' && (
+              <p className="text-xs text-text/45 leading-relaxed">
+                Opens your browser's print dialog — choose{' '}
+                <span className="text-text/70">Save as PDF</span> as the
+                destination.
+              </p>
+            )}
           </div>
         </div>
 
-        {/* Report Preview */}
-        <div>
-          <h4 className="text-md font-medium mb-4">Report Preview</h4>
+        {/* Preview */}
+        <div className="min-w-0">
+          <div className="flex items-center justify-between gap-3 mb-3">
+            <h4 className="text-sm font-medium">Preview</h4>
+            {report && !isEmpty && (
+              <span className="text-xs text-text/45 tabular-nums">
+                {report.rangeLabel}
+              </span>
+            )}
+          </div>
 
-          <div className="rounded-lg bg-accent/[0.06] p-4 space-y-4">
-            {/* Report Header */}
-            <div className="border-b border-accent/15 pb-3">
-              <h5 className="font-semibold">{reportPreview.title}</h5>
-              <p className="text-sm text-text/50">
-                Generated on {reportPreview.date}
+          {rowsQuery.isLoading && (
+            <div className="flex flex-col gap-3">
+              <Skeleton className="h-8 w-2/3" />
+              <Skeleton className="h-4 w-1/3" />
+              <Skeleton className="h-40 w-full" />
+            </div>
+          )}
+
+          {rowsQuery.isError && (
+            <div className="rounded-lg border border-accent/15 bg-accent/[0.06] p-6 text-center">
+              <p className="text-sm font-medium">
+                Couldn't load your results
+              </p>
+              <p className="text-sm text-text/50 mt-1">
+                {describeError(rowsQuery.error)}
+              </p>
+              <Button
+                onClick={() => rowsQuery.refetch()}
+                size="sm"
+                variant="ghost"
+                className="mt-3"
+              >
+                Try again
+              </Button>
+            </div>
+          )}
+
+          {/* An empty period and a failure are different problems, and the
+              wording says which one this is. */}
+          {isEmpty && (
+            <div className="rounded-lg border border-accent/15 bg-accent/[0.06] p-6 text-center">
+              <FileText className="size-5 mx-auto text-text/40" />
+              <p className="text-sm font-medium mt-2">
+                {hasAnyResult
+                  ? `No tests in the last ${PERIOD_DAYS[period]} days`
+                  : 'No tests recorded yet'}
+              </p>
+              <p className="text-sm text-text/50 mt-1 max-w-sm mx-auto leading-relaxed">
+                {hasAnyResult
+                  ? 'There is nothing to report on for this window. Try a longer period, or take a test to start the next one.'
+                  : 'Take your first typing test and your report will have something to say.'}
               </p>
             </div>
+          )}
 
-            {/* Key Metrics Preview */}
-            <div>
-              <h6 className="font-medium  mb-2">Key Metrics Summary</h6>
-              <div className="grid grid-cols-2 gap-3 text-sm">
-                <div className="bg-accent/10 p-2 rounded-md">
-                  <div className="text-text/80">Tests Completed</div>
-                  <div className="font-semibold">{overview.totalTests}</div>
-                </div>
-                <div className="bg-accent/10 p-2 rounded-md">
-                  <div className="text-text/80">Average WPM</div>
-                  <div className="font-semibold">{overview.averageWpm}</div>
-                </div>
-                <div className="bg-accent/10 p-2 rounded-md">
-                  <div className="text-text/80">Average Accuracy</div>
-                  <div className="font-semibold">
-                    {overview.averageAccuracy}%
-                  </div>
-                </div>
-                <div className="bg-accent/10 p-2 rounded-md">
-                  <div className="text-text/80">Time Practiced</div>
-                  <div className="font-semibold">
-                    {formatTime(overview.totalTimeSpent)}
-                  </div>
-                </div>
-              </div>
+          {report && !isEmpty && (
+            <div
+              ref={previewRef}
+              className="max-h-[34rem] overflow-y-auto rounded-lg border border-accent/15 p-4 bg-accent/[0.06]"
+            >
+              <ReportDocument report={report} />
             </div>
-
-            {/* Report Sections */}
-            <div>
-              <h6 className="font-medium mb-2">
-                Report Sections
-              </h6>
-              <ul className="space-y-1 text-sm text-text/60">
-                {reportPreview.sections.map((section, index) => (
-                  <li key={index} className="flex items-center">
-                    <span className="w-1.5 h-1.5 bg-accent rounded-full mr-2"></span>
-                    {section}
-                  </li>
-                ))}
-              </ul>
-            </div>
-
-            {/* Insights Preview */}
-            <div>
-              <h6 className="font-medium mb-2">
-                Key Insights
-              </h6>
-              <ul className="space-y-1 text-sm text-text/60">
-                {getImprovementInsight().map((insight, index) => (
-                  <li key={index} className="flex items-center">
-                    <Check className="text-accent mr-2" size={16} />
-                    {insight}
-                  </li>
-                ))}
-              </ul>
-            </div>
-          </div>
+          )}
         </div>
       </div>
 
-      {/* Automated Reports Section */}
+      {/* Automated reports */}
       <div className="mt-8 pt-6 border-t border-accent/15">
-        <h4 className="text-md font-medium mb-4">Automated Reports</h4>
-
-        <div className="rounded-lg bg-accent/[0.06] p-4">
-          <div className="flex items-start space-x-3">
-            <Mail className="text-accent" />
-            <div>
-              <h5 className="font-medium mb-1">Email Reports (Coming Soon)</h5>
-              <p className="text-sm text-text/50 mb-3">
-                Get automated weekly or monthly progress reports delivered to
-                your email.
-              </p>
-              <div className="flex items-center space-x-4 text-sm">
-                <Label className="font-normal text-text/45">
-                  <Checkbox disabled />
-                  Weekly Summary
-                </Label>
-                <Label className="font-normal text-text/45">
-                  <Checkbox disabled />
-                  Monthly Report
-                </Label>
-              </div>
+        <div className="flex items-start gap-3">
+          <Mail className="text-accent shrink-0" />
+          <div>
+            <h5 className="font-medium mb-1">Email reports (coming soon)</h5>
+            <p className="text-sm text-text/50 mb-3">
+              Get automated weekly or monthly progress reports delivered to your
+              email.
+            </p>
+            <div className="flex items-center gap-4 text-sm">
+              <Label className="font-normal text-text/45">
+                <Checkbox disabled />
+                Weekly summary
+              </Label>
+              <Label className="font-normal text-text/45">
+                <Checkbox disabled />
+                Monthly report
+              </Label>
             </div>
           </div>
         </div>
       </div>
+
+      {pendingPrint && report && (
+        <ReportPrintPortal>
+          <ReportDocument report={report} />
+        </ReportPrintPortal>
+      )}
     </Panel>
   );
 };
