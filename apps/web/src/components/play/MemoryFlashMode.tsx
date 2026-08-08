@@ -6,10 +6,17 @@ import {
 } from '@/components/play/PlayTestPanel';
 import { TypingSurface } from '@/components/test/TypingSurface';
 import { Button } from '@/components/ui/button';
+import { Panel } from '@/components/ui/panel';
 import { useAuth } from '@/contexts';
+import { useArmedHotkey } from '@/hooks/useArmedHotkey';
 import { cn } from '@/lib/utils';
 import { isNonPrintingKey } from '@/utils/typingEngine';
-import { pickPhrase, savePlayBest } from '@/utils/playModes';
+import {
+  loadPlayBests,
+  pickPhrase,
+  savePlayBest,
+  type PlayBests,
+} from '@/utils/playModes';
 import { scoreRecall, type RecallScore } from '@/utils/recall';
 import { submitPlayResult } from '@/utils/submitPlayResult';
 import { playCompleteChime, playErrorBeep, playKeyClick } from '@/utils/testSounds';
@@ -44,6 +51,27 @@ interface RoundRecord {
   total: number;
   cleared: boolean;
 }
+
+const STEPS = [
+  'A phrase appears. Read it while the rail drains.',
+  'The phrase hides itself — nothing left to look at.',
+  'Type it back from memory and press enter.',
+];
+
+const RULES: { term: string; detail: string }[] = [
+  { term: 'exact', detail: 'The next phrase comes back a word longer.' },
+  {
+    term: 'missed',
+    detail: 'It shrinks by a word and costs one of your three lives.',
+  },
+  {
+    term: 'score',
+    detail: 'The longest phrase you typed back whole — your span.',
+  },
+];
+
+/** Enter or space moves the run forward from any of its waiting screens. */
+const ADVANCE_KEYS = ['Enter', ' '];
 
 export const MemoryFlashMode: React.FC = () => {
   const navigate = useNavigate();
@@ -239,7 +267,29 @@ export const MemoryFlashMode: React.FC = () => {
 
   const exit = () => navigate({ to: '/play' });
 
+  const startSession = useCallback(() => {
+    setSpan(START_SPAN);
+    startRound(START_SPAN);
+  }, [startRound]);
+
+  const goNext = useCallback(() => {
+    setSpan(nextSpan);
+    startRound(nextSpan);
+  }, [nextSpan, startRound]);
+
+  // Both waiting screens advance on the keyboard, so a whole run can be played
+  // without reaching for the mouse.
+  useArmedHotkey(ADVANCE_KEYS, startSession, { enabled: phase === 'ready' });
+  useArmedHotkey(ADVANCE_KEYS, goNext, { enabled: phase === 'round-result' });
+
   const typedWordCount = typed.trim() ? typed.trim().split(/\s+/).length : 0;
+
+  // Re-read on every return to the landing screen so a run just finished shows
+  // up as the best without a reload.
+  const [storedBest, setStoredBest] = useState<PlayBests['memory-flash']>();
+  useEffect(() => {
+    if (phase === 'ready') setStoredBest(loadPlayBests()['memory-flash']);
+  }, [phase]);
 
   if (phase === 'over') {
     return (
@@ -279,6 +329,79 @@ export const MemoryFlashMode: React.FC = () => {
     );
   }
 
+  // The landing screen explains the mode; it deliberately doesn't wear the
+  // typing slab, so nothing here reads as a test already in progress.
+  if (phase === 'ready') {
+    return (
+      <PlayShell
+        modeId="memory-flash"
+        title="Memory Flash"
+        subtitle="Hold the phrase, then type it back blind. It grows until you drop it."
+        onExit={exit}
+      >
+        <Panel>
+          <div className="grid gap-8 sm:grid-cols-2">
+            <div>
+              <h2 className="text-[10px] uppercase tracking-[0.16em] text-text/40 font-medium mb-4">
+                How a round works
+              </h2>
+              <ol className="space-y-3.5">
+                {STEPS.map((step, i) => (
+                  <li key={step} className="flex gap-3 items-start">
+                    <span className="size-6 rounded-full bg-accent/20 text-accent font-mono text-xs flex items-center justify-center shrink-0">
+                      {i + 1}
+                    </span>
+                    <p className="text-sm text-text/60 leading-relaxed">{step}</p>
+                  </li>
+                ))}
+              </ol>
+            </div>
+            <div className="sm:border-l sm:border-accent/10 sm:pl-8">
+              <h2 className="text-[10px] uppercase tracking-[0.16em] text-text/40 font-medium mb-4">
+                The ladder
+              </h2>
+              <dl className="space-y-3.5">
+                {RULES.map((rule) => (
+                  <div key={rule.term} className="flex gap-3 items-baseline">
+                    <dt className="font-mono text-xs text-accent w-14 shrink-0">
+                      {rule.term}
+                    </dt>
+                    <dd className="text-sm text-text/60 leading-relaxed">
+                      {rule.detail}
+                    </dd>
+                  </div>
+                ))}
+              </dl>
+            </div>
+          </div>
+        </Panel>
+
+        <Panel
+          tone="accent"
+          bodyClassName="flex flex-wrap items-center justify-between gap-4"
+        >
+          <div>
+            <p className="text-sm font-medium tracking-tight">
+              Ready when you are
+            </p>
+            <p className="text-xs text-text/45 mt-0.5 font-mono">
+              Starts at {START_SPAN} words
+              {storedBest ? ` · best ${storedBest.label}` : ''}
+            </p>
+          </div>
+          <div className="flex flex-col items-center gap-1.5">
+            <Button size="lg" onClick={startSession} className="min-w-[11rem]">
+              Start session
+            </Button>
+            <p className="text-[11px] font-mono text-text/45">
+              press <Kbd>enter</Kbd>
+            </p>
+          </div>
+        </Panel>
+      </PlayShell>
+    );
+  }
+
   return (
     <PlayShell modeId="memory-flash"
       title="Memory Flash"
@@ -297,53 +420,20 @@ export const MemoryFlashMode: React.FC = () => {
           {
             label: 'Phase',
             value:
-              phase === 'ready'
-                ? 'Ready'
-                : phase === 'flash'
-                  ? 'Memorize'
-                  : phase === 'type'
-                    ? 'Type'
-                    : 'Result',
+              phase === 'flash' ? 'Memorize' : phase === 'type' ? 'Type' : 'Result',
           },
         ]}
         meter={phase === 'flash' ? flashLeft : null}
         meterActive={phase === 'flash'}
         actions={
-          phase === 'ready' ? (
-            <Button
-              size="sm"
-              onClick={() => {
-                setSpan(START_SPAN);
-                startRound(START_SPAN);
-              }}
-            >
-              Start session
-            </Button>
-          ) : phase === 'round-result' ? (
-            <Button
-              size="sm"
-              onClick={() => {
-                setSpan(nextSpan);
-                startRound(nextSpan);
-              }}
-            >
+          phase === 'round-result' ? (
+            <Button size="sm" onClick={goNext}>
               {lastScore?.perfect ? `Next · ${nextSpan} words` : 'Try again'}
             </Button>
           ) : undefined
         }
-        onRestart={phase === 'ready' ? undefined : reset}
+        onRestart={reset}
       >
-        {phase === 'ready' && (
-          <div className="px-8 pb-10 pt-1 text-center">
-            <p className="text-text/60 max-w-md mx-auto leading-relaxed">
-              A phrase flashes on screen, then vanishes. Type it back from
-              memory. Get it exactly right and the next phrase is a word
-              longer; miss and it shrinks and costs a life. Three lives — the
-              longest phrase you hold is your span.
-            </p>
-          </div>
-        )}
-
         {phase === 'flash' && (
           <>
             <TypingSurface
@@ -425,6 +515,9 @@ export const MemoryFlashMode: React.FC = () => {
               {lastScore.perfect
                 ? `Held it — ${span} words up to ${nextSpan}`
                 : `Life lost — ${span} words down to ${nextSpan}, ${lives} left`}
+            </p>
+            <p className="text-[11px] font-mono text-text/40">
+              press <Kbd>enter</Kbd> to keep going
             </p>
           </div>
         )}
