@@ -5,6 +5,7 @@ import {
   applySections,
   buildReport,
   PERIOD_DAYS,
+  sectionAvailability,
   type ReportFormat,
   type ReportPeriod,
   type ReportSections,
@@ -58,6 +59,37 @@ const FORMAT_HINT: Record<ReportFormat, string> = {
   json: 'The figures behind the report, without the charts drawn from them.',
 };
 
+/**
+ * The tickboxes, each paired with what to say when the section has nothing
+ * behind it — a box you can tick for a section that will not print is a lie
+ * about what you are about to get.
+ */
+const INCLUDE_OPTIONS: Array<{
+  key: keyof ReportSections;
+  id: string;
+  label: string;
+  emptyNote: string;
+}> = [
+  {
+    key: 'charts',
+    id: 'report-charts',
+    label: 'Progress charts',
+    emptyNote: 'too few days recorded',
+  },
+  {
+    key: 'detailedStats',
+    id: 'report-stats',
+    label: 'Detailed statistics & errors',
+    emptyNote: 'nothing in this period',
+  },
+  {
+    key: 'recommendations',
+    id: 'report-recommendations',
+    label: 'Recommendations',
+    emptyNote: 'none yet',
+  },
+];
+
 export const ReportGenerator: React.FC<ReportGeneratorProps> = ({
   progressCharts,
   errorAnalysis,
@@ -85,8 +117,9 @@ export const ReportGenerator: React.FC<ReportGeneratorProps> = ({
     staleTime: 5 * 60 * 1000,
   });
 
-  // Built whole, then narrowed, so a toggled section only re-slices a model
-  // that is already there rather than recomputing the period from scratch.
+  // Built whole, then narrowed. The full model is also what tells us which
+  // sections have any content, so the tickboxes below can only offer what the
+  // document would actually print.
   const fullReport = useMemo(() => {
     if (!rowsQuery.data) return null;
     return buildReport({
@@ -97,6 +130,11 @@ export const ReportGenerator: React.FC<ReportGeneratorProps> = ({
       period,
     });
   }, [rowsQuery.data, progressCharts, errorAnalysis, recommendations, period]);
+
+  const available = useMemo(
+    () => (fullReport ? sectionAvailability(fullReport) : null),
+    [fullReport]
+  );
 
   const report = useMemo(() => {
     if (!fullReport) return null;
@@ -236,39 +274,35 @@ export const ReportGenerator: React.FC<ReportGeneratorProps> = ({
           <div>
             <Label className="text-text/50 mb-2">Include</Label>
             <div className="space-y-2">
-              <Label
-                htmlFor="report-charts"
-                className="font-normal cursor-pointer"
-              >
-                <Checkbox
-                  id="report-charts"
-                  checked={sections.charts}
-                  onCheckedChange={toggle('charts')}
-                />
-                Progress charts
-              </Label>
-              <Label
-                htmlFor="report-stats"
-                className="font-normal cursor-pointer"
-              >
-                <Checkbox
-                  id="report-stats"
-                  checked={sections.detailedStats}
-                  onCheckedChange={toggle('detailedStats')}
-                />
-                Detailed statistics &amp; errors
-              </Label>
-              <Label
-                htmlFor="report-recommendations"
-                className="font-normal cursor-pointer"
-              >
-                <Checkbox
-                  id="report-recommendations"
-                  checked={sections.recommendations}
-                  onCheckedChange={toggle('recommendations')}
-                />
-                Recommendations
-              </Label>
+              {INCLUDE_OPTIONS.map((option) => {
+                // Unknown until the rows land; treated as present so the list
+                // does not flicker through a disabled state on every load.
+                const isAvailable = available?.[option.key] ?? true;
+                return (
+                  <Label
+                    key={option.key}
+                    htmlFor={option.id}
+                    className={
+                      isAvailable
+                        ? 'font-normal cursor-pointer'
+                        : 'font-normal cursor-not-allowed text-text/40'
+                    }
+                  >
+                    <Checkbox
+                      id={option.id}
+                      checked={isAvailable && sections[option.key]}
+                      disabled={!isAvailable}
+                      onCheckedChange={toggle(option.key)}
+                    />
+                    {option.label}
+                    {!isAvailable && (
+                      <span className="text-xs text-text/35">
+                        — {option.emptyNote}
+                      </span>
+                    )}
+                  </Label>
+                );
+              })}
             </div>
           </div>
 

@@ -232,8 +232,9 @@ export interface BuildReportInput {
  * server's AnalyticsOverview is lifetime-scoped, so reusing it here would print
  * a career total under a "Monthly report" heading.
  *
- * This always builds the full document; `applySections` narrows it afterwards,
- * so the model the caller holds is the same one whatever is ticked.
+ * This always builds the full document; `applySections` narrows it afterwards.
+ * Keeping the two apart is what lets the UI know which sections actually have
+ * something to say, rather than offering a tickbox for an empty section.
  */
 export function buildReport({
   rows,
@@ -366,6 +367,25 @@ export function buildReport({
     recommendations,
     closing: current.length ? writeClosing(current, wpmDelta) : '',
     testCount: current.length,
+  };
+}
+
+/**
+ * Which sections this report can actually print.
+ *
+ * The document drops a section that has no content, so an offered tickbox with
+ * nothing behind it would promise a page that never appears. The UI reads this
+ * to say so up front.
+ */
+export function sectionAvailability(
+  model: ReportModel
+): Record<keyof ReportSections, boolean> {
+  return {
+    charts: model.charts.length > 0,
+    detailedStats:
+      model.stats.length > 0 ||
+      (model.errorAnalysis?.mostProblematicChars.length ?? 0) > 0,
+    recommendations: model.recommendations.length > 0,
   };
 }
 
