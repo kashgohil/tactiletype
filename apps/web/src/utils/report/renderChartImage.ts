@@ -42,6 +42,13 @@ const WIDTH = 720;
 const HEIGHT = 260;
 
 /**
+ * Published so the document can reserve the right height before the image has
+ * decoded. Without it a chart measures zero during pagination and the page it
+ * lands on is packed far too full.
+ */
+export const CHART_ASPECT = `${WIDTH} / ${HEIGHT}`;
+
+/**
  * Draws one chart into a detached canvas and returns a PNG data URI.
  *
  * Detached rather than mounted because Chart.js ties itself to element size:
