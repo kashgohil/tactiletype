@@ -2,6 +2,13 @@
 
 This guide will help you deploy the TactileType API server to your VPS using Docker.
 
+> **Run exactly one container.** `ConnectionManager` (`src/websocket/hub.ts`)
+> holds rooms, connections, and race state in process memory. A second replica
+> does not share it, so two players who join the same room from different
+> replicas sit in what looks like an empty lobby — no error, no log line. Moving
+> that state to Redis is the prerequisite for scaling out, and until then this
+> is a hard constraint rather than a tuning choice.
+
 ## Prerequisites
 
 - VPS with Ubuntu/Debian/CentOS
@@ -51,6 +58,18 @@ Edit `apps/api/.env` with your production values:
 DATABASE_URL=postgresql://user:password@db-host:5432/database
 JWT_SECRET=your-secure-jwt-secret
 PORT=3021
+NODE_ENV=production
+
+# Origins. FRONTEND_URL is an exact-match CORS allowlist entry, so it must carry
+# the scheme and no trailing slash. BASE_URL is the API's own origin — it is what
+# the OAuth callback URLs are built from, not where users land.
+FRONTEND_URL=https://trytactiletype.com
+BASE_URL=https://api.trytactiletype.com
+
+# Required whenever the site and API sit on different subdomains, which is the
+# whole point of this deployment. See apps/api/.env.example for what breaks
+# without it.
+COOKIE_DOMAIN=.trytactiletype.com
 
 # OAuth (if using social login)
 GITHUB_CLIENT_ID=your-github-client-id
@@ -59,7 +78,19 @@ GOOGLE_CLIENT_ID=your-google-client-id
 GOOGLE_CLIENT_SECRET=your-google-client-secret
 ```
 
+> **If Postgres runs on this VPS rather than a managed host**, `localhost` in
+> `DATABASE_URL` resolves to the *container*, not the machine. Use
+> `host.docker.internal` — `deploy.sh` maps it to the host gateway — and make
+> sure Postgres listens on the Docker bridge and `pg_hba.conf` accepts it.
+
+Two settings the API depends on and cannot check for you: `NODE_ENV=production`
+turns the CSRF cookie into `Secure; SameSite=None`, which browsers drop over
+plain HTTP. Finish the TLS step below before expecting logins to work.
+
 ### 4. Deploy Using the Script
+
+`deploy` builds the image, applies pending migrations, then swaps the container.
+A failed migration aborts before the swap, leaving the running container serving.
 
 ```bash
 # Make script executable (if not already)
@@ -132,9 +163,18 @@ sudo apt install nginx -y
 sudo nano /etc/nginx/sites-available/tactile-api
 
 # Add this configuration:
+#
+# One `location /` block, not `location /api`, on purpose: the Hono app is
+# mounted under /api, but the WebSocket endpoint is served at /ws, outside that
+# basePath (see apps/api/src/index.ts). Proxying only /api would 404 every
+# multiplayer connection.
+#
+# The Upgrade/Connection headers below are what make that WebSocket work —
+# without them nginx answers the upgrade with a plain 200 and the client's
+# reconnect loop retries forever.
 server {
     listen 80;
-    server_name your-domain.com;
+    server_name api.trytactiletype.com;
 
     location / {
         proxy_pass http://localhost:3021;
