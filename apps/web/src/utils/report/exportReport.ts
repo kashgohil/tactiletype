@@ -30,6 +30,23 @@ export function reportFilename(report: ReportModel, extension: string): string {
  * the default filename in "Save as PDF" — leaving it would suggest the name of
  * whatever page the user was on.
  */
+/**
+ * Resolves once every image below `root` has decoded.
+ *
+ * Printing captures what is painted at the instant it is called, and the print
+ * portal mounts fresh <img> elements — so without this the charts and the logo
+ * can be absent from the PDF even though they are visible in the preview.
+ */
+export async function whenImagesReady(root: HTMLElement | null): Promise<void> {
+  if (!root) return;
+  await Promise.all(
+    Array.from(root.querySelectorAll('img')).map((image) =>
+      // A broken image shouldn't block the print; it just prints without it.
+      image.decode().catch(() => undefined)
+    )
+  );
+}
+
 export function printReport(report: ReportModel): void {
   const previous = document.title;
   document.title = reportFilename(report, 'pdf').replace(/\.pdf$/, '');
@@ -123,11 +140,53 @@ async function inlineFont(): Promise<string> {
   }
 }
 
+/**
+ * The sheet fills its container by design — on the analytics page an A4 frame
+ * supplies the width. A saved file has no such frame, so it sets the page size
+ * itself and centres it on a desk-coloured backdrop.
+ */
 const STANDALONE_SHELL = `
   html{-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale}
   body{margin:0;padding:32px 16px;background:#f4f4f2;font-family:'Saira',ui-sans-serif,system-ui,sans-serif}
-  @media print{body{padding:0;background:#fff}}
+  [data-report-sheet]{width:210mm;max-width:100%;margin:0 auto}
+  @media print{
+    body{padding:0;background:#fff}
+    [data-report-sheet]{width:auto;margin:0}
+  }
 `;
+
+/**
+ * Serialises the sheet with every image turned into a data URI.
+ *
+ * Charts already carry theirs, but the logo is an ordinary path — fine in the
+ * app, a broken image the moment the file is opened from a download folder.
+ * Works on a clone so the live preview is left alone.
+ */
+async function serialiseWithImages(sheet: HTMLElement): Promise<string> {
+  const clone = sheet.cloneNode(true) as HTMLElement;
+
+  await Promise.all(
+    Array.from(clone.querySelectorAll('img')).map(async (image) => {
+      const src = image.getAttribute('src');
+      if (!src || src.startsWith('data:')) return;
+      try {
+        const response = await fetch(src);
+        if (!response.ok) return;
+        const blob = await response.blob();
+        const base64 = toBase64(await blob.arrayBuffer());
+        image.setAttribute(
+          'src',
+          `data:${blob.type || 'image/png'};base64,${base64}`
+        );
+      } catch {
+        // Leave the original path. The report loses one image rather than
+        // failing to save at all.
+      }
+    })
+  );
+
+  return clone.outerHTML;
+}
 
 const escapeHtml = (value: string): string =>
   value.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
@@ -140,7 +199,8 @@ export async function downloadReportHtml(
   report: ReportModel,
   sheet: HTMLElement
 ): Promise<void> {
-  const [font, styles] = [await inlineFont(), collectStyles()];
+  const [font, body] = [await inlineFont(), await serialiseWithImages(sheet)];
+  const styles = collectStyles();
 
   const html = `<!doctype html>
 <html lang="en">
@@ -153,7 +213,7 @@ export async function downloadReportHtml(
 <style>${STANDALONE_SHELL}</style>
 </head>
 <body>
-${sheet.outerHTML}
+${body}
 </body>
 </html>`;
 
