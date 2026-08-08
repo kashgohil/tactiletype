@@ -12,18 +12,18 @@
  */
 import { GUIDES, latestGuideUpdate } from '@/content/registry';
 import type { Block, ContentPage } from '@/content/types';
+import { typingTestPage } from '@/content/typing-test';
 import {
   absoluteUrl,
   contentPageGraph,
   DEFAULT_OG_IMAGE,
   DEFAULT_OG_IMAGE_SIZE,
   defaultGraph,
+  type PageMeta,
   resolvePageMeta,
   SITE_NAME,
   TWITTER_CARD_TYPE,
-  type PageMeta,
 } from '@/lib/seo';
-import { typingTestPage } from '@/content/typing-test';
 
 export type PrerenderRoute = {
   /** Route path, e.g. `/guides/what-is-wpm`. */
@@ -69,21 +69,14 @@ const SITEMAP: Record<string, { changefreq: string; priority: string }> = {
 /** Guides all share one weighting. */
 const GUIDE_SITEMAP = { changefreq: 'monthly', priority: '0.8' };
 
-function sitemapFor(
-  path: string,
-  lastmod: string
-): PrerenderRoute['sitemap'] {
+function sitemapFor(path: string, lastmod: string): PrerenderRoute['sitemap'] {
   if (path.startsWith('/guides/')) return { ...GUIDE_SITEMAP, lastmod };
   const entry = SITEMAP[path];
   return entry ? { ...entry, lastmod } : undefined;
 }
 
 const esc = (s: string): string =>
-  s
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;');
+  s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 
 /** Mirrors `RichText`: `[label](/path)` → anchor, `` `code` `` → <code>. */
 function inline(text: string): string {
@@ -105,10 +98,7 @@ function blockHtml(block: Block): string {
       return `<ul>${block.items.map((i) => `<li>${inline(i)}</li>`).join('')}</ul>`;
     case 'steps':
       return `<ol>${block.items
-        .map(
-          (i) =>
-            `<li><strong>${inline(i.title)}</strong> ${inline(i.text)}</li>`
-        )
+        .map((i) => `<li><strong>${inline(i.title)}</strong> ${inline(i.text)}</li>`)
         .join('')}</ol>`;
     case 'stat':
       return `<ul>${block.items
@@ -131,8 +121,7 @@ function contentNoscript(page: ContentPage): string {
     `<h1>${esc(page.h1)}</h1>`,
     `<p>${inline(page.intro)}</p>`,
     ...page.sections.map(
-      (s) =>
-        `<section><h2>${esc(s.heading)}</h2>${s.blocks.map(blockHtml).join('')}</section>`
+      (s) => `<section><h2>${esc(s.heading)}</h2>${s.blocks.map(blockHtml).join('')}</section>`
     ),
   ];
 
@@ -147,10 +136,7 @@ function contentNoscript(page: ContentPage): string {
   if (page.sources?.length) {
     parts.push(
       `<section><h2>Sources</h2><ul>${page.sources
-        .map(
-          (s) =>
-            `<li><a href="${esc(s.href)}" rel="noopener">${esc(s.label)}</a></li>`
-        )
+        .map((s) => `<li><a href="${esc(s.href)}" rel="noopener">${esc(s.label)}</a></li>`)
         .join('')}</ul></section>`
     );
   }
@@ -277,8 +263,7 @@ export function getPrerenderRoutes(): PrerenderRoute[] {
       `<h1>Typing guides</h1>`,
       `<p>What the numbers mean, what actually makes you faster, and what to ignore.</p>`,
       `<ul>${GUIDES.map(
-        (g) =>
-          `<li><a href="${g.path}">${esc(g.h1)}</a> — ${esc(g.description)}</li>`
+        (g) => `<li><a href="${g.path}">${esc(g.h1)}</a> — ${esc(g.description)}</li>`
       ).join('')}</ul>`,
     ].join(''),
     sitemap: sitemapFor('/guides', latestGuideUpdate()),

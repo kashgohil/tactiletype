@@ -1,3 +1,9 @@
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { Link } from '@tanstack/react-router';
+import { Save } from 'lucide-react';
+import type React from 'react';
+import { useEffect, useState } from 'react';
+import { toast } from 'sonner';
 import { TypingPreferencesSection } from '@/components/test/TypingPreferencesSection';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -13,22 +19,10 @@ import {
 import { Skeleton } from '@/components/ui/skeleton';
 import { Switch } from '@/components/ui/switch';
 import { Textarea } from '@/components/ui/textarea';
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { Link } from '@tanstack/react-router';
-import { Save } from 'lucide-react';
-import React, { useEffect, useState } from 'react';
-import { toast } from 'sonner';
 import { useAuth } from '../contexts';
 import { usersApi } from '../services/api';
 
-const KEYBOARD_OPTIONS = [
-  'QWERTY',
-  'Colemak',
-  'Dvorak',
-  'Workman',
-  'AZERTY',
-  'Other',
-];
+const KEYBOARD_OPTIONS = ['QWERTY', 'Colemak', 'Dvorak', 'Workman', 'AZERTY', 'Other'];
 
 const labelClass = 'text-text/60 mb-1.5';
 
@@ -39,8 +33,8 @@ function PageHeader() {
         Settings
       </h1>
       <p className="text-text/50 max-w-2xl leading-relaxed text-[15px]">
-        How the test screen behaves on this device, and what the rest of the
-        world sees on your profile.
+        How the test screen behaves on this device, and what the rest of the world sees on your
+        profile.
       </p>
     </header>
   );
@@ -244,11 +238,7 @@ export const Settings: React.FC = () => {
               </div>
 
               <div className="flex items-center gap-3 pt-1">
-                <Switch
-                  id="set-public"
-                  checked={isPublic}
-                  onCheckedChange={setIsPublic}
-                />
+                <Switch id="set-public" checked={isPublic} onCheckedChange={setIsPublic} />
                 <Label htmlFor="set-public" className="cursor-pointer">
                   Make my profile public
                   <span className="text-text/40">/u/{user.username}</span>

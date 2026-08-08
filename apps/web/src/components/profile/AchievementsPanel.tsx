@@ -1,8 +1,8 @@
+import { Award, Check, Lock } from 'lucide-react';
+import type React from 'react';
 import { Panel } from '@/components/ui/panel';
 import { cn } from '@/lib/utils';
 import type { AchievementItem } from '@/services/challengesApi';
-import { Award, Check, Lock } from 'lucide-react';
-import React from 'react';
 import { Skeleton } from '../ui/skeleton';
 
 interface AchievementsPanelProps {
@@ -28,9 +28,7 @@ export const AchievementsPanel: React.FC<AchievementsPanelProps> = ({
 
   const unlocked = achievements.filter((a) => a.unlocked).length;
   // Earned first — a wall of locked rows buries what the user actually did.
-  const ordered = [...achievements].sort(
-    (a, b) => Number(b.unlocked) - Number(a.unlocked)
-  );
+  const ordered = [...achievements].sort((a, b) => Number(b.unlocked) - Number(a.unlocked));
 
   return (
     <Panel
@@ -51,10 +49,7 @@ export const AchievementsPanel: React.FC<AchievementsPanelProps> = ({
           {ordered.map((a) => (
             <li
               key={a.id}
-              className={cn(
-                'flex items-start gap-3 py-2.5',
-                !a.unlocked && 'opacity-45'
-              )}
+              className={cn('flex items-start gap-3 py-2.5', !a.unlocked && 'opacity-45')}
             >
               <span
                 className={cn(
@@ -71,9 +66,7 @@ export const AchievementsPanel: React.FC<AchievementsPanelProps> = ({
                     {a.points} pts
                   </span>
                 </div>
-                <p className="text-xs text-text/45 mt-0.5 leading-relaxed">
-                  {a.description}
-                </p>
+                <p className="text-xs text-text/45 mt-0.5 leading-relaxed">{a.description}</p>
               </div>
               {a.unlocked ? (
                 <Check className="size-3.5 text-accent shrink-0 mt-1" />

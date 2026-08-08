@@ -1,4 +1,4 @@
-import { TOP_200_WORDS, TOP_1000_WORDS, uniqueWords, HARD_WORDS } from '@tactile/content';
+import { HARD_WORDS, TOP_200_WORDS, TOP_1000_WORDS, uniqueWords } from '@tactile/content';
 
 /** Unique play modes — each has different rules, not just different text. */
 export type PlayModeId =
@@ -124,7 +124,10 @@ const EASY = uniqueWords(TOP_200_WORDS);
 const MED = uniqueWords(TOP_1000_WORDS);
 const HARD = uniqueWords([...TOP_1000_WORDS, ...HARD_WORDS]);
 
-export function pickWords(count: number, difficulty: 'easy' | 'medium' | 'hard' = 'medium'): string[] {
+export function pickWords(
+  count: number,
+  difficulty: 'easy' | 'medium' | 'hard' = 'medium'
+): string[] {
   const bank = difficulty === 'easy' ? EASY : difficulty === 'hard' ? HARD : MED;
   const out: string[] = [];
   for (let i = 0; i < count; i++) {
@@ -138,12 +141,18 @@ export function pickWord(difficulty: 'easy' | 'medium' | 'hard' = 'medium'): str
 }
 
 /** Short phrases for memory flash. */
-export function pickPhrase(wordCount: number, difficulty: 'easy' | 'medium' | 'hard' = 'medium'): string {
+export function pickPhrase(
+  wordCount: number,
+  difficulty: 'easy' | 'medium' | 'hard' = 'medium'
+): string {
   return pickWords(wordCount, difficulty).join(' ');
 }
 
 /** Passage for ghost race. */
-export function pickPassage(wordCount = 40, difficulty: 'easy' | 'medium' | 'hard' = 'medium'): string {
+export function pickPassage(
+  wordCount = 40,
+  difficulty: 'easy' | 'medium' | 'hard' = 'medium'
+): string {
   return pickWords(wordCount, difficulty).join(' ');
 }
 

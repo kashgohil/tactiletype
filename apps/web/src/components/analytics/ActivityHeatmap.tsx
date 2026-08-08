@@ -1,7 +1,7 @@
-import { cn } from '@/lib/utils';
 import type { ActivityHeatmap as ActivityHeatmapType } from '@tactile/types';
 import { useQuery } from '@tanstack/react-query';
-import React from 'react';
+import type React from 'react';
+import { cn } from '@/lib/utils';
 import { useAuth } from '../../contexts';
 import { analyticsApi } from '../../services/analyticsApi';
 import { Panel } from '../ui/panel';
@@ -79,10 +79,7 @@ export const ActivityHeatmap: React.FC<ActivityHeatmapProps> = ({
   // Group data by weeks and months for the calendar layout
   const generateCalendarData = () => {
     const dataMap = new Map<string, number>(
-      heatmapData.data.map((day: { date: string; count: number }) => [
-        day.date,
-        day.count,
-      ])
+      heatmapData.data.map((day: { date: string; count: number }) => [day.date, day.count])
     );
 
     const weeks: Array<Array<{ date: string; count: number }>> = [];
@@ -129,10 +126,7 @@ export const ActivityHeatmap: React.FC<ActivityHeatmapProps> = ({
   ];
 
   return (
-    <Panel
-      title={`${title} ${year}`}
-      description={`${heatmapData.totalTests} tests in ${year}`}
-    >
+    <Panel title={`${title} ${year}`} description={`${heatmapData.totalTests} tests in ${year}`}>
       <div className="overflow-x-auto">
         <div className="min-w-max">
           {/* Month labels */}
@@ -153,9 +147,7 @@ export const ActivityHeatmap: React.FC<ActivityHeatmapProps> = ({
               return (
                 <div key={weekIndex} className="flex-1 text-center">
                   {monthToShow !== null && (
-                    <span className="text-xs text-text/40">
-                      {monthLabels[monthToShow]}
-                    </span>
+                    <span className="text-xs text-text/40">{monthLabels[monthToShow]}</span>
                   )}
                 </div>
               );
@@ -166,10 +158,7 @@ export const ActivityHeatmap: React.FC<ActivityHeatmapProps> = ({
             {/* Day labels */}
             <div className="flex flex-col mr-2 gap-1">
               {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((day) => (
-                <div
-                  key={day}
-                  className="h-6 text-xs flex items-center text-text/50 leading-3"
-                >
+                <div key={day} className="h-6 text-xs flex items-center text-text/50 leading-3">
                   {day}
                 </div>
               ))}
@@ -185,21 +174,14 @@ export const ActivityHeatmap: React.FC<ActivityHeatmapProps> = ({
                         <div
                           className={cn(
                             'w-6 h-6 rounded-sm cursor-pointer transition-all duration-200',
-                            getActivityClassName(
-                              day.count,
-                              heatmapData.maxCount
-                            )
+                            getActivityClassName(day.count, heatmapData.maxCount)
                           )}
                         />
                       </TooltipTrigger>
                       <TooltipContent className="bg-accent">
                         <div className="text-xs text-center">
-                          <div className="font-semibold">
-                            {getContributionText(day.count)}
-                          </div>
-                          <div className="text-text">
-                            {formatDate(day.date)}
-                          </div>
+                          <div className="font-semibold">{getContributionText(day.count)}</div>
+                          <div className="text-text">{formatDate(day.date)}</div>
                         </div>
                       </TooltipContent>
                     </Tooltip>
@@ -219,10 +201,7 @@ export const ActivityHeatmap: React.FC<ActivityHeatmapProps> = ({
             key={i}
             className={cn(
               'w-3 h-3 rounded-sm',
-              getActivityClassName(
-                Math.floor((i * heatmapData.maxCount) / 4),
-                heatmapData.maxCount
-              )
+              getActivityClassName(Math.floor((i * heatmapData.maxCount) / 4), heatmapData.maxCount)
             )}
           />
         ))}

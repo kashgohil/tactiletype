@@ -1,19 +1,16 @@
+import { generateKeyDrill, TOP_1000_WORDS, uniqueWords } from '@tactile/content';
+import { useNavigate } from '@tanstack/react-router';
+import type React from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { PlayResultCard, PlayShell } from '@/components/play/PlayHud';
-import {
-  Kbd,
-  PanelHint,
-  PlayTestPanel,
-} from '@/components/play/PlayTestPanel';
+import { Kbd, PanelHint, PlayTestPanel } from '@/components/play/PlayTestPanel';
 import { TypingSurface } from '@/components/test/TypingSurface';
 import { useAuth } from '@/contexts';
-import { generateKeyDrill, TOP_1000_WORDS, uniqueWords } from '@tactile/content';
-import { isNonPrintingKey } from '@/utils/typingEngine';
-import { getWeakKeyChars, getWeakKeys, recordKeyAttempt } from '@/utils/weakKeys';
 import { pickWord, savePlayBest } from '@/utils/playModes';
 import { submitPlayResult } from '@/utils/submitPlayResult';
 import { playCompleteChime, playErrorBeep, playKeyClick } from '@/utils/testSounds';
-import { useNavigate } from '@tanstack/react-router';
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { isNonPrintingKey } from '@/utils/typingEngine';
+import { getWeakKeyChars, getWeakKeys, recordKeyAttempt } from '@/utils/weakKeys';
 
 /**
  * Adaptive Word Storm: every word is biased toward YOUR weak keys.
@@ -126,7 +123,7 @@ export const WeakStormMode: React.FC = () => {
 
   useEffect(() => {
     reset();
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  }, []);
 
   const endRun = useCallback(
     async (finalCleared: number, finalCombo: number, finalCorrect: number, finalErrors: number) => {
@@ -265,7 +262,8 @@ export const WeakStormMode: React.FC = () => {
   }
 
   return (
-    <PlayShell modeId="weak-storm"
+    <PlayShell
+      modeId="weak-storm"
       title="Weak Storm"
       subtitle="Word Storm, but every word targets your weak keys."
       onExit={exit}
@@ -298,9 +296,7 @@ export const WeakStormMode: React.FC = () => {
           {
             label: 'Left',
             value:
-              phase === 'running'
-                ? `${Math.ceil((timeLeft * timeLimitMs(level)) / 1000)}s`
-                : '—',
+              phase === 'running' ? `${Math.ceil((timeLeft * timeLimitMs(level)) / 1000)}s` : '—',
             tone: timeLeft < 0.25 && phase === 'running' ? 'danger' : 'default',
           },
         ]}

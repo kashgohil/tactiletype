@@ -52,9 +52,7 @@ export function saveGuestResult(
 ): GuestResult {
   const entry: GuestResult = {
     ...result,
-    id:
-      result.id ??
-      `guest-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+    id: result.id ?? `guest-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
     completedAt: result.completedAt ?? new Date().toISOString(),
   };
   const existing = loadGuestResults();
@@ -91,7 +89,7 @@ async function submitWithRetry(
       lastErr = err;
       // Exponential backoff: 400ms, 800ms, 1600ms
       if (attempt < MAX_RETRIES - 1) {
-        await sleep(400 * Math.pow(2, attempt));
+        await sleep(400 * 2 ** attempt);
       }
     }
   }

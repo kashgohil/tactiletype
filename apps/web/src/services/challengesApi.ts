@@ -1,6 +1,6 @@
-import api from './api';
 import type { DailyModeChallenge } from '@tactile/content';
 import type { CurriculumProgress } from '@/utils/curriculum';
+import api from './api';
 
 export interface DailyChallenge {
   date: string;

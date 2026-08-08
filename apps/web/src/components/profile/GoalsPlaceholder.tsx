@@ -1,7 +1,7 @@
-import { Progress } from '@/components/ui/progress';
 import { Link } from '@tanstack/react-router';
 import { Target } from 'lucide-react';
-import React from 'react';
+import type React from 'react';
+import { Progress } from '@/components/ui/progress';
 
 interface GoalsPlaceholderProps {
   bestWpm?: number;
@@ -66,8 +66,8 @@ export const GoalsPlaceholder: React.FC<GoalsPlaceholderProps> = ({
       </ul>
 
       <p className="text-xs text-text/40 mt-5 leading-relaxed">
-        Custom goals and progress tracking land in a later update. Keep testing
-        — these milestones update from your best stats.{' '}
+        Custom goals and progress tracking land in a later update. Keep testing — these milestones
+        update from your best stats.{' '}
         <Link to="/" className="text-accent hover:underline">
           Practice now
         </Link>

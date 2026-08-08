@@ -152,13 +152,22 @@ export const howToImproveTypingSpeed: ContentPage = {
   ],
   sources: [
     {
-      label: 'Dhakal, Feit, Kristensson & Oulasvirta — Observations on Typing from 136 Million Keystrokes (CHI 2018)',
+      label:
+        'Dhakal, Feit, Kristensson & Oulasvirta — Observations on Typing from 136 Million Keystrokes (CHI 2018)',
       href: 'https://userinterfaces.aalto.fi/136Mkeystrokes/',
     },
   ],
   related: [
-    { label: 'Accuracy vs speed', to: '/guides/accuracy-vs-speed', hint: 'The arithmetic behind "slow down to speed up".' },
+    {
+      label: 'Accuracy vs speed',
+      to: '/guides/accuracy-vs-speed',
+      hint: 'The arithmetic behind "slow down to speed up".',
+    },
     { label: 'Targeted drills', to: '/practice', hint: 'Built from the pairs you actually miss.' },
-    { label: 'What is WPM?', to: '/guides/what-is-wpm', hint: 'What the number is really counting.' },
+    {
+      label: 'What is WPM?',
+      to: '/guides/what-is-wpm',
+      hint: 'What the number is really counting.',
+    },
   ],
 };

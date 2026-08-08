@@ -131,7 +131,8 @@ export const whatIsWpm: ContentPage = {
   ],
   sources: [
     {
-      label: 'Dhakal, Feit, Kristensson & Oulasvirta — Observations on Typing from 136 Million Keystrokes (CHI 2018)',
+      label:
+        'Dhakal, Feit, Kristensson & Oulasvirta — Observations on Typing from 136 Million Keystrokes (CHI 2018)',
       href: 'https://userinterfaces.aalto.fi/136Mkeystrokes/',
     },
     {
@@ -140,8 +141,16 @@ export const whatIsWpm: ContentPage = {
     },
   ],
   related: [
-    { label: 'Accuracy vs speed', to: '/guides/accuracy-vs-speed', hint: 'Why the slower typist often finishes first.' },
-    { label: 'How to improve typing speed', to: '/guides/how-to-improve-typing-speed', hint: 'The order of operations that actually works.' },
+    {
+      label: 'Accuracy vs speed',
+      to: '/guides/accuracy-vs-speed',
+      hint: 'Why the slower typist often finishes first.',
+    },
+    {
+      label: 'How to improve typing speed',
+      to: '/guides/how-to-improve-typing-speed',
+      hint: 'The order of operations that actually works.',
+    },
     { label: 'Measure yours', to: '/', hint: 'One minute, no account needed.' },
   ],
 };

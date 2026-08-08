@@ -1,6 +1,6 @@
+import { useRouterState } from '@tanstack/react-router';
 import { useDocumentMeta } from '@/hooks/useDocumentMeta';
 import { resolvePageMeta } from '@/lib/seo';
-import { useRouterState } from '@tanstack/react-router';
 
 /**
  * Keeps document head in sync with the active route.

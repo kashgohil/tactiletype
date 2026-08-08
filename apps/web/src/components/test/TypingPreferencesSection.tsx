@@ -1,3 +1,4 @@
+import type React from 'react';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Panel } from '@/components/ui/panel';
@@ -9,14 +10,9 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
-import type {
-  CaretStyle,
-  FontSize,
-  KeyboardLayout,
-} from '@/hooks/useTestPreferences';
+import type { CaretStyle, FontSize, KeyboardLayout } from '@/hooks/useTestPreferences';
 import { useTestPreferences } from '@/hooks/useTestPreferences';
 import { LAYOUT_LABELS } from '@/utils/keyboardLayouts';
-import React from 'react';
 
 const labelClass = 'text-text/60 mb-1.5';
 
@@ -54,9 +50,7 @@ export const TypingPreferencesSection: React.FC = () => {
           </Label>
           <Select
             value={prefs.caretStyle}
-            onValueChange={(value) =>
-              setPrefs({ caretStyle: value as CaretStyle })
-            }
+            onValueChange={(value) => setPrefs({ caretStyle: value as CaretStyle })}
           >
             <SelectTrigger id="pref-caret" className="w-full">
               <SelectValue placeholder="Caret style" />
@@ -99,9 +93,7 @@ export const TypingPreferencesSection: React.FC = () => {
         </Label>
         <Select
           value={prefs.keyboardLayout}
-          onValueChange={(value) =>
-            setPrefs({ keyboardLayout: value as KeyboardLayout })
-          }
+          onValueChange={(value) => setPrefs({ keyboardLayout: value as KeyboardLayout })}
         >
           <SelectTrigger id="pref-layout" className="w-full">
             <SelectValue placeholder="Keyboard layout" />

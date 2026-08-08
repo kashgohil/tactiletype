@@ -1,9 +1,9 @@
+import { Link, useParams } from '@tanstack/react-router';
+import { ArrowLeft } from 'lucide-react';
+import type React from 'react';
 import { ContentArticle } from '@/components/content/ContentArticle';
 import { Button } from '@/components/ui/button';
 import { getGuideBySlug } from '@/content/registry';
-import { Link, useParams } from '@tanstack/react-router';
-import { ArrowLeft } from 'lucide-react';
-import React from 'react';
 
 /** A single guide. Unknown slugs render a noindex-able not-found state. */
 export const Guide: React.FC = () => {

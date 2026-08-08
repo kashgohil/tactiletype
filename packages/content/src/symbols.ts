@@ -9,6 +9,7 @@ export const SYMBOL_LINES = [
   'price: $19.99  tax: 8.5%  total: $21.69',
   'git commit -m "fix: handle edge case" && git push',
   'SELECT * FROM users WHERE id = 42 AND active = true;',
+  // biome-ignore lint/suspicious/noTemplateCurlyInString: literal drill copy — the `${}` is what the user types
   'console.log(`Hello, ${name}!`); // comment here',
   '{ "id": 1, "name": "Ada", "roles": ["admin", "user"] }',
   'regex: /^[a-z0-9._%+-]+@[a-z0-9.-]+\\.[a-z]{2,}$/i',

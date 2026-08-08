@@ -1,2 +1,2 @@
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
+// biome-ignore lint/suspicious/noExplicitAny: the point of the alias
 type TSAny = any;

@@ -1,4 +1,5 @@
-import React, { createContext, useEffect, useState } from 'react';
+import type React from 'react';
+import { createContext, useEffect, useState } from 'react';
 import type { Theme } from './themes';
 import { themes } from './themes';
 
@@ -12,10 +13,7 @@ interface ThemeContextType {
   colorScheme: 'light' | 'dark';
 }
 
-// eslint-disable-next-line react-refresh/only-export-components
-export const ThemeContext = createContext<ThemeContextType | undefined>(
-  undefined
-);
+export const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
 const relativeLuminance = (hex: string): number => {
   const value = hex.replace('#', '');
@@ -28,17 +26,13 @@ const relativeLuminance = (hex: string): number => {
       : value;
   const [r, g, b] = [0, 2, 4].map((i) => {
     const channel = parseInt(full.slice(i, i + 2), 16) / 255;
-    return channel <= 0.03928
-      ? channel / 12.92
-      : Math.pow((channel + 0.055) / 1.055, 2.4);
+    return channel <= 0.03928 ? channel / 12.92 : ((channel + 0.055) / 1.055) ** 2.4;
   });
   return 0.2126 * r + 0.7152 * g + 0.0722 * b;
 };
 
 const contrastRatio = (a: string, b: string): number => {
-  const [hi, lo] = [relativeLuminance(a), relativeLuminance(b)].sort(
-    (x, y) => y - x
-  );
+  const [hi, lo] = [relativeLuminance(a), relativeLuminance(b)].sort((x, y) => y - x);
   return (hi + 0.05) / (lo + 0.05);
 };
 
@@ -62,8 +56,7 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
   }, []);
 
   const themeToApply = previewTheme || currentTheme;
-  const colorScheme =
-    relativeLuminance(themeToApply.primaryColor) < 0.4 ? 'dark' : 'light';
+  const colorScheme = relativeLuminance(themeToApply.primaryColor) < 0.4 ? 'dark' : 'light';
 
   // Apply theme to CSS variables
   useEffect(() => {

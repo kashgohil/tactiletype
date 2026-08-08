@@ -1,5 +1,5 @@
-import { useAuth } from '@/contexts';
 import { Link } from '@tanstack/react-router';
+import { useAuth } from '@/contexts';
 import type { FileRoutesByTo } from '@/routeTree.gen';
 
 type AppPath = keyof FileRoutesByTo;
@@ -46,13 +46,7 @@ const LEGAL: FooterLink[] = [
   { to: '/contact', label: 'Contact' },
 ];
 
-function FooterColumn({
-  title,
-  links,
-}: {
-  title: string;
-  links: FooterLink[];
-}) {
+function FooterColumn({ title, links }: { title: string; links: FooterLink[] }) {
   return (
     <div>
       <h2 className="text-[11px] uppercase tracking-[0.18em] text-text/40 font-semibold mb-3">
@@ -104,21 +98,13 @@ export function Footer() {
         <div className="grid grid-cols-2 md:grid-cols-6 gap-x-6 gap-y-10">
           {/* Brand block gets the wide column; links fill the rest. */}
           <div className="col-span-2 md:pr-8">
-            <Link
-              to="/"
-              className="inline-flex items-center gap-2 text-lg font-bold"
-            >
-              <img
-                src="/tactiletype-256x256.png"
-                alt=""
-                height={28}
-                width={28}
-              />
+            <Link to="/" className="inline-flex items-center gap-2 text-lg font-bold">
+              <img src="/tactiletype-256x256.png" alt="" height={28} width={28} />
               tactiletype
             </Link>
             <p className="text-sm text-text/50 mt-3 leading-relaxed max-w-xs">
-              A typing trainer that measures what you actually type — real
-              drills, honest numbers, and modes that train more than raw speed.
+              A typing trainer that measures what you actually type — real drills, honest numbers,
+              and modes that train more than raw speed.
             </p>
           </div>
 

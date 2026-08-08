@@ -1,3 +1,6 @@
+import { ArrowLeft, RotateCcw, Sparkles } from 'lucide-react';
+import { AnimatePresence, motion } from 'motion/react';
+import type React from 'react';
 import { Button } from '@/components/ui/button';
 import { useArmedHotkey } from '@/hooks/useArmedHotkey';
 import { usePrefersReducedMotion } from '@/hooks/usePrefersReducedMotion';
@@ -5,9 +8,6 @@ import { EASE_OUT, uiTransition } from '@/lib/motion';
 import { cn } from '@/lib/utils';
 import { isActiveDailyForMode } from '@/utils/dailyRun';
 import type { PlayModeId } from '@/utils/playModes';
-import { AnimatePresence, motion } from 'motion/react';
-import { ArrowLeft, RotateCcw, Sparkles } from 'lucide-react';
-import React from 'react';
 
 /** Enter or R restarts a finished run, from any play mode's result card. */
 const RETRY_KEYS = ['Enter', 'r', 'R'];
@@ -60,9 +60,7 @@ export function PlayShell({
   modeId?: PlayModeId | string;
 }) {
   const reduced = usePrefersReducedMotion();
-  const isDaily =
-    dailyBadge === true ||
-    (modeId != null && isActiveDailyForMode(modeId));
+  const isDaily = dailyBadge === true || (modeId != null && isActiveDailyForMode(modeId));
 
   return (
     <motion.div
@@ -74,9 +72,7 @@ export function PlayShell({
       <header className="flex flex-wrap items-start justify-between gap-3">
         <div className="min-w-0">
           <div className="flex flex-wrap items-center gap-2.5 mb-1">
-            <h1 className="text-2xl md:text-3xl font-bold tracking-tight">
-              {title}
-            </h1>
+            <h1 className="text-2xl md:text-3xl font-bold tracking-tight">{title}</h1>
             {isDaily && (
               <span className="text-[10px] uppercase tracking-[0.16em] font-semibold px-2.5 py-1 rounded-full bg-accent/20 text-accent border border-accent/30">
                 Daily ranked
@@ -84,9 +80,7 @@ export function PlayShell({
             )}
           </div>
           {subtitle && (
-            <p className="text-sm text-text/50 mt-1 max-w-lg leading-relaxed">
-              {subtitle}
-            </p>
+            <p className="text-sm text-text/50 mt-1 max-w-lg leading-relaxed">{subtitle}</p>
           )}
         </div>
         {onExit && (
@@ -131,9 +125,7 @@ export function PlayResultCard({
   return (
     <motion.div
       className="rounded-lg bg-accent/30 p-8 sm:p-10 space-y-7 text-center"
-      initial={
-        reduced ? false : { opacity: 0, transform: 'translateY(10px) scale(0.98)' }
-      }
+      initial={reduced ? false : { opacity: 0, transform: 'translateY(10px) scale(0.98)' }}
       animate={{ opacity: 1, transform: 'translateY(0px) scale(1)' }}
       transition={{ duration: reduced ? 0 : 0.28, ease: EASE_OUT }}
     >
@@ -160,9 +152,7 @@ export function PlayResultCard({
         </AnimatePresence>
         <h2 className="text-2xl sm:text-3xl font-bold tracking-tight">{title}</h2>
         {hint && (
-          <p className="mt-2 text-sm text-text/45 max-w-sm mx-auto leading-relaxed">
-            {hint}
-          </p>
+          <p className="mt-2 text-sm text-text/45 max-w-sm mx-auto leading-relaxed">{hint}</p>
         )}
       </div>
 
@@ -188,12 +178,7 @@ export function PlayResultCard({
           <RotateCcw className="size-4 opacity-80" />
           Play again
         </Button>
-        <Button
-          size="lg"
-          variant="outline"
-          onClick={onExit}
-          className="min-w-[8.5rem]"
-        >
+        <Button size="lg" variant="outline" onClick={onExit} className="min-w-[8.5rem]">
           Other modes
         </Button>
       </div>

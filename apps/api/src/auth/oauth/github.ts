@@ -43,22 +43,19 @@ export class GitHubOAuthProvider extends BaseOAuthProvider {
   async handleCallback(code: string, state: string): Promise<OAuthUser> {
     console.log('OAuth state:', state);
 
-    const tokenResponse = await fetch(
-      'https://github.com/login/oauth/access_token',
-      {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/x-www-form-urlencoded',
-          Accept: 'application/json',
-        },
-        body: new URLSearchParams({
-          client_id: this.clientId,
-          client_secret: this.clientSecret,
-          code,
-          redirect_uri: this.redirectUri,
-        }),
-      }
-    );
+    const tokenResponse = await fetch('https://github.com/login/oauth/access_token', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+        Accept: 'application/json',
+      },
+      body: new URLSearchParams({
+        client_id: this.clientId,
+        client_secret: this.clientSecret,
+        code,
+        redirect_uri: this.redirectUri,
+      }),
+    });
 
     if (!tokenResponse.ok) {
       throw new Error('Failed to exchange code for token');

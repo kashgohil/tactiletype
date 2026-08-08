@@ -1,6 +1,6 @@
+import type { MultiplayerRoomWithDetails, TestText } from '@tactile/types';
 import { VITE_API_URL } from '@/constants';
 import { ensureCsrfToken } from '@/utils/csrf';
-import type { MultiplayerRoomWithDetails, TestText } from '@tactile/types';
 
 export interface CreateRoomRequest {
   name: string;
@@ -94,8 +94,7 @@ async function handle<T>(response: Response): Promise<T> {
   const body = await response.json().catch(() => ({}));
   if (!response.ok) {
     throw new Error(
-      (body as { error?: string }).error ||
-        `HTTP ${response.status}: ${response.statusText}`
+      (body as { error?: string }).error || `HTTP ${response.status}: ${response.statusText}`
     );
   }
   return body as T;
@@ -123,19 +122,19 @@ class MultiplayerApiService {
       limit: String(limit),
       status,
     });
-    const response = await fetch(
-      `${VITE_API_URL}/api/multiplayer/rooms?${params}`,
-      { headers: authHeaders(), credentials: 'include' }
-    );
+    const response = await fetch(`${VITE_API_URL}/api/multiplayer/rooms?${params}`, {
+      headers: authHeaders(),
+      credentials: 'include',
+    });
     const result = await handle<{ data: GetRoomsResponse }>(response);
     return result.data;
   }
 
   async getRoom(roomId: string): Promise<GetRoomResponse> {
-    const response = await fetch(
-      `${VITE_API_URL}/api/multiplayer/rooms/${roomId}`,
-      { headers: authHeaders(), credentials: 'include' }
-    );
+    const response = await fetch(`${VITE_API_URL}/api/multiplayer/rooms/${roomId}`, {
+      headers: authHeaders(),
+      credentials: 'include',
+    });
     const result = await handle<{ data: GetRoomResponse }>(response);
     return result.data;
   }
@@ -144,24 +143,22 @@ class MultiplayerApiService {
     roomId: string,
     options?: { spectate?: boolean }
   ): Promise<{ role: 'racer' | 'spectator' }> {
-    const response = await fetch(
-      `${VITE_API_URL}/api/multiplayer/rooms/${roomId}/join`,
-      {
-        method: 'POST',
-        headers: await writeHeaders(),
-        credentials: 'include',
-        body: JSON.stringify({ spectate: !!options?.spectate }),
-      }
-    );
+    const response = await fetch(`${VITE_API_URL}/api/multiplayer/rooms/${roomId}/join`, {
+      method: 'POST',
+      headers: await writeHeaders(),
+      credentials: 'include',
+      body: JSON.stringify({ spectate: !!options?.spectate }),
+    });
     const result = await handle<{ role?: 'racer' | 'spectator' }>(response);
     return { role: result.role ?? (options?.spectate ? 'spectator' : 'racer') };
   }
 
   async leaveRoom(roomId: string): Promise<void> {
-    const response = await fetch(
-      `${VITE_API_URL}/api/multiplayer/rooms/${roomId}/leave`,
-      { method: 'POST', headers: await writeHeaders(), credentials: 'include' }
-    );
+    const response = await fetch(`${VITE_API_URL}/api/multiplayer/rooms/${roomId}/leave`, {
+      method: 'POST',
+      headers: await writeHeaders(),
+      credentials: 'include',
+    });
     await handle(response);
   }
 

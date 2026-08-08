@@ -43,7 +43,7 @@ function saveStore(store: Store) {
 
 /** Record one keystroke attempt (expected printable char). */
 export function recordKeyAttempt(expectedChar: string, correct: boolean) {
-  if (!expectedChar || expectedChar.length !== 1) return;
+  if (expectedChar?.length !== 1) return;
   // Skip pure whitespace tracking noise except space
   if (expectedChar !== ' ' && /\s/.test(expectedChar)) return;
 
@@ -62,7 +62,7 @@ export function recordFromKeystrokes(
 ) {
   for (const e of events) {
     if (e.isBackspace) continue;
-    if (!e.expectedChar || e.expectedChar.length !== 1) continue;
+    if (e.expectedChar?.length !== 1) continue;
     recordKeyAttempt(e.expectedChar, e.correct !== false);
   }
 }
@@ -81,7 +81,9 @@ export function getWeakKeys(limit = 6): WeakKeyStat[] {
 }
 
 export function getWeakKeyChars(limit = 6): string[] {
-  return getWeakKeys(limit).map((k) => k.char).filter((c) => c !== ' ');
+  return getWeakKeys(limit)
+    .map((k) => k.char)
+    .filter((c) => c !== ' ');
 }
 
 /** Merge API error analysis chars with local memory. */
@@ -95,10 +97,7 @@ export function mergeWeakKeys(
   }
   for (const c of apiChars ?? []) {
     if (!c.character) continue;
-    scores.set(
-      c.character,
-      (scores.get(c.character) ?? 0) + c.errorCount * 2
-    );
+    scores.set(c.character, (scores.get(c.character) ?? 0) + c.errorCount * 2);
   }
   return [...scores.entries()]
     .filter(([ch]) => ch !== ' ' && ch.length === 1)

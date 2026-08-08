@@ -36,21 +36,18 @@ export class AnalyticsEngine {
     // Calculate average keystroke time
     const averageKeystrokeTime =
       keystrokeTimes.length > 0
-        ? keystrokeTimes.reduce((sum, time) => sum + time, 0) /
-          keystrokeTimes.length
+        ? keystrokeTimes.reduce((sum, time) => sum + time, 0) / keystrokeTimes.length
         : 0;
 
     // Calculate variance
     const variance =
       keystrokeTimes.length > 0
-        ? keystrokeTimes.reduce(
-            (sum, time) => sum + Math.pow(time - averageKeystrokeTime, 2),
-            0
-          ) / keystrokeTimes.length
+        ? keystrokeTimes.reduce((sum, time) => sum + (time - averageKeystrokeTime) ** 2, 0) /
+          keystrokeTimes.length
         : 0;
 
     // Calculate typing rhythm (consistency score)
-    const typingRhythm = this.calculateTypingRhythm(keystrokeTimes);
+    const typingRhythm = AnalyticsEngine.calculateTypingRhythm(keystrokeTimes);
 
     return {
       keystrokeData: keystrokeEvents,
@@ -66,12 +63,9 @@ export class AnalyticsEngine {
   static calculateTypingRhythm(keystrokeTimes: number[]): number {
     if (keystrokeTimes.length < 2) return 100;
 
-    const mean =
-      keystrokeTimes.reduce((sum, time) => sum + time, 0) /
-      keystrokeTimes.length;
+    const mean = keystrokeTimes.reduce((sum, time) => sum + time, 0) / keystrokeTimes.length;
     const variance =
-      keystrokeTimes.reduce((sum, time) => sum + Math.pow(time - mean, 2), 0) /
-      keystrokeTimes.length;
+      keystrokeTimes.reduce((sum, time) => sum + (time - mean) ** 2, 0) / keystrokeTimes.length;
     const standardDeviation = Math.sqrt(variance);
 
     // Calculate coefficient of variation (lower is more consistent)
@@ -101,8 +95,7 @@ export class AnalyticsEngine {
 
         // Count character errors
         if (expectedChar) {
-          characterErrors[expectedChar] =
-            (characterErrors[expectedChar] || 0) + 1;
+          characterErrors[expectedChar] = (characterErrors[expectedChar] || 0) + 1;
         }
 
         // Find word containing this error
@@ -117,7 +110,7 @@ export class AnalyticsEngine {
     });
 
     // Identify error patterns
-    const patterns = this.identifyErrorPatterns(keystrokeEvents);
+    const patterns = AnalyticsEngine.identifyErrorPatterns(keystrokeEvents);
 
     // Get most problematic characters
     const mostProblematicChars = Object.entries(characterErrors)
@@ -136,11 +129,8 @@ export class AnalyticsEngine {
   /**
    * Identify common error patterns
    */
-  static identifyErrorPatterns(
-    keystrokeEvents: DetailedKeystrokeEvent[]
-  ): ErrorPattern[] {
-    const patterns: Map<string, { frequency: number; contexts: string[] }> =
-      new Map();
+  static identifyErrorPatterns(keystrokeEvents: DetailedKeystrokeEvent[]): ErrorPattern[] {
+    const patterns: Map<string, { frequency: number; contexts: string[] }> = new Map();
 
     for (let i = 0; i < keystrokeEvents.length - 1; i++) {
       const current = keystrokeEvents[i];
@@ -171,7 +161,7 @@ export class AnalyticsEngine {
         pattern,
         frequency: data.frequency,
         context: data.contexts[0] || '', // Use first context as representative
-        suggestions: this.generateErrorSuggestions(pattern),
+        suggestions: AnalyticsEngine.generateErrorSuggestions(pattern),
       }))
       .sort((a, b) => b.frequency - a.frequency)
       .slice(0, 10); // Top 10 patterns
@@ -203,10 +193,7 @@ export class AnalyticsEngine {
           suggestions.push('Practice typing this character slowly');
         }
 
-        if (
-          expected.toLowerCase() !== expected &&
-          actual.toLowerCase() === actual
-        ) {
+        if (expected.toLowerCase() !== expected && actual.toLowerCase() === actual) {
           suggestions.push('Remember to use Shift for capital letters');
         }
 
@@ -252,22 +239,14 @@ export class AnalyticsEngine {
     const bestWpm = Math.max(...tests.map((r) => parseFloat(r.wpm)));
     const bestAccuracy = Math.max(...tests.map((r) => parseFloat(r.accuracy)));
     const avgWpm =
-      Math.round(
-        (tests.reduce((sum, r) => sum + parseFloat(r.wpm), 0) / tests.length) *
-          100
-      ) / 100;
+      Math.round((tests.reduce((sum, r) => sum + parseFloat(r.wpm), 0) / tests.length) * 100) / 100;
     const avgAccuracy =
-      Math.round(
-        (tests.reduce((sum, r) => sum + parseFloat(r.accuracy), 0) /
-          tests.length) *
-          100
-      ) / 100;
+      Math.round((tests.reduce((sum, r) => sum + parseFloat(r.accuracy), 0) / tests.length) * 100) /
+      100;
     const totalTime = tests.reduce((sum, r) => sum + r.timeTaken, 0);
 
     // Calculate streaks
-    const testDates = tests.map(
-      (test) => test.completedAt.toISOString().split('T')[0]
-    );
+    const testDates = tests.map((test) => test.completedAt.toISOString().split('T')[0]);
     const uniqueDates = [...new Set(testDates)].sort();
 
     // Calculate current streak

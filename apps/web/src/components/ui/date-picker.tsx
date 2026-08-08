@@ -4,11 +4,7 @@ import * as React from 'react';
 
 import { Button } from '@/components/ui/button';
 import { Calendar } from '@/components/ui/calendar';
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from '@/components/ui/popover';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { cn } from '@/lib/utils';
 
 interface DatePickerProps {
@@ -16,6 +12,8 @@ interface DatePickerProps {
   onDateChange?: (date: Date | undefined) => void;
   placeholder?: string;
   className?: string;
+  /** Lets a sibling <label htmlFor> point at the trigger. */
+  id?: string;
 }
 
 export function DatePicker({
@@ -23,6 +21,7 @@ export function DatePicker({
   onDateChange,
   placeholder = 'Pick a date',
   className,
+  id,
 }: DatePickerProps) {
   const [open, setOpen] = React.useState(false);
 
@@ -30,6 +29,7 @@ export function DatePicker({
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
         <Button
+          id={id}
           variant="outline"
           className={cn(
             'w-full justify-start text-left font-normal',

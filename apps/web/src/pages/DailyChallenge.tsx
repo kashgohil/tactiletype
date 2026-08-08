@@ -1,3 +1,10 @@
+import { getDailyModeForDate } from '@tactile/content';
+import { useQuery } from '@tanstack/react-query';
+import { Link, useNavigate } from '@tanstack/react-router';
+import { Gamepad2, Quote, Trophy } from 'lucide-react';
+import { motion } from 'motion/react';
+import type React from 'react';
+import { useMemo } from 'react';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { usePrefersReducedMotion } from '@/hooks/usePrefersReducedMotion';
@@ -5,12 +12,6 @@ import { EASE_OUT, uiTransition } from '@/lib/motion';
 import { cn } from '@/lib/utils';
 import { challengesApi } from '@/services/challengesApi';
 import { beginDailyRun, loadLocalDailyModeBoard } from '@/utils/dailyRun';
-import { getDailyModeForDate } from '@tactile/content';
-import { useQuery } from '@tanstack/react-query';
-import { Link, useNavigate } from '@tanstack/react-router';
-import { Gamepad2, Quote, Trophy } from 'lucide-react';
-import { motion } from 'motion/react';
-import React, { useMemo } from 'react';
 
 function BoardList({
   entries,
@@ -90,10 +91,7 @@ export const DailyChallenge: React.FC = () => {
     staleTime: 60 * 1000,
   });
 
-  const localModeBoard = useMemo(
-    () => loadLocalDailyModeBoard(mode.date),
-    [mode.date]
-  );
+  const localModeBoard = useMemo(() => loadLocalDailyModeBoard(mode.date), [mode.date]);
 
   const startText = () => {
     if (!challenge) return;
@@ -160,8 +158,8 @@ export const DailyChallenge: React.FC = () => {
           The daily typing challenge
         </h1>
         <p className="text-text/50 max-w-2xl leading-relaxed text-[15px]">
-          Two challenges, one day. A shared quote race and a rotating play mode
-          — different rules so you&apos;re not just replaying the same test.
+          Two challenges, one day. A shared quote race and a rotating play mode — different rules so
+          you&apos;re not just replaying the same test.
         </p>
       </motion.header>
 
@@ -245,18 +243,21 @@ export const DailyChallenge: React.FC = () => {
       </div>
 
       <div className="grid md:grid-cols-2 gap-3">
-        <motion.section {...enter(0.12)} className="rounded-2xl border border-accent/15 bg-accent/[0.05] p-5 sm:p-6">
+        <motion.section
+          {...enter(0.12)}
+          className="rounded-2xl border border-accent/15 bg-accent/[0.05] p-5 sm:p-6"
+        >
           <h2 className="text-base font-semibold flex items-center gap-2 mb-4 tracking-tight">
             <Trophy className="size-4 text-accent" />
             Quote board
           </h2>
-          <BoardList
-            entries={quoteEntries}
-            empty="No finishes yet — be the first."
-          />
+          <BoardList entries={quoteEntries} empty="No finishes yet — be the first." />
         </motion.section>
 
-        <motion.section {...enter(0.16)} className="rounded-2xl border border-accent/15 bg-accent/[0.05] p-5 sm:p-6">
+        <motion.section
+          {...enter(0.16)}
+          className="rounded-2xl border border-accent/15 bg-accent/[0.05] p-5 sm:p-6"
+        >
           <h2 className="text-base font-semibold flex items-center gap-2 mb-1 tracking-tight">
             <Trophy className="size-4 text-accent" />
             Mode board
@@ -264,10 +265,7 @@ export const DailyChallenge: React.FC = () => {
           <p className="text-[11px] text-text/35 font-mono mb-4">
             {mode.title.replace(/^Daily mode · /, '')}
           </p>
-          <BoardList
-            entries={modeEntries}
-            empty="No mode finishes yet. Log in to rank globally."
-          />
+          <BoardList entries={modeEntries} empty="No mode finishes yet. Log in to rank globally." />
         </motion.section>
       </div>
 

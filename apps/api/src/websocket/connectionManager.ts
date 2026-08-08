@@ -73,11 +73,7 @@ export class ConnectionManager {
     return this.connections.get(connectionId);
   }
 
-  authenticateConnection(
-    connectionId: string,
-    userId: string,
-    username?: string
-  ): boolean {
+  authenticateConnection(connectionId: string, userId: string, username?: string): boolean {
     const connection = this.connections.get(connectionId);
     if (!connection) return false;
 
@@ -138,8 +134,7 @@ export class ConnectionManager {
     }
 
     // Force spectator if race already running / finished
-    const mustSpectate =
-      spectate || room.status === 'active' || room.status === 'finished';
+    const mustSpectate = spectate || room.status === 'active' || room.status === 'finished';
 
     if (mustSpectate) {
       return this.joinAsSpectator(connectionId, roomId, userId, username);
@@ -257,16 +252,11 @@ export class ConnectionManager {
     connection.role = undefined;
     this.roomConnections.get(roomId)?.delete(connectionId);
 
-    if (
-      room.participants.size === 0 &&
-      room.spectators.size === 0
-    ) {
+    if (room.participants.size === 0 && room.spectators.size === 0) {
       this.cleanupRoom(roomId);
     } else {
       if (wasRacer && userId === room.hostId) {
-        const next = room.participants.values().next().value as
-          | ParticipantState
-          | undefined;
+        const next = room.participants.values().next().value as ParticipantState | undefined;
         if (next) room.hostId = next.userId;
       }
       this.broadcastToRoom(roomId, {
@@ -279,10 +269,7 @@ export class ConnectionManager {
     return true;
   }
 
-  addChatMessage(
-    connectionId: string,
-    text: string
-  ): ChatMessage | null {
+  addChatMessage(connectionId: string, text: string): ChatMessage | null {
     const connection = this.connections.get(connectionId);
     if (!connection?.roomId || !connection.userId || !connection.username) {
       return null;
@@ -316,7 +303,7 @@ export class ConnectionManager {
 
   startRaceCountdown(roomId: string): boolean {
     const room = this.rooms.get(roomId);
-    if (!room || room.status !== 'waiting' || room.participants.size < 1) {
+    if (room?.status !== 'waiting' || room.participants.size < 1) {
       return false;
     }
 
@@ -379,7 +366,7 @@ export class ConnectionManager {
     if (connection.role === 'spectator') return false;
 
     const room = this.rooms.get(connection.roomId);
-    if (!room || room.status !== 'active') return false;
+    if (room?.status !== 'active') return false;
 
     const participant = room.participants.get(connection.userId);
     if (!participant) return false;
@@ -414,9 +401,7 @@ export class ConnectionManager {
         },
       ]);
 
-      const allFinished = Array.from(room.participants.values()).every(
-        (p) => p.finished
-      );
+      const allFinished = Array.from(room.participants.values()).every((p) => p.finished);
       if (allFinished) this.finishRace(connection.roomId);
     }
 

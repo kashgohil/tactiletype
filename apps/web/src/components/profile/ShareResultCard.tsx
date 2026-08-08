@@ -1,10 +1,8 @@
-import { Button } from '@/components/ui/button';
-import {
-  downloadShareCard,
-  shareCardImage,
-} from '@/utils/exportShareCard';
 import { Copy, Download, ImageIcon, X } from 'lucide-react';
-import React, { useRef, useState } from 'react';
+import type React from 'react';
+import { useRef, useState } from 'react';
+import { Button } from '@/components/ui/button';
+import { downloadShareCard, shareCardImage } from '@/utils/exportShareCard';
 
 interface ShareResultCardProps {
   username: string;
@@ -34,9 +32,7 @@ export const ShareResultCard: React.FC<ShareResultCardProps> = ({
   const cardRef = useRef<HTMLDivElement>(null);
 
   const url =
-    typeof window !== 'undefined'
-      ? `${window.location.origin}/u/${username}`
-      : `/u/${username}`;
+    typeof window !== 'undefined' ? `${window.location.origin}/u/${username}` : `/u/${username}`;
 
   const statsLine =
     resultWpm != null
@@ -109,12 +105,7 @@ export const ShareResultCard: React.FC<ShareResultCardProps> = ({
       <div className="bg-primary border border-accent/30 rounded-2xl max-w-md w-full shadow-xl overflow-hidden">
         <div className="flex justify-between items-center px-4 py-3 border-b border-accent/10">
           <h3 className="font-semibold">Share card</h3>
-          <Button
-            size="icon"
-            variant="ghost"
-            onClick={onClose}
-            aria-label="Close"
-          >
+          <Button size="icon" variant="ghost" onClick={onClose} aria-label="Close">
             <X className="size-4" />
           </Button>
         </div>
@@ -141,9 +132,7 @@ export const ShareResultCard: React.FC<ShareResultCardProps> = ({
             <div className="grid grid-cols-3 gap-3 text-center">
               <div>
                 <p className="text-2xl font-mono font-bold text-accent">
-                  {resultWpm != null
-                    ? Math.round(resultWpm)
-                    : Math.round(Number(bestWpm))}
+                  {resultWpm != null ? Math.round(resultWpm) : Math.round(Number(bestWpm))}
                 </p>
                 <p className="text-[10px] uppercase text-text/40">
                   {resultWpm != null ? 'WPM' : 'Best WPM'}
@@ -159,9 +148,7 @@ export const ShareResultCard: React.FC<ShareResultCardProps> = ({
                 <p className="text-[10px] uppercase text-text/40">Accuracy</p>
               </div>
               <div>
-                <p className="text-2xl font-mono font-bold text-accent">
-                  {totalTests}
-                </p>
+                <p className="text-2xl font-mono font-bold text-accent">{totalTests}</p>
                 <p className="text-[10px] uppercase text-text/40">Tests</p>
               </div>
             </div>
@@ -179,12 +166,7 @@ export const ShareResultCard: React.FC<ShareResultCardProps> = ({
             <Copy className="size-4" />
             {copied ? 'Copied!' : 'Copy text'}
           </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={download}
-            disabled={busy}
-          >
+          <Button variant="outline" size="sm" onClick={download} disabled={busy}>
             <Download className="size-4" />
             PNG
           </Button>

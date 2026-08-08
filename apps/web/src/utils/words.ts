@@ -5,8 +5,8 @@
 import {
   HARD_WORDS as CONTENT_HARD,
   QUOTE_STRINGS,
-  TOP_1000_WORDS,
   TOP_200_WORDS,
+  TOP_1000_WORDS,
   uniqueWords,
 } from '@tactile/content';
 

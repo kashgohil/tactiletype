@@ -2,10 +2,10 @@ export { STARTER_ACHIEVEMENTS } from './achievements';
 export { CODE_SNIPPETS } from './code';
 export {
   DAILY_MODE_IDS,
-  daySeed,
-  getDailyModeForDate,
   type DailyModeChallenge,
   type DailyModeId,
+  daySeed,
+  getDailyModeForDate,
 } from './dailyMode';
 export {
   BOTTOM_ROW,
@@ -24,7 +24,7 @@ export {
   flattenPackItems,
   generateWordPassage,
 } from './generate';
-export { QUOTES, QUOTE_STRINGS } from './quotes';
+export { QUOTE_STRINGS, QUOTES } from './quotes';
 export { REAL_WORLD_LINES, SYMBOL_LINES } from './symbols';
 export type {
   ContentItem,
@@ -34,7 +34,7 @@ export type {
 } from './types';
 export {
   HARD_WORDS,
-  TOP_1000_WORDS,
   TOP_200_WORDS,
+  TOP_1000_WORDS,
   uniqueWords,
 } from './words';

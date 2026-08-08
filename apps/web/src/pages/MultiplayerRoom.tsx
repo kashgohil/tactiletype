@@ -1,17 +1,14 @@
+import { useNavigate, useParams, useSearch } from '@tanstack/react-router';
+import { Crown, Eye, LogOut, Play, Trophy } from 'lucide-react';
+import type React from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { RaceChat } from '@/components/multiplayer/RaceChat';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
-import { useNavigate, useParams, useSearch } from '@tanstack/react-router';
-import { Crown, Eye, LogOut, Play, Trophy } from 'lucide-react';
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useAuth } from '../contexts';
 import { useMultiplayer } from '../hooks/useMultiplayer';
 import { multiplayerApi } from '../services/multiplayerApi';
-import {
-  TypingEngine,
-  isNonPrintingKey,
-  type TypingStats,
-} from '../utils/typingEngine';
+import { isNonPrintingKey, TypingEngine, type TypingStats } from '../utils/typingEngine';
 
 export const MultiplayerRoom: React.FC = () => {
   const { roomId } = useParams({ strict: false }) as { roomId: string };
@@ -41,6 +38,10 @@ export const MultiplayerRoom: React.FC = () => {
       state.raceStatus === 'countdown' ||
       state.raceStatus === 'finished');
 
+  // Keyed on `user?.id`, not `user`: a new object identity for the same person
+  // must not tear down and rejoin the room. `actions.connect` is likewise held
+  // out on purpose — it is recreated per render.
+  // biome-ignore lint/correctness/useExhaustiveDependencies: deliberate join-once-per-room effect
   useEffect(() => {
     if (!user || !roomId) return;
     let cancelled = false;
@@ -85,7 +86,6 @@ export const MultiplayerRoom: React.FC = () => {
     return () => {
       cancelled = true;
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user?.id, roomId, wantSpectate]);
 
   useEffect(() => {
@@ -110,16 +110,8 @@ export const MultiplayerRoom: React.FC = () => {
     progressTimer.current = setInterval(() => {
       const s = engine.calculateStats();
       const st = engine.getState();
-      const progress =
-        text.length > 0
-          ? Math.min(100, (st.currentIndex / text.length) * 100)
-          : 0;
-      actions.sendTypingProgress(
-        progress,
-        s.wpm,
-        s.accuracy,
-        s.incorrectChars
-      );
+      const progress = text.length > 0 ? Math.min(100, (st.currentIndex / text.length) * 100) : 0;
+      actions.sendTypingProgress(progress, s.wpm, s.accuracy, s.incorrectChars);
       if (st.isComplete) {
         actions.sendTypingProgress(100, s.wpm, s.accuracy, s.incorrectChars);
       }
@@ -170,8 +162,7 @@ export const MultiplayerRoom: React.FC = () => {
           if (engine) {
             const status = engine.getCharacterStatus(i);
             if (status === 'correct') cls = 'text-text';
-            else if (status === 'incorrect')
-              cls = 'text-destructive';
+            else if (status === 'incorrect') cls = 'text-destructive';
             else if (status === 'current') cls = 'text-text/50 bg-accent/35 rounded-sm';
           }
           return (
@@ -185,9 +176,7 @@ export const MultiplayerRoom: React.FC = () => {
   };
 
   if (!user) {
-    return (
-      <div className="text-center py-16 text-text/50">Please log in.</div>
-    );
+    return <div className="text-center py-16 text-text/50">Please log in.</div>;
   }
 
   return (
@@ -238,6 +227,7 @@ export const MultiplayerRoom: React.FC = () => {
           )}
 
           {isRacing && (
+            // biome-ignore lint/a11y/useSemanticElements: a real textarea cannot render the per-character correct/incorrect colouring this surface exists to show
             <div
               ref={inputRef}
               tabIndex={0}
@@ -252,23 +242,16 @@ export const MultiplayerRoom: React.FC = () => {
               )}
             >
               {!focused && (
-                <p className="text-center text-text/40 text-sm mb-3">
-                  Click here and type
-                </p>
+                <p className="text-center text-text/40 text-sm mb-3">Click here and type</p>
               )}
               {renderText()}
               {stats && (
                 <div className="flex gap-4 mt-4 text-sm font-mono text-text/60">
                   <span>
-                    <span className="text-accent font-semibold">
-                      {stats.wpm}
-                    </span>{' '}
-                    wpm
+                    <span className="text-accent font-semibold">{stats.wpm}</span> wpm
                   </span>
                   <span>
-                    <span className="text-accent font-semibold">
-                      {stats.accuracy}%
-                    </span>
+                    <span className="text-accent font-semibold">{stats.accuracy}%</span>
                   </span>
                   <span>
                     {localIndex}/{text.length}
@@ -302,8 +285,8 @@ export const MultiplayerRoom: React.FC = () => {
               </p>
               {state.currentRoom?.testText && (
                 <p className="text-xs text-text/40 pt-2">
-                  Text: {state.currentRoom.testText.title} (
-                  {state.currentRoom.testText.wordCount} words)
+                  Text: {state.currentRoom.testText.title} ({state.currentRoom.testText.wordCount}{' '}
+                  words)
                 </p>
               )}
             </div>
@@ -313,9 +296,7 @@ export const MultiplayerRoom: React.FC = () => {
             <div className="rounded-2xl border border-accent/30 bg-accent/[0.12] p-6 text-center space-y-2">
               <Trophy className="size-8 text-accent mx-auto" />
               <h2 className="text-lg font-semibold">Race complete</h2>
-              <p className="text-sm text-text/50">
-                Results saved to the room standings.
-              </p>
+              <p className="text-sm text-text/50">Results saved to the room standings.</p>
             </div>
           )}
 
@@ -327,24 +308,18 @@ export const MultiplayerRoom: React.FC = () => {
                   key={p.userId}
                   className={cn(
                     'rounded-lg px-3 py-2 bg-primary/40',
-                    p.userId === user.id &&
-                      !isSpectator &&
-                      'ring-1 ring-accent/50'
+                    p.userId === user.id && !isSpectator && 'ring-1 ring-accent/50'
                   )}
                 >
                   <div className="flex items-center justify-between gap-2 text-sm mb-1.5">
                     <span className="font-medium flex items-center gap-1.5">
-                      <span className="text-text/40 font-mono w-5">
-                        {i + 1}
-                      </span>
+                      <span className="text-text/40 font-mono w-5">{i + 1}</span>
                       {p.username}
                       {p.userId === state.currentRoom?.hostId && (
                         <Crown className="size-3.5 text-accent" />
                       )}
                       {p.finished && (
-                        <span className="text-[10px] uppercase text-accent">
-                          done
-                        </span>
+                        <span className="text-[10px] uppercase text-accent">done</span>
                       )}
                     </span>
                     <span className="font-mono text-accent text-xs">
@@ -362,9 +337,7 @@ export const MultiplayerRoom: React.FC = () => {
                 </li>
               ))}
               {ranked.length === 0 && (
-                <li className="text-sm text-text/40 px-1 py-4 text-center">
-                  No racers yet
-                </li>
+                <li className="text-sm text-text/40 px-1 py-4 text-center">No racers yet</li>
               )}
             </ul>
             {spectators.length > 0 && (
@@ -381,11 +354,7 @@ export const MultiplayerRoom: React.FC = () => {
           </section>
         </div>
 
-        <RaceChat
-          messages={state.chat}
-          onSend={actions.sendChat}
-          disabled={!state.isInRoom}
-        />
+        <RaceChat messages={state.chat} onSend={actions.sendChat} disabled={!state.isInRoom} />
       </div>
     </div>
   );

@@ -1,14 +1,9 @@
-import { JsonLd } from '@/components/JsonLd';
-import { GUIDES, guideSlug } from '@/content/registry';
-import {
-  absoluteUrl,
-  breadcrumbSchema,
-  webPageSchema,
-  WEBSITE_ID,
-} from '@/lib/seo';
 import { Link } from '@tanstack/react-router';
 import { ArrowRight } from 'lucide-react';
-import React from 'react';
+import type React from 'react';
+import { JsonLd } from '@/components/JsonLd';
+import { GUIDES, guideSlug } from '@/content/registry';
+import { absoluteUrl, breadcrumbSchema, WEBSITE_ID, webPageSchema } from '@/lib/seo';
 
 const meta = {
   path: '/guides',
@@ -50,8 +45,8 @@ export const Guides: React.FC = () => {
           Typing guides
         </h1>
         <p className="text-[17px] text-text/60 max-w-3xl leading-relaxed">
-          What the numbers mean, what actually makes you faster, and what to
-          ignore. Written to be read once and acted on — not to fill a page.
+          What the numbers mean, what actually makes you faster, and what to ignore. Written to be
+          read once and acted on — not to fill a page.
         </p>
       </header>
 
@@ -67,16 +62,16 @@ export const Guides: React.FC = () => {
               {guide.h1}
               <ArrowRight className="size-4 text-accent opacity-0 -translate-x-1 group-hover:opacity-100 group-hover:translate-x-0 transition-all" />
             </h2>
-            <p className="text-sm text-text/50 mt-2 leading-relaxed grow">
-              {guide.description}
-            </p>
+            <p className="text-sm text-text/50 mt-2 leading-relaxed grow">{guide.description}</p>
             <p className="text-xs text-text/30 mt-4">
               Updated{' '}
               <time dateTime={guide.updated}>
-                {new Date(`${guide.updated}T00:00:00Z`).toLocaleDateString(
-                  'en-GB',
-                  { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'UTC' }
-                )}
+                {new Date(`${guide.updated}T00:00:00Z`).toLocaleDateString('en-GB', {
+                  day: 'numeric',
+                  month: 'long',
+                  year: 'numeric',
+                  timeZone: 'UTC',
+                })}
               </time>
             </p>
           </Link>
@@ -89,24 +84,15 @@ export const Guides: React.FC = () => {
         </h2>
         <p className="text-text/70 leading-relaxed">
           Reading about typing has a low ceiling.{' '}
-          <Link
-            to="/"
-            className="text-accent underline-offset-2 hover:underline"
-          >
+          <Link to="/" className="text-accent underline-offset-2 hover:underline">
             Take the test
           </Link>{' '}
           to get a number,{' '}
-          <Link
-            to="/practice"
-            className="text-accent underline-offset-2 hover:underline"
-          >
+          <Link to="/practice" className="text-accent underline-offset-2 hover:underline">
             drill your weak spots
           </Link>{' '}
           to move it, or{' '}
-          <Link
-            to="/typing-test"
-            className="text-accent underline-offset-2 hover:underline"
-          >
+          <Link to="/typing-test" className="text-accent underline-offset-2 hover:underline">
             read how the test works
           </Link>{' '}
           first.

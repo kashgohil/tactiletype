@@ -1,3 +1,9 @@
+import type { ErrorAnalysisSummary, ProgressChart, UserRecommendation } from '@tactile/types';
+import { useQuery } from '@tanstack/react-query';
+import { Download, FileText, Mail, Printer } from 'lucide-react';
+import type React from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { toast } from 'sonner';
 import { Skeleton } from '@/components/ui/skeleton';
 import { analyticsApi } from '@/services/analyticsApi';
 import { describeError } from '@/utils/describeError';
@@ -5,10 +11,10 @@ import {
   applySections,
   buildReport,
   PERIOD_DAYS,
-  sectionAvailability,
   type ReportFormat,
   type ReportPeriod,
   type ReportSections,
+  sectionAvailability,
 } from '@/utils/report/buildReport';
 import {
   downloadReportHtml,
@@ -17,23 +23,11 @@ import {
   whenImagesReady,
 } from '@/utils/report/exportReport';
 import { withChartImages } from '@/utils/report/renderChartImage';
-import type { ErrorAnalysisSummary, ProgressChart } from '@tactile/types';
-import type { UserRecommendation } from '@tactile/types';
-import { useQuery } from '@tanstack/react-query';
-import { Download, FileText, Mail, Printer } from 'lucide-react';
-import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { toast } from 'sonner';
 import { Button } from '../ui/button';
 import { Checkbox } from '../ui/checkbox';
 import { Label } from '../ui/label';
 import { Panel } from '../ui/panel';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '../ui/select';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
 import { A4Frame } from './report/A4Frame';
 import { ReportDocument } from './report/ReportDocument';
 import { ReportPrintPortal } from './report/ReportPrintPortal';
@@ -173,9 +167,7 @@ export const ReportGenerator: React.FC<ReportGeneratorProps> = ({
       if (format === 'json') {
         downloadReportJson(report);
       } else if (format === 'html') {
-        const sheet = previewRef.current?.querySelector<HTMLElement>(
-          '[data-report-sheet]'
-        );
+        const sheet = previewRef.current?.querySelector<HTMLElement>('[data-report-sheet]');
         if (!sheet) throw new Error('The report preview is not ready yet.');
         await downloadReportHtml(report, sheet);
       } else {
@@ -207,12 +199,9 @@ export const ReportGenerator: React.FC<ReportGeneratorProps> = ({
             stretching this column to the height of the page beside it. */}
         <div className="flex flex-col gap-5 self-start">
           <div>
-            <h2 className="text-base font-semibold tracking-tight">
-              Generate report
-            </h2>
+            <h2 className="text-base font-semibold tracking-tight">Generate report</h2>
             <p className="text-sm text-text/45 mt-1 leading-relaxed">
-              Built in your browser from data already loaded — nothing is sent
-              anywhere.
+              Built in your browser from data already loaded — nothing is sent anywhere.
             </p>
             <div className="flex items-center gap-2 mt-3 -ml-3">
               <Button
@@ -237,10 +226,7 @@ export const ReportGenerator: React.FC<ReportGeneratorProps> = ({
           <div className="flex flex-col gap-4">
             <div>
               <Label className="text-text/50 mb-2">Time period</Label>
-              <Select
-                value={period}
-                onValueChange={(value) => setPeriod(value as ReportPeriod)}
-              >
+              <Select value={period} onValueChange={(value) => setPeriod(value as ReportPeriod)}>
                 <SelectTrigger className="w-full">
                   <SelectValue placeholder="Select time period" />
                 </SelectTrigger>
@@ -255,10 +241,7 @@ export const ReportGenerator: React.FC<ReportGeneratorProps> = ({
 
             <div>
               <Label className="text-text/50 mb-2">Format</Label>
-              <Select
-                value={format}
-                onValueChange={(value) => setFormat(value as ReportFormat)}
-              >
+              <Select value={format} onValueChange={(value) => setFormat(value as ReportFormat)}>
                 <SelectTrigger className="w-full">
                   <SelectValue placeholder="Select report format" />
                 </SelectTrigger>
@@ -296,9 +279,7 @@ export const ReportGenerator: React.FC<ReportGeneratorProps> = ({
                     />
                     {option.label}
                     {!isAvailable && (
-                      <span className="text-xs text-text/35">
-                        — {option.emptyNote}
-                      </span>
+                      <span className="text-xs text-text/35">— {option.emptyNote}</span>
                     )}
                   </Label>
                 );
@@ -330,9 +311,7 @@ export const ReportGenerator: React.FC<ReportGeneratorProps> = ({
                 </>
               )}
             </Button>
-            <p className="text-xs text-text/45 leading-relaxed">
-              {FORMAT_HINT[format]}
-            </p>
+            <p className="text-xs text-text/45 leading-relaxed">{FORMAT_HINT[format]}</p>
           </div>
         </div>
 
@@ -349,12 +328,8 @@ export const ReportGenerator: React.FC<ReportGeneratorProps> = ({
 
           {rowsQuery.isError && (
             <div className="rounded-lg border border-accent/15 bg-accent/[0.06] p-6 text-center">
-              <p className="text-sm font-medium">
-                Couldn't load your results
-              </p>
-              <p className="text-sm text-text/50 mt-1">
-                {describeError(rowsQuery.error)}
-              </p>
+              <p className="text-sm font-medium">Couldn't load your results</p>
+              <p className="text-sm text-text/50 mt-1">{describeError(rowsQuery.error)}</p>
               <Button
                 onClick={() => rowsQuery.refetch()}
                 size="sm"
@@ -403,8 +378,7 @@ export const ReportGenerator: React.FC<ReportGeneratorProps> = ({
           <div>
             <h5 className="font-medium mb-1">Email reports (coming soon)</h5>
             <p className="text-sm text-text/50 mb-3">
-              Get automated weekly or monthly progress reports delivered to your
-              email.
+              Get automated weekly or monthly progress reports delivered to your email.
             </p>
             <div className="flex items-center gap-4 text-sm">
               <Label className="font-normal text-text/45">

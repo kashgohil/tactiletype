@@ -33,5 +33,9 @@ export function guideSlug(guide: ContentPage): string {
 
 /** Newest `updated` across the cluster — drives the hub's freshness stamp. */
 export function latestGuideUpdate(): string {
-  return GUIDES.map((g) => g.updated).sort().at(-1) ?? '';
+  return (
+    GUIDES.map((g) => g.updated)
+      .sort()
+      .at(-1) ?? ''
+  );
 }

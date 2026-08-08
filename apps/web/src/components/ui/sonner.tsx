@@ -1,4 +1,3 @@
-import { useTheme } from '@/hooks/useTheme';
 import {
   CircleCheckIcon,
   InfoIcon,
@@ -7,6 +6,7 @@ import {
   TriangleAlertIcon,
 } from 'lucide-react';
 import { Toaster as Sonner, type ToasterProps } from 'sonner';
+import { useTheme } from '@/hooks/useTheme';
 
 const Toaster = ({ ...props }: ToasterProps) => {
   // Polarity comes from the active theme's own colors, not the OS preference —

@@ -1,5 +1,5 @@
 import type { AccuracyHeatmap, HeatmapCell } from '@tactile/types';
-import React from 'react';
+import type React from 'react';
 import { Panel } from '../ui/panel';
 import { Tooltip, TooltipContent, TooltipTrigger } from '../ui/tooltip';
 
@@ -21,21 +21,7 @@ const qwertyLayout = {
   lowercase_row3: ['z', 'x', 'c', 'v', 'b', 'n', 'm'],
 
   // Numbers and symbols
-  numbers_row: [
-    '`',
-    '1',
-    '2',
-    '3',
-    '4',
-    '5',
-    '6',
-    '7',
-    '8',
-    '9',
-    '0',
-    '-',
-    '=',
-  ],
+  numbers_row: ['`', '1', '2', '3', '4', '5', '6', '7', '8', '9', '0', '-', '='],
   symbols_row1: ['[', ']', '\\'],
   symbols_row2: [';', "'"],
   symbols_row3: [',', '.', '/'],
@@ -66,18 +52,14 @@ const getColorIntensity = (accuracy: number, hasData: boolean) => {
   const band = bandFor(accuracy);
   // Above the top band, more accuracy means more colour; below it, the further
   // from perfect the louder the warning.
-  const magnitude =
-    accuracy >= 95 ? accuracy / 100 : 1 - accuracy / 100;
+  const magnitude = accuracy >= 95 ? accuracy / 100 : 1 - accuracy / 100;
   return swatch(band.token, 0.2 + magnitude * 0.6);
 };
 
 const getTextColor = (_accuracy: number, hasData: boolean) =>
   hasData ? 'text-text' : 'text-text/40';
 
-const KeyboardRow: React.FC<{ row: string; characters: HeatmapCell[] }> = ({
-  row,
-  characters,
-}) => {
+const KeyboardRow: React.FC<{ row: string; characters: HeatmapCell[] }> = ({ row, characters }) => {
   return (
     <div key={row} className="flex flex-wrap gap-1 justify-center">
       {characters.map((cell, cellIndex) => {
@@ -128,9 +110,7 @@ export const ErrorHeatmap: React.FC<ErrorHeatmapProps> = ({
 }) => {
   // Generate all printable ASCII characters arranged in QWERTY layout
   const getAllCharacters = (): { row: string; characters: HeatmapCell[] }[] => {
-    const existingChars = new Map(
-      heatmapData.characters.map((cell) => [cell.character, cell])
-    );
+    const existingChars = new Map(heatmapData.characters.map((cell) => [cell.character, cell]));
 
     const keyboardRows: { row: string; characters: HeatmapCell[] }[] = [];
 
@@ -226,17 +206,11 @@ export const ErrorHeatmap: React.FC<ErrorHeatmapProps> = ({
   const keyboardRows = getAllCharacters();
 
   return (
-    <Panel
-      title={title}
-      description="Hover over characters to see detailed accuracy statistics."
-    >
-
+    <Panel title={title} description="Hover over characters to see detailed accuracy statistics.">
       <div className="space-y-4 mb-6">
         {/* Uppercase Letters Section */}
         <div>
-          <h4 className="text-sm font-medium text-text/50 mb-2 text-center">
-            Uppercase Letters
-          </h4>
+          <h4 className="text-sm font-medium text-text/50 mb-2 text-center">Uppercase Letters</h4>
           <div className="space-y-2">
             {keyboardRows
               .filter((row) => row.row.startsWith('uppercase'))
@@ -248,9 +222,7 @@ export const ErrorHeatmap: React.FC<ErrorHeatmapProps> = ({
 
         {/* Lowercase Letters Section */}
         <div>
-          <h4 className="text-sm font-medium text-text/50 mb-2 text-center">
-            Lowercase Letters
-          </h4>
+          <h4 className="text-sm font-medium text-text/50 mb-2 text-center">Lowercase Letters</h4>
           <div className="space-y-2">
             {keyboardRows
               .filter((row) => row.row.startsWith('lowercase'))
@@ -262,9 +234,7 @@ export const ErrorHeatmap: React.FC<ErrorHeatmapProps> = ({
 
         {/* Numbers and Symbols Section */}
         <div>
-          <h4 className="text-sm font-medium text-text/50 mb-2 text-center">
-            Numbers & Symbols
-          </h4>
+          <h4 className="text-sm font-medium text-text/50 mb-2 text-center">Numbers & Symbols</h4>
           <div className="space-y-2">
             {keyboardRows
               .filter(

@@ -1,5 +1,5 @@
+import type React from 'react';
 import { SITE_EMAIL } from '@/lib/seo';
-import React from 'react';
 
 export const Privacy: React.FC = () => {
   return (
@@ -9,8 +9,7 @@ export const Privacy: React.FC = () => {
           Privacy Policy
         </h1>
         <p className="text-text/50 max-w-2xl leading-relaxed text-[15px]">
-          What we collect when you type, why we keep it, and how to get it back
-          or get rid of it.
+          What we collect when you type, why we keep it, and how to get it back or get rid of it.
         </p>
       </header>
 
@@ -20,8 +19,8 @@ export const Privacy: React.FC = () => {
             1. Information We Collect
           </h2>
           <p className="mb-4">
-            We collect information you provide directly to us and information we
-            obtain automatically when you use TactileType.
+            We collect information you provide directly to us and information we obtain
+            automatically when you use TactileType.
           </p>
 
           <h3 className="text-sm font-semibold uppercase tracking-[0.14em] text-text/45 mb-2">
@@ -64,8 +63,8 @@ export const Privacy: React.FC = () => {
             3. Information Sharing
           </h2>
           <p className="mb-4">
-            We do not sell, trade, or otherwise transfer your personal
-            information to third parties, except in the following circumstances:
+            We do not sell, trade, or otherwise transfer your personal information to third parties,
+            except in the following circumstances:
           </p>
           <ul className="list-disc list-inside mt-2 space-y-1">
             <li>With your explicit consent</li>
@@ -77,36 +76,28 @@ export const Privacy: React.FC = () => {
         </section>
 
         <section>
-          <h2 className="text-lg font-semibold tracking-tight text-text mb-3">
-            4. Data Security
-          </h2>
+          <h2 className="text-lg font-semibold tracking-tight text-text mb-3">4. Data Security</h2>
           <p>
-            We implement appropriate technical and organizational measures to
-            protect your personal information against unauthorized access,
-            alteration, disclosure, or destruction. However, no method of
-            transmission over the internet is 100% secure.
+            We implement appropriate technical and organizational measures to protect your personal
+            information against unauthorized access, alteration, disclosure, or destruction.
+            However, no method of transmission over the internet is 100% secure.
           </p>
         </section>
 
         <section>
-          <h2 className="text-lg font-semibold tracking-tight text-text mb-3">
-            5. Data Retention
-          </h2>
+          <h2 className="text-lg font-semibold tracking-tight text-text mb-3">5. Data Retention</h2>
           <p>
-            We retain your personal information for as long as necessary to
-            provide our services and fulfill the purposes outlined in this
-            policy. You can request deletion of your account and associated data
-            at any time.
+            We retain your personal information for as long as necessary to provide our services and
+            fulfill the purposes outlined in this policy. You can request deletion of your account
+            and associated data at any time.
           </p>
         </section>
 
         <section>
-          <h2 className="text-lg font-semibold tracking-tight text-text mb-3">
-            6. Your Rights
-          </h2>
+          <h2 className="text-lg font-semibold tracking-tight text-text mb-3">6. Your Rights</h2>
           <p className="mb-4">
-            Depending on your location, you may have the following rights
-            regarding your personal information:
+            Depending on your location, you may have the following rights regarding your personal
+            information:
           </p>
           <ul className="list-disc list-inside mt-2 space-y-1">
             <li>Access to your personal data</li>
@@ -122,9 +113,9 @@ export const Privacy: React.FC = () => {
             7. Cookies and Tracking
           </h2>
           <p>
-            We use cookies and similar technologies to enhance your experience,
-            analyze usage patterns, and remember your preferences. You can
-            control cookie settings through your browser preferences.
+            We use cookies and similar technologies to enhance your experience, analyze usage
+            patterns, and remember your preferences. You can control cookie settings through your
+            browser preferences.
           </p>
         </section>
 
@@ -133,9 +124,8 @@ export const Privacy: React.FC = () => {
             8. Third-Party Services
           </h2>
           <p>
-            Our service may contain links to third-party websites or integrate
-            with third-party services. We are not responsible for the privacy
-            practices of these external services.
+            Our service may contain links to third-party websites or integrate with third-party
+            services. We are not responsible for the privacy practices of these external services.
           </p>
         </section>
 
@@ -144,10 +134,9 @@ export const Privacy: React.FC = () => {
             9. Children's Privacy
           </h2>
           <p>
-            TactileType is not intended for children under 13. We do not
-            knowingly collect personal information from children under 13. If we
-            become aware that we have collected such information, we will delete
-            it immediately.
+            TactileType is not intended for children under 13. We do not knowingly collect personal
+            information from children under 13. If we become aware that we have collected such
+            information, we will delete it immediately.
           </p>
         </section>
 
@@ -156,19 +145,15 @@ export const Privacy: React.FC = () => {
             10. Changes to This Policy
           </h2>
           <p>
-            We may update this Privacy Policy from time to time. We will notify
-            you of any material changes by posting the new policy on this page
-            and updating the "Last updated" date.
+            We may update this Privacy Policy from time to time. We will notify you of any material
+            changes by posting the new policy on this page and updating the "Last updated" date.
           </p>
         </section>
 
         <section>
-          <h2 className="text-lg font-semibold tracking-tight text-text mb-3">
-            11. Contact Us
-          </h2>
+          <h2 className="text-lg font-semibold tracking-tight text-text mb-3">11. Contact Us</h2>
           <p>
-            If you have any questions about this Privacy Policy or our data
-            practices, email us at{' '}
+            If you have any questions about this Privacy Policy or our data practices, email us at{' '}
             <a
               href={`mailto:${SITE_EMAIL}`}
               className="text-accent underline-offset-2 hover:underline"
@@ -180,9 +165,7 @@ export const Privacy: React.FC = () => {
         </section>
 
         <div className="mt-12 pt-8 border-t border-line">
-          <p className="text-sm text-text/45">
-            Last updated: August 28, 2025
-          </p>
+          <p className="text-sm text-text/45">Last updated: August 28, 2025</p>
         </div>
       </div>
     </div>

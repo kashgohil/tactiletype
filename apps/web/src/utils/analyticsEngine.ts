@@ -1,13 +1,13 @@
 import type {
+  CharacterError,
   DetailedKeystrokeEvent,
-  KeystrokeAnalytics,
   ErrorAnalytics,
   ErrorPattern,
-  KeystrokeStats,
-  KeySpeed,
   KeyAccuracy,
+  KeySpeed,
+  KeystrokeAnalytics,
+  KeystrokeStats,
   PerformanceTrend,
-  CharacterError,
   WordError,
 } from '@tactile/types';
 
@@ -36,17 +36,20 @@ export class AnalyticsEngine {
     }
 
     // Calculate average keystroke time
-    const averageKeystrokeTime = keystrokeTimes.length > 0 
-      ? keystrokeTimes.reduce((sum, time) => sum + time, 0) / keystrokeTimes.length
-      : 0;
+    const averageKeystrokeTime =
+      keystrokeTimes.length > 0
+        ? keystrokeTimes.reduce((sum, time) => sum + time, 0) / keystrokeTimes.length
+        : 0;
 
     // Calculate variance
-    const variance = keystrokeTimes.length > 0
-      ? keystrokeTimes.reduce((sum, time) => sum + Math.pow(time - averageKeystrokeTime, 2), 0) / keystrokeTimes.length
-      : 0;
+    const variance =
+      keystrokeTimes.length > 0
+        ? keystrokeTimes.reduce((sum, time) => sum + (time - averageKeystrokeTime) ** 2, 0) /
+          keystrokeTimes.length
+        : 0;
 
     // Calculate typing rhythm (consistency score)
-    const typingRhythm = this.calculateTypingRhythm(keystrokeTimes);
+    const typingRhythm = AnalyticsEngine.calculateTypingRhythm(keystrokeTimes);
 
     return {
       keystrokeData: keystrokeEvents,
@@ -63,15 +66,16 @@ export class AnalyticsEngine {
     if (keystrokeTimes.length < 2) return 100;
 
     const mean = keystrokeTimes.reduce((sum, time) => sum + time, 0) / keystrokeTimes.length;
-    const variance = keystrokeTimes.reduce((sum, time) => sum + Math.pow(time - mean, 2), 0) / keystrokeTimes.length;
+    const variance =
+      keystrokeTimes.reduce((sum, time) => sum + (time - mean) ** 2, 0) / keystrokeTimes.length;
     const standardDeviation = Math.sqrt(variance);
-    
+
     // Calculate coefficient of variation (lower is more consistent)
     const coefficientOfVariation = mean > 0 ? standardDeviation / mean : 1;
-    
+
     // Convert to consistency score (0-100, higher is better)
-    const consistencyScore = Math.max(0, 100 - (coefficientOfVariation * 100));
-    
+    const consistencyScore = Math.max(0, 100 - coefficientOfVariation * 100);
+
     return consistencyScore;
   }
 
@@ -90,7 +94,7 @@ export class AnalyticsEngine {
     keystrokeEvents.forEach((event) => {
       if (!event.correct) {
         const expectedChar = event.expectedChar;
-        
+
         // Count character errors
         if (expectedChar) {
           characterErrors[expectedChar] = (characterErrors[expectedChar] || 0) + 1;
@@ -106,8 +110,8 @@ export class AnalyticsEngine {
     });
 
     // Identify error patterns
-    const patterns = this.identifyErrorPatterns(keystrokeEvents);
-    
+    const patterns = AnalyticsEngine.identifyErrorPatterns(keystrokeEvents);
+
     // Get most problematic characters
     const mostProblematicChars = Object.entries(characterErrors)
       .sort(([, a], [, b]) => b - a)
@@ -134,8 +138,9 @@ export class AnalyticsEngine {
 
       if (!current.correct || !next.correct) {
         const pattern = `${current.expectedChar}->${current.actualChar}`;
-        const context = keystrokeEvents.slice(Math.max(0, i - 2), i + 3)
-          .map(e => e.expectedChar)
+        const context = keystrokeEvents
+          .slice(Math.max(0, i - 2), i + 3)
+          .map((e) => e.expectedChar)
           .join('');
 
         if (!patterns.has(pattern)) {
@@ -156,7 +161,7 @@ export class AnalyticsEngine {
         pattern,
         frequency: data.frequency,
         context: data.contexts[0], // Use first context as representative
-        suggestions: this.generateErrorSuggestions(pattern),
+        suggestions: AnalyticsEngine.generateErrorSuggestions(pattern),
       }))
       .sort((a, b) => b.frequency - a.frequency)
       .slice(0, 10); // Top 10 patterns
@@ -167,16 +172,16 @@ export class AnalyticsEngine {
    */
   static generateErrorSuggestions(pattern: string): string[] {
     const suggestions: string[] = [];
-    
+
     if (pattern.includes('->')) {
       const [expected, actual] = pattern.split('->');
-      
+
       // Common finger placement errors
       const fingerMappings: Record<string, string[]> = {
-        'a': ['s', 'q', 'z'],
-        's': ['a', 'd', 'w', 'x'],
-        'd': ['s', 'f', 'e', 'c'],
-        'f': ['d', 'g', 'r', 'v'],
+        a: ['s', 'q', 'z'],
+        s: ['a', 'd', 'w', 'x'],
+        d: ['s', 'f', 'e', 'c'],
+        f: ['d', 'g', 'r', 'v'],
         // Add more mappings as needed
       };
 
@@ -210,7 +215,7 @@ export class AnalyticsEngine {
 
     keystrokeEvents.forEach((event) => {
       const key = event.expectedChar;
-      
+
       // Track timing
       if (event.timeSincePrevious !== undefined) {
         if (!keyTimes.has(key)) {
@@ -249,13 +254,13 @@ export class AnalyticsEngine {
       .sort((a, b) => b.accuracy - a.accuracy);
 
     const allTimes = Array.from(keyTimes.values()).flat();
-    const averageTime = allTimes.length > 0 
-      ? allTimes.reduce((sum, time) => sum + time, 0) / allTimes.length 
-      : 0;
-    
-    const variance = allTimes.length > 0
-      ? allTimes.reduce((sum, time) => sum + Math.pow(time - averageTime, 2), 0) / allTimes.length
-      : 0;
+    const averageTime =
+      allTimes.length > 0 ? allTimes.reduce((sum, time) => sum + time, 0) / allTimes.length : 0;
+
+    const variance =
+      allTimes.length > 0
+        ? allTimes.reduce((sum, time) => sum + (time - averageTime) ** 2, 0) / allTimes.length
+        : 0;
 
     return {
       averageTime,
@@ -277,7 +282,7 @@ export class AnalyticsEngine {
     const metrics = ['wpm', 'accuracy', 'consistency'] as const;
 
     metrics.forEach((metric) => {
-      const values = historicalData.map(d => d[metric]);
+      const values = historicalData.map((d) => d[metric]);
       if (values.length < 2) return;
 
       // Determine trend direction and percentage change
@@ -320,7 +325,7 @@ export class AnalyticsEngine {
         character,
         errorCount,
         errorRate: (errorCount / totalCharacters) * 100,
-        suggestions: this.generateErrorSuggestions(`${character}->`),
+        suggestions: AnalyticsEngine.generateErrorSuggestions(`${character}->`),
       }))
       .sort((a, b) => b.errorCount - a.errorCount)
       .slice(0, 10);
@@ -346,7 +351,12 @@ export class AnalyticsEngine {
     errorAnalytics: ErrorAnalytics,
     performanceTrends: PerformanceTrend[]
   ): Array<{ type: string; title: string; description: string; priority: number }> {
-    const recommendations: Array<{ type: string; title: string; description: string; priority: number }> = [];
+    const recommendations: Array<{
+      type: string;
+      title: string;
+      description: string;
+      priority: number;
+    }> = [];
 
     // Speed recommendations
     if (keystrokeStats.slowestKeys.length > 0) {
@@ -382,7 +392,7 @@ export class AnalyticsEngine {
     }
 
     // Trend-based recommendations
-    const wpmTrend = performanceTrends.find(t => t.metric === 'wpm');
+    const wpmTrend = performanceTrends.find((t) => t.metric === 'wpm');
     if (wpmTrend && wpmTrend.trend === 'down') {
       recommendations.push({
         type: 'goal_suggestion',
@@ -392,7 +402,7 @@ export class AnalyticsEngine {
       });
     }
 
-    const accuracyTrend = performanceTrends.find(t => t.metric === 'accuracy');
+    const accuracyTrend = performanceTrends.find((t) => t.metric === 'accuracy');
     if (accuracyTrend && accuracyTrend.trend === 'down') {
       recommendations.push({
         type: 'goal_suggestion',

@@ -206,13 +206,7 @@ export type WSMessageType =
   | 'error';
 
 export type Difficulty = 'easy' | 'medium' | 'hard';
-export type TestType =
-  | 'text'
-  | 'punctuation'
-  | 'numbers'
-  | 'quotes'
-  | 'code'
-  | 'symbols';
+export type TestType = 'text' | 'punctuation' | 'numbers' | 'quotes' | 'code' | 'symbols';
 export type TestMode = 'timer' | 'words';
 
 export interface JoinRoomMessage extends WSMessage {

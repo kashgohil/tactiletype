@@ -9,11 +9,7 @@ function randomFrom(str: string): string {
   return str[Math.floor(Math.random() * str.length)]!;
 }
 
-function randomWordContaining(
-  targets: string[],
-  bank: string[],
-  maxAttempts = 50
-): string {
+function randomWordContaining(targets: string[], bank: string[], maxAttempts = 50): string {
   const lowerTargets = targets.map((t) => t.toLowerCase());
   for (let i = 0; i < maxAttempts; i++) {
     const w = bank[Math.floor(Math.random() * bank.length)]!;
@@ -23,10 +19,7 @@ function randomWordContaining(
   const fillers = 'aeioutrnsl';
   let out = '';
   for (let i = 0; i < 4; i++) {
-    out +=
-      Math.random() < 0.6
-        ? randomFrom(lowerTargets.join('') || fillers)
-        : randomFrom(fillers);
+    out += Math.random() < 0.6 ? randomFrom(lowerTargets.join('') || fillers) : randomFrom(fillers);
   }
   return out;
 }
@@ -71,11 +64,56 @@ export function generateKeyDrill(
 }
 
 const COMMON_BIGRAMS = [
-  'th', 'he', 'in', 'er', 'an', 're', 'on', 'at', 'en', 'nd',
-  'ti', 'es', 'or', 'te', 'of', 'ed', 'is', 'it', 'al', 'ar',
-  'st', 'to', 'nt', 'ng', 'se', 'ha', 'as', 'ou', 'io', 'le',
-  've', 'co', 'me', 'de', 'hi', 'ri', 'ro', 'ic', 'ne', 'ea',
-  'ra', 'ce', 'li', 'ch', 'll', 'be', 'ma', 'si', 'om', 'ur',
+  'th',
+  'he',
+  'in',
+  'er',
+  'an',
+  're',
+  'on',
+  'at',
+  'en',
+  'nd',
+  'ti',
+  'es',
+  'or',
+  'te',
+  'of',
+  'ed',
+  'is',
+  'it',
+  'al',
+  'ar',
+  'st',
+  'to',
+  'nt',
+  'ng',
+  'se',
+  'ha',
+  'as',
+  'ou',
+  'io',
+  'le',
+  've',
+  'co',
+  'me',
+  'de',
+  'hi',
+  'ri',
+  'ro',
+  'ic',
+  'ne',
+  'ea',
+  'ra',
+  'ce',
+  'li',
+  'ch',
+  'll',
+  'be',
+  'ma',
+  'si',
+  'om',
+  'ur',
 ];
 
 export function generateBigramDrill(
@@ -83,7 +121,12 @@ export function generateBigramDrill(
   wordCount = 40
 ): { content: string; title: string; focusBigrams: string[] } {
   const focus = bigrams
-    .map((b) => b.toLowerCase().replace(/[^a-z]/g, '').slice(0, 3))
+    .map((b) =>
+      b
+        .toLowerCase()
+        .replace(/[^a-z]/g, '')
+        .slice(0, 3)
+    )
     .filter((b) => b.length >= 2)
     .slice(0, 10);
 
@@ -146,9 +189,11 @@ export function generateWordDrill(
   };
 }
 
-export function generateAccuracyChallenge(
-  wordCount = 40
-): { content: string; title: string; accuracyFloor: number } {
+export function generateAccuracyChallenge(wordCount = 40): {
+  content: string;
+  title: string;
+  accuracyFloor: number;
+} {
   const bank = uniqueWords(TOP_1000_WORDS).slice(0, 200);
   const words: string[] = [];
   for (let i = 0; i < wordCount; i++) {
@@ -161,9 +206,4 @@ export function generateAccuracyChallenge(
   };
 }
 
-export {
-  BOTTOM_ROW,
-  COMMON_BIGRAMS,
-  HOME_ROW,
-  TOP_ROW,
-};
+export { BOTTOM_ROW, COMMON_BIGRAMS, HOME_ROW, TOP_ROW };

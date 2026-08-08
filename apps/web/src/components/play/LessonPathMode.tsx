@@ -1,35 +1,29 @@
+import { useNavigate } from '@tanstack/react-router';
+import { Check, Lock } from 'lucide-react';
+import type React from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { PlayResultCard, PlayShell } from '@/components/play/PlayHud';
-import {
-  Kbd,
-  PanelHint,
-  PlayTestPanel,
-} from '@/components/play/PlayTestPanel';
-import {
-  TypingSurface,
-  type CharStatus,
-} from '@/components/test/TypingSurface';
+import { Kbd, PanelHint, PlayTestPanel } from '@/components/play/PlayTestPanel';
+import { type CharStatus, TypingSurface } from '@/components/test/TypingSurface';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts';
 import { cn } from '@/lib/utils';
+import { challengesApi } from '@/services/challengesApi';
 import {
   CURRICULUM,
+  type CurriculumProgress,
   curriculumCompletionPercent,
   isLessonComplete,
   isLessonUnlocked,
+  type LessonDef,
   loadCurriculumProgress,
   markLessonPassed,
   pullCurriculumFromServer,
-  type CurriculumProgress,
-  type LessonDef,
 } from '@/utils/curriculum';
-import { challengesApi } from '@/services/challengesApi';
-import { recordKeyAttempt } from '@/utils/weakKeys';
 import { submitPlayResult } from '@/utils/submitPlayResult';
-import { isNonPrintingKey } from '@/utils/typingEngine';
 import { playCompleteChime, playErrorBeep, playKeyClick } from '@/utils/testSounds';
-import { useNavigate } from '@tanstack/react-router';
-import { Check, Lock } from 'lucide-react';
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { isNonPrintingKey } from '@/utils/typingEngine';
+import { recordKeyAttempt } from '@/utils/weakKeys';
 
 type Phase = 'map' | 'ready' | 'running' | 'passed' | 'failed';
 
@@ -156,12 +150,14 @@ export const LessonPathMode: React.FC = () => {
       const wpm = wpmFrom(Math.max(0, correct), startMs.current, Date.now());
 
       // Mid-run accuracy gate
-      if (
-        lesson.mechanic === 'accuracy_gate' &&
-        typedLen >= (lesson.minChars ?? 15)
-      ) {
+      if (lesson.mechanic === 'accuracy_gate' && typedLen >= (lesson.minChars ?? 15)) {
         if (acc < (lesson.minAccuracy ?? 94)) {
-          void endLesson(false, `Accuracy dropped to ${acc}% (need ${lesson.minAccuracy}%)`, typedLen, errSet);
+          void endLesson(
+            false,
+            `Accuracy dropped to ${acc}% (need ${lesson.minAccuracy}%)`,
+            typedLen,
+            errSet
+          );
           return true;
         }
       }
@@ -174,7 +170,12 @@ export const LessonPathMode: React.FC = () => {
         }
         // Fail if ran out of text without streak
         if (typedLen >= text.length) {
-          void endLesson(false, `Best streak ${Math.max(currentStreak, bestStreak)} / ${lesson.streakTarget}`, typedLen, errSet);
+          void endLesson(
+            false,
+            `Best streak ${Math.max(currentStreak, bestStreak)} / ${lesson.streakTarget}`,
+            typedLen,
+            errSet
+          );
           return true;
         }
         return false;
@@ -288,9 +289,7 @@ export const LessonPathMode: React.FC = () => {
               {progress.completed.length} / {CURRICULUM.length} lessons cleared
             </p>
           </div>
-          <p className="font-mono text-2xl font-semibold text-accent tabular-nums">
-            {pct}%
-          </p>
+          <p className="font-mono text-2xl font-semibold text-accent tabular-nums">{pct}%</p>
         </div>
         <div className="h-1.5 rounded-full bg-accent/20 overflow-hidden">
           <div
@@ -343,9 +342,7 @@ export const LessonPathMode: React.FC = () => {
                         {l.mechanic.replace(/_/g, ' ')}
                       </span>
                     </div>
-                    <p className="text-sm text-text/48 mt-0.5 leading-relaxed">
-                      {l.subtitle}
-                    </p>
+                    <p className="text-sm text-text/48 mt-0.5 leading-relaxed">{l.subtitle}</p>
                     <p className="text-xs text-text/38 mt-2 font-mono">{l.passRule}</p>
                     {best && (
                       <p className="text-xs text-accent/75 mt-1.5 font-mono">
@@ -412,9 +409,7 @@ export const LessonPathMode: React.FC = () => {
     },
     {
       label: 'Accuracy',
-      value: typed.length
-        ? `${accuracyOf(Math.max(0, correctCount), incorrectCount)}%`
-        : '—',
+      value: typed.length ? `${accuracyOf(Math.max(0, correctCount), incorrectCount)}%` : '—',
     },
     lesson.mechanic === 'char_streak'
       ? { label: 'Streak', value: `${streak}/${lesson.streakTarget}` }
@@ -425,7 +420,12 @@ export const LessonPathMode: React.FC = () => {
   }
 
   return (
-    <PlayShell modeId="lesson-path" title={lesson.title} subtitle={lesson.passRule} onExit={() => setPhase('map')}>
+    <PlayShell
+      modeId="lesson-path"
+      title={lesson.title}
+      subtitle={lesson.passRule}
+      onExit={() => setPhase('map')}
+    >
       <PlayTestPanel
         stats={stats}
         meter={text.length ? typed.length / text.length : 0}

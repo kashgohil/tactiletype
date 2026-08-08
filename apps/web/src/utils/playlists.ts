@@ -50,10 +50,7 @@ export function getOrCreateDefaultPlaylist(): Playlist {
   return created;
 }
 
-export function addPlaylistItem(
-  content: string,
-  title?: string
-): PlaylistItem {
+export function addPlaylistItem(content: string, title?: string): PlaylistItem {
   const all = loadAll();
   let pl = all[0];
   if (!pl) {

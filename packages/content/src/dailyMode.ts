@@ -29,10 +29,7 @@ export type DailyModeChallenge = {
   exercisePackId: string;
 };
 
-const META: Record<
-  DailyModeId,
-  { title: string; tagline: string; description: string }
-> = {
+const META: Record<DailyModeId, { title: string; tagline: string; description: string }> = {
   'sudden-death': {
     title: 'Sudden Death',
     tagline: 'One wrong key ends the run',
@@ -64,9 +61,7 @@ const GHOST_PACES = [50, 60, 70, 80, 90, 100] as const;
 
 /** Simple stable hash of YYYY-MM-DD */
 export function daySeed(date = new Date()): { dayKey: string; seed: number } {
-  const utc = new Date(
-    Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate())
-  );
+  const utc = new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate()));
   const dayKey = utc.toISOString().slice(0, 10);
   const seed = dayKey.split('').reduce((acc, ch) => acc + ch.charCodeAt(0), 0);
   return { dayKey, seed };

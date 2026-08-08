@@ -44,15 +44,11 @@ export function scoreRecall(target: string, typed: string): RecallScore {
   const m = b.length;
 
   // lcs[i][j] = matches remaining from target i / typed j onward.
-  const lcs: number[][] = Array.from({ length: n + 1 }, () =>
-    new Array<number>(m + 1).fill(0)
-  );
+  const lcs: number[][] = Array.from({ length: n + 1 }, () => new Array<number>(m + 1).fill(0));
   for (let i = n - 1; i >= 0; i--) {
     for (let j = m - 1; j >= 0; j--) {
       lcs[i]![j] =
-        a[i] === b[j]
-          ? lcs[i + 1]![j + 1]! + 1
-          : Math.max(lcs[i + 1]![j]!, lcs[i]![j + 1]!);
+        a[i] === b[j] ? lcs[i + 1]![j + 1]! + 1 : Math.max(lcs[i + 1]![j]!, lcs[i]![j + 1]!);
     }
   }
 

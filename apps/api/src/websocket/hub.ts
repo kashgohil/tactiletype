@@ -1,12 +1,7 @@
 /**
  * Bun-native WebSocket race hub.
  */
-import {
-  db,
-  multiplayerRooms,
-  roomParticipants,
-  testTexts,
-} from '@tactile/database';
+import { db, multiplayerRooms, roomParticipants, testTexts } from '@tactile/database';
 import { and, eq } from 'drizzle-orm';
 import { verifyAccessToken } from '../auth/tokens';
 import { ConnectionManager } from './connectionManager';
@@ -37,9 +32,7 @@ class MultiplayerHub {
       try {
         const now = new Date();
         // Full race finish vs partial individual updates
-        const allDone =
-          results.length > 0 &&
-          this.manager.getRoom(roomId)?.status === 'finished';
+        const allDone = results.length > 0 && this.manager.getRoom(roomId)?.status === 'finished';
 
         for (const r of results) {
           await db
@@ -49,12 +42,7 @@ class MultiplayerHub {
               finalWpm: String(Math.round(r.wpm * 100) / 100),
               finalAccuracy: String(Math.round(r.accuracy * 100) / 100),
             })
-            .where(
-              and(
-                eq(roomParticipants.roomId, roomId),
-                eq(roomParticipants.userId, r.userId)
-              )
-            );
+            .where(and(eq(roomParticipants.roomId, roomId), eq(roomParticipants.userId, r.userId)));
         }
 
         if (allDone) {
@@ -69,20 +57,8 @@ class MultiplayerHub {
     });
   }
 
-  createRoom(
-    roomId: string,
-    name: string,
-    hostId: string,
-    testTextId: string,
-    maxPlayers = 10
-  ) {
-    return this.manager.createRoom(
-      roomId,
-      name,
-      hostId,
-      testTextId,
-      maxPlayers
-    );
+  createRoom(roomId: string, name: string, hostId: string, testTextId: string, maxPlayers = 10) {
+    return this.manager.createRoom(roomId, name, hostId, testTextId, maxPlayers);
   }
 
   getRoom(roomId: string) {
@@ -188,10 +164,7 @@ class MultiplayerHub {
     }
   }
 
-  private async handleJoin(
-    connectionId: string,
-    message: JoinRoomMessage
-  ) {
+  private async handleJoin(connectionId: string, message: JoinRoomMessage) {
     const connection = this.manager.getConnection(connectionId);
     if (!connection?.userId) {
       this.sendError(connectionId, 'Not authenticated');
@@ -227,13 +200,7 @@ class MultiplayerHub {
       }
     }
 
-    const result = this.manager.joinRoom(
-      connectionId,
-      roomId,
-      userId,
-      username,
-      !!spectate
-    );
+    const result = this.manager.joinRoom(connectionId, roomId, userId, username, !!spectate);
     if (!result.ok) {
       this.sendError(connectionId, result.error || 'Failed to join room');
       return;
@@ -277,17 +244,15 @@ class MultiplayerHub {
               hostId: room.hostId,
               testTextId: room.testTextId,
               testText,
-              participants: Array.from(room.participants.values()).map(
-                (p) => ({
-                  userId: p.userId,
-                  username: p.username,
-                  progress: p.progress,
-                  wpm: p.wpm,
-                  accuracy: p.accuracy,
-                  errors: p.errors,
-                  finished: p.finished,
-                })
-              ),
+              participants: Array.from(room.participants.values()).map((p) => ({
+                userId: p.userId,
+                username: p.username,
+                progress: p.progress,
+                wpm: p.wpm,
+                accuracy: p.accuracy,
+                errors: p.errors,
+                finished: p.finished,
+              })),
               spectators: Array.from(room.spectators.values()).map((s) => ({
                 userId: s.userId,
                 username: s.username,
@@ -336,18 +301,9 @@ class MultiplayerHub {
     }
   }
 
-  private handleProgress(
-    connectionId: string,
-    message: TypingProgressMessage
-  ) {
+  private handleProgress(connectionId: string, message: TypingProgressMessage) {
     const { progress, wpm, accuracy, errors } = message.data;
-    this.manager.updateTypingProgress(
-      connectionId,
-      progress,
-      wpm,
-      accuracy,
-      errors
-    );
+    this.manager.updateTypingProgress(connectionId, progress, wpm, accuracy, errors);
   }
 
   private handleChat(connectionId: string, message: ChatMessagePayload) {

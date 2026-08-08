@@ -1,3 +1,7 @@
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { Link } from '@tanstack/react-router';
+import type React from 'react';
+import { useMemo, useState } from 'react';
 import { GoalTracker } from '@/components/analytics/GoalTracker';
 import {
   AchievementsPanel,
@@ -6,22 +10,19 @@ import {
   ProfileHero,
   RecommendedExerciseCard,
   ResultCards,
-  WeakSpotsPanel,
   type ResultFilters,
+  WeakSpotsPanel,
 } from '@/components/profile';
 import { ProfileProgressChart } from '@/components/profile/ProfileProgressChart';
 import { Button } from '@/components/ui/button';
 import { Panel } from '@/components/ui/panel';
 import { Skeleton } from '@/components/ui/skeleton';
 import { buildRecommendation } from '@/utils/recommendations';
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { Link } from '@tanstack/react-router';
-import React, { useMemo, useState } from 'react';
 import { ActivityHeatmap } from '../components/analytics/ActivityHeatmap';
 import { useAuth } from '../contexts';
 import { analyticsApi } from '../services/analyticsApi';
-import { challengesApi } from '../services/challengesApi';
 import { testResultsApi, usersApi } from '../services/api';
+import { challengesApi } from '../services/challengesApi';
 
 export const Profile: React.FC = () => {
   const { user } = useAuth();
@@ -37,8 +38,7 @@ export const Profile: React.FC = () => {
     isError: isErrorResults,
   } = useQuery({
     queryKey: ['userTestResults', user?.id, currentPage, filters],
-    queryFn: () =>
-      testResultsApi.getUserResultsPage(currentPage, pageSize, filters),
+    queryFn: () => testResultsApi.getUserResultsPage(currentPage, pageSize, filters),
     enabled: !!user?.id,
     staleTime: 5 * 60 * 1000,
   });
@@ -75,24 +75,21 @@ export const Profile: React.FC = () => {
     staleTime: 60 * 1000,
   });
 
-  const { data: achievements = [], isLoading: isLoadingAchievements } =
-    useQuery({
-      queryKey: ['userAchievements', user?.id],
-      queryFn: () => challengesApi.getAchievements(),
-      enabled: !!user,
-      staleTime: 60 * 1000,
-    });
+  const { data: achievements = [], isLoading: isLoadingAchievements } = useQuery({
+    queryKey: ['userAchievements', user?.id],
+    queryFn: () => challengesApi.getAchievements(),
+    enabled: !!user,
+    staleTime: 60 * 1000,
+  });
 
   const createGoalMutation = useMutation({
     mutationFn: analyticsApi.createGoal,
-    onSuccess: () =>
-      queryClient.invalidateQueries({ queryKey: ['userGoals', user?.id] }),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['userGoals', user?.id] }),
   });
 
   const deleteGoalMutation = useMutation({
     mutationFn: analyticsApi.deleteGoal,
-    onSuccess: () =>
-      queryClient.invalidateQueries({ queryKey: ['userGoals', user?.id] }),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['userGoals', user?.id] }),
   });
 
   const recommendation = useMemo(
@@ -129,9 +126,7 @@ export const Profile: React.FC = () => {
 
       {isError ? (
         <Panel className="items-center text-center">
-          <p className="text-destructive font-medium">
-            Failed to load your stats
-          </p>
+          <p className="text-destructive font-medium">Failed to load your stats</p>
           <Button
             onClick={() => window.location.reload()}
             variant="outline"
@@ -153,8 +148,7 @@ export const Profile: React.FC = () => {
         <Panel className="items-center text-center py-12">
           <p className="text-lg font-semibold">No tests completed yet</p>
           <p className="text-sm text-text/45 mt-1 max-w-sm">
-            Finish a typing test and your stats, trend, and weak spots start
-            filling in here.
+            Finish a typing test and your stats, trend, and weak spots start filling in here.
           </p>
           <Button asChild className="mt-5">
             <Link to="/">Take a test</Link>
@@ -186,14 +180,8 @@ export const Profile: React.FC = () => {
           </div>
 
           <div className="grid lg:grid-cols-2 gap-4">
-            <WeakSpotsPanel
-              errorAnalysis={errorAnalysis}
-              isLoading={isLoadingErrors}
-            />
-            <AchievementsPanel
-              achievements={achievements}
-              isLoading={isLoadingAchievements}
-            />
+            <WeakSpotsPanel errorAnalysis={errorAnalysis} isLoading={isLoadingErrors} />
+            <AchievementsPanel achievements={achievements} isLoading={isLoadingAchievements} />
           </div>
 
           <ActivityHeatmap year={currentYear} />

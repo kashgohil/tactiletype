@@ -61,7 +61,10 @@ export const typingTestPage: ContentPage = {
           kind: 'stat',
           items: [
             { value: '5 characters', label: 'equal one "word", spaces included' },
-            { value: '~52 WPM', label: 'average across 168,000 people in the largest public study' },
+            {
+              value: '~52 WPM',
+              label: 'average across 168,000 people in the largest public study',
+            },
             { value: '95%+', label: 'accuracy worth aiming for before chasing speed' },
           ],
         },
@@ -183,7 +186,8 @@ export const typingTestPage: ContentPage = {
   ],
   sources: [
     {
-      label: 'Dhakal, Feit, Kristensson & Oulasvirta — Observations on Typing from 136 Million Keystrokes (CHI 2018)',
+      label:
+        'Dhakal, Feit, Kristensson & Oulasvirta — Observations on Typing from 136 Million Keystrokes (CHI 2018)',
       href: 'https://userinterfaces.aalto.fi/136Mkeystrokes/',
     },
     {
@@ -192,8 +196,16 @@ export const typingTestPage: ContentPage = {
     },
   ],
   related: [
-    { label: 'What is WPM?', to: '/guides/what-is-wpm', hint: 'The metric in full — raw, net, and what the averages actually say.' },
-    { label: 'How to improve typing speed', to: '/guides/how-to-improve-typing-speed', hint: 'What actually moves the number, in the order worth doing it.' },
+    {
+      label: 'What is WPM?',
+      to: '/guides/what-is-wpm',
+      hint: 'The metric in full — raw, net, and what the averages actually say.',
+    },
+    {
+      label: 'How to improve typing speed',
+      to: '/guides/how-to-improve-typing-speed',
+      hint: 'What actually moves the number, in the order worth doing it.',
+    },
     { label: 'Take the test', to: '/', hint: 'One minute, no account. Come back with a number.' },
   ],
 };

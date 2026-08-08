@@ -44,10 +44,7 @@ export abstract class BaseOAuthProvider implements OAuthProvider {
   abstract getAuthUrl(state: string): string;
   abstract handleCallback(code: string, state: string): Promise<OAuthUser>;
 
-  protected async generateUniqueUsername(
-    name: string,
-    email: string
-  ): Promise<string> {
+  protected async generateUniqueUsername(name: string, email: string): Promise<string> {
     // Generate base username from name or email
     const baseUsername = name
       ? name
@@ -98,9 +95,7 @@ export abstract class BaseOAuthProvider implements OAuthProvider {
     return CSRFProtection.validateOAuthToken(state);
   }
 
-  async findOrCreateUser(
-    oauthUser: OAuthUser
-  ): Promise<{ user: DatabaseUser; isNew: boolean }> {
+  async findOrCreateUser(oauthUser: OAuthUser): Promise<{ user: DatabaseUser; isNew: boolean }> {
     // Check if OAuth account already exists
     const existingOAuthAccount = await db.query.oauthAccounts.findFirst({
       where: eq(oauthAccounts.providerId, oauthUser.id),
@@ -130,10 +125,7 @@ export abstract class BaseOAuthProvider implements OAuthProvider {
     }
 
     // Create new user
-    const username = await this.generateUniqueUsername(
-      oauthUser.name,
-      oauthUser.email
-    );
+    const username = await this.generateUniqueUsername(oauthUser.name, oauthUser.email);
 
     const [newUser] = await db
       .insert(users)

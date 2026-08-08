@@ -6,7 +6,10 @@ import { useEffect, useRef, useState } from 'react';
  */
 export function useCountUp(
   target: number,
-  { durationMs = 900, reducedMotion = false }: {
+  {
+    durationMs = 900,
+    reducedMotion = false,
+  }: {
     durationMs?: number;
     reducedMotion?: boolean;
   } = {}
@@ -25,7 +28,7 @@ export function useCountUp(
       if (start === null) start = ts;
       const progress = Math.min(1, (ts - start) / durationMs);
       // easeOutCubic
-      const eased = 1 - Math.pow(1 - progress, 3);
+      const eased = 1 - (1 - progress) ** 3;
       setValue(target * eased);
       if (progress < 1) {
         frame.current = requestAnimationFrame(step);

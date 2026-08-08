@@ -1,3 +1,6 @@
+import { ClipboardPaste, Trash2, X } from 'lucide-react';
+import type React from 'react';
+import { useMemo, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
@@ -6,11 +9,9 @@ import { Textarea } from '@/components/ui/textarea';
 import {
   addPlaylistItem,
   listPlaylists,
-  removePlaylistItem,
   type PlaylistItem,
+  removePlaylistItem,
 } from '@/utils/playlists';
-import { ClipboardPaste, Trash2, X } from 'lucide-react';
-import React, { useMemo, useState } from 'react';
 
 interface CustomPasteModalProps {
   open: boolean;
@@ -18,11 +19,7 @@ interface CustomPasteModalProps {
   onStart: (content: string, title: string) => void;
 }
 
-export const CustomPasteModal: React.FC<CustomPasteModalProps> = ({
-  open,
-  onClose,
-  onStart,
-}) => {
+export const CustomPasteModal: React.FC<CustomPasteModalProps> = ({ open, onClose, onStart }) => {
   const [text, setText] = useState('');
   const [title, setTitle] = useState('');
   const [saveToPlaylist, setSaveToPlaylist] = useState(true);
@@ -64,27 +61,18 @@ export const CustomPasteModal: React.FC<CustomPasteModalProps> = ({
     >
       <div className="bg-primary border border-accent/30 rounded-2xl max-w-lg w-full shadow-xl max-h-[90vh] overflow-y-auto animate-in fade-in-0 zoom-in-95 duration-200 ease-[cubic-bezier(0.23,1,0.32,1)] origin-center">
         <div className="flex items-center justify-between px-4 py-3 border-b border-accent/10">
-          <h2
-            id="custom-paste-title"
-            className="font-semibold flex items-center gap-2"
-          >
+          <h2 id="custom-paste-title" className="font-semibold flex items-center gap-2">
             <ClipboardPaste className="size-4 text-accent" />
             Custom text
           </h2>
-          <Button
-            size="icon"
-            variant="ghost"
-            onClick={onClose}
-            aria-label="Close"
-          >
+          <Button size="icon" variant="ghost" onClick={onClose} aria-label="Close">
             <X className="size-4" />
           </Button>
         </div>
 
         <div className="p-4 space-y-3">
           <p className="text-sm text-text/50">
-            Paste an email, essay, or code snippet. Practice with your own
-            material.
+            Paste an email, essay, or code snippet. Practice with your own material.
           </p>
           <Input
             type="text"
@@ -102,10 +90,7 @@ export const CustomPasteModal: React.FC<CustomPasteModalProps> = ({
             autoFocus
           />
           <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-text/40">
-            <Label
-              htmlFor="paste-save"
-              className="text-xs text-text/40 font-normal cursor-pointer"
-            >
+            <Label htmlFor="paste-save" className="text-xs text-text/40 font-normal cursor-pointer">
               <Checkbox
                 id="paste-save"
                 checked={saveToPlaylist}

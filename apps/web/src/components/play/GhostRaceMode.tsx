@@ -1,23 +1,16 @@
+import { useNavigate } from '@tanstack/react-router';
+import type React from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { PlayResultCard, PlayShell } from '@/components/play/PlayHud';
 import { PanelHint, PlayTestPanel } from '@/components/play/PlayTestPanel';
-import {
-  TypingSurface,
-  type CharStatus,
-} from '@/components/test/TypingSurface';
+import { type CharStatus, TypingSurface } from '@/components/test/TypingSurface';
 import { useAuth } from '@/contexts';
 import { cn } from '@/lib/utils';
-import { isNonPrintingKey } from '@/utils/typingEngine';
-import {
-  charsForGhostWpm,
-  GHOST_PACES,
-  pickPassage,
-  savePlayBest,
-} from '@/utils/playModes';
 import { isActiveDailyForMode, peekDailyRun } from '@/utils/dailyRun';
+import { charsForGhostWpm, GHOST_PACES, pickPassage, savePlayBest } from '@/utils/playModes';
 import { submitPlayResult } from '@/utils/submitPlayResult';
 import { playCompleteChime, playErrorBeep, playKeyClick } from '@/utils/testSounds';
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { useNavigate } from '@tanstack/react-router';
+import { isNonPrintingKey } from '@/utils/typingEngine';
 
 type Phase = 'ready' | 'racing' | 'won' | 'lost';
 
@@ -50,26 +43,29 @@ export const GhostRaceMode: React.FC = () => {
   const submitted = useRef(false);
   const errorCount = useRef(0);
 
-  const reset = useCallback((targetPace = pace) => {
-    setPassage(pickPassage(PASSAGE_WORDS, 'medium'));
-    setIndex(0);
-    setErrors(new Set());
-    setGhostIndex(0);
-    setLiveWpm(0);
-    setFinalWpm(0);
-    setPhase('ready');
-    setIsNewBest(false);
-    setMargin(0);
-    startMs.current = null;
-    submitted.current = false;
-    errorCount.current = 0;
-    setPace(isDaily && dailyPace ? dailyPace : targetPace);
-    requestAnimationFrame(() => focusRef.current?.focus());
-  }, [pace, isDaily, dailyPace]);
+  const reset = useCallback(
+    (targetPace = pace) => {
+      setPassage(pickPassage(PASSAGE_WORDS, 'medium'));
+      setIndex(0);
+      setErrors(new Set());
+      setGhostIndex(0);
+      setLiveWpm(0);
+      setFinalWpm(0);
+      setPhase('ready');
+      setIsNewBest(false);
+      setMargin(0);
+      startMs.current = null;
+      submitted.current = false;
+      errorCount.current = 0;
+      setPace(isDaily && dailyPace ? dailyPace : targetPace);
+      requestAnimationFrame(() => focusRef.current?.focus());
+    },
+    [pace, isDaily, dailyPace]
+  );
 
   useEffect(() => {
     reset(dailyPace ?? pace);
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  }, []);
 
   const finish = useCallback(
     async (won: boolean, playerIndex: number, gIndex: number, errSet: Set<number>) => {
@@ -101,9 +97,7 @@ export const GhostRaceMode: React.FC = () => {
             content: passage,
             wpm,
             accuracy:
-              playerIndex > 0
-                ? Math.round(((playerIndex - errSet.size) / playerIndex) * 100)
-                : 100,
+              playerIndex > 0 ? Math.round(((playerIndex - errSet.size) / playerIndex) * 100) : 100,
             errors: errSet.size,
             timeTaken: Math.max(1, elapsed),
             wordCount: PASSAGE_WORDS,
@@ -218,7 +212,8 @@ export const GhostRaceMode: React.FC = () => {
   };
 
   return (
-    <PlayShell modeId="ghost-race"
+    <PlayShell
+      modeId="ghost-race"
       title="Ghost Race"
       subtitle="Stay ahead of the pace caret. Beat the ghost to win."
       onExit={exit}
@@ -296,9 +291,7 @@ export const GhostRaceMode: React.FC = () => {
               : undefined
           }
         />
-        {phase === 'ready' && (
-          <PanelHint>Pick a pace, then type to race the ghost</PanelHint>
-        )}
+        {phase === 'ready' && <PanelHint>Pick a pace, then type to race the ghost</PanelHint>}
       </PlayTestPanel>
     </PlayShell>
   );

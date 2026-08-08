@@ -61,14 +61,11 @@ export class GoogleOAuthProvider extends BaseOAuthProvider {
     const accessToken = tokenData.access_token;
 
     // Get user info from Google
-    const userResponse = await fetch(
-      'https://www.googleapis.com/oauth2/v2/userinfo',
-      {
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-        },
-      }
-    );
+    const userResponse = await fetch('https://www.googleapis.com/oauth2/v2/userinfo', {
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+      },
+    });
 
     if (!userResponse.ok) {
       throw new Error('Failed to get user info from Google');

@@ -1,9 +1,9 @@
+import type { User, UserProfile } from '@tactile/types';
+import { Link } from '@tanstack/react-router';
+import { Globe, Keyboard, Lock, Mail, Settings, Share2 } from 'lucide-react';
+import type React from 'react';
 import { Button } from '@/components/ui/button';
 import { Panel } from '@/components/ui/panel';
-import { Link } from '@tanstack/react-router';
-import type { User, UserProfile } from '@tactile/types';
-import { Globe, Keyboard, Lock, Mail, Settings, Share2 } from 'lucide-react';
-import React from 'react';
 
 interface ProfileHeroProps {
   user: User;
@@ -21,18 +21,12 @@ function getInitials(name: string): string {
 }
 
 function countryFlag(code?: string | null): string | null {
-  if (!code || code.length !== 2) return null;
+  if (code?.length !== 2) return null;
   const upper = code.toUpperCase();
-  return String.fromCodePoint(
-    ...[...upper].map((c) => 0x1f1e6 - 65 + c.charCodeAt(0))
-  );
+  return String.fromCodePoint(...[...upper].map((c) => 0x1f1e6 - 65 + c.charCodeAt(0)));
 }
 
-export const ProfileHero: React.FC<ProfileHeroProps> = ({
-  user,
-  profile,
-  onShare,
-}) => {
+export const ProfileHero: React.FC<ProfileHeroProps> = ({ user, profile, onShare }) => {
   const displayName = profile?.displayName || user.username;
   const initials = getInitials(displayName);
   const flag = countryFlag(profile?.country);
@@ -46,11 +40,7 @@ export const ProfileHero: React.FC<ProfileHeroProps> = ({
           aria-hidden
         >
           {user.avatarUrl ? (
-            <img
-              src={user.avatarUrl}
-              alt=""
-              className="size-full object-cover"
-            />
+            <img src={user.avatarUrl} alt="" className="size-full object-cover" />
           ) : (
             initials
           )}
@@ -58,9 +48,7 @@ export const ProfileHero: React.FC<ProfileHeroProps> = ({
 
         <div className="flex-1 min-w-0 space-y-2">
           <div className="flex flex-wrap items-center gap-2">
-            <h1 className="text-2xl md:text-3xl font-bold truncate">
-              {displayName}
-            </h1>
+            <h1 className="text-2xl md:text-3xl font-bold truncate">{displayName}</h1>
             {flag && (
               <span className="text-xl" title={profile?.country ?? undefined}>
                 {flag}

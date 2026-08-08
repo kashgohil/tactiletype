@@ -1,13 +1,14 @@
-import { MetricHierarchy } from '@/components/profile';
-import { Button } from '@/components/ui/button';
-import { ShareResultCard } from '@/components/profile/ShareResultCard';
-import type { UserStats } from '@/services/api';
-import api from '@/services/api';
-import { formatTime } from '@/utils/typingEngine';
 import { useQuery } from '@tanstack/react-query';
 import { useParams } from '@tanstack/react-router';
 import { Globe, Keyboard } from 'lucide-react';
-import React, { useState } from 'react';
+import type React from 'react';
+import { useState } from 'react';
+import { MetricHierarchy } from '@/components/profile';
+import { ShareResultCard } from '@/components/profile/ShareResultCard';
+import { Button } from '@/components/ui/button';
+import type { UserStats } from '@/services/api';
+import api from '@/services/api';
+import { formatTime } from '@/utils/typingEngine';
 
 export const PublicProfile: React.FC = () => {
   const { username } = useParams({ strict: false }) as { username: string };
@@ -47,14 +48,11 @@ export const PublicProfile: React.FC = () => {
   });
 
   if (isLoading) {
-    return (
-      <div className="text-center py-16 text-text/50">Loading profile…</div>
-    );
+    return <div className="text-center py-16 text-text/50">Loading profile…</div>;
   }
 
   if (isError || !data) {
-    const status = (error as { response?: { status?: number } })?.response
-      ?.status;
+    const status = (error as { response?: { status?: number } })?.response?.status;
     return (
       <div className="text-center py-16 space-y-3">
         <p className="text-text/60">
@@ -85,9 +83,7 @@ export const PublicProfile: React.FC = () => {
             <h1 className="text-2xl font-bold">{displayName}</h1>
             <p className="text-text/50">@{user.username}</p>
             {user.profile?.bio && (
-              <p className="text-sm text-text/80 leading-relaxed">
-                {user.profile.bio}
-              </p>
+              <p className="text-sm text-text/80 leading-relaxed">{user.profile.bio}</p>
             )}
             <div className="flex flex-wrap gap-3 text-sm text-text/50">
               {user.profile?.country && (
@@ -104,11 +100,7 @@ export const PublicProfile: React.FC = () => {
               )}
             </div>
           </div>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => setShareOpen(true)}
-          >
+          <Button variant="outline" size="sm" onClick={() => setShareOpen(true)}>
             Share card
           </Button>
         </div>
@@ -126,12 +118,8 @@ export const PublicProfile: React.FC = () => {
                 className="flex flex-wrap items-center justify-between gap-2 text-sm bg-accent/10 rounded-lg px-3 py-2"
               >
                 <span className="truncate text-text/70">{r.title}</span>
-                <span className="font-mono text-accent">
-                  {Math.round(r.wpm)} WPM
-                </span>
-                <span className="font-mono text-text/50">
-                  {r.accuracy.toFixed(1)}%
-                </span>
+                <span className="font-mono text-accent">{Math.round(r.wpm)} WPM</span>
+                <span className="font-mono text-text/50">{r.accuracy.toFixed(1)}%</span>
                 <span className="text-text/40">{formatTime(r.timeTaken)}</span>
               </li>
             ))}

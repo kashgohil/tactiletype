@@ -1,7 +1,8 @@
+import { Eye, Send } from 'lucide-react';
+import type React from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import type { ChatMessageData } from '@/services/websocket';
-import { Eye, Send } from 'lucide-react';
-import React, { useEffect, useRef, useState } from 'react';
 
 interface RaceChatProps {
   messages: ChatMessageData[];
@@ -9,11 +10,7 @@ interface RaceChatProps {
   disabled?: boolean;
 }
 
-export const RaceChat: React.FC<RaceChatProps> = ({
-  messages,
-  onSend,
-  disabled,
-}) => {
+export const RaceChat: React.FC<RaceChatProps> = ({ messages, onSend, disabled }) => {
   const [text, setText] = useState('');
   const bottomRef = useRef<HTMLDivElement>(null);
 
@@ -35,17 +32,13 @@ export const RaceChat: React.FC<RaceChatProps> = ({
       </h2>
       <div className="flex-1 overflow-y-auto px-3 py-2 space-y-2 text-sm">
         {messages.length === 0 && (
-          <p className="text-text/40 text-xs text-center py-6">
-            Say hi — keep it friendly.
-          </p>
+          <p className="text-text/40 text-xs text-center py-6">Say hi — keep it friendly.</p>
         )}
         {messages.map((m) => (
           <div key={m.id} className="leading-snug">
             <span className="font-medium text-accent">
               {m.username}
-              {m.role === 'spectator' && (
-                <Eye className="inline size-3 ml-1 opacity-70" />
-              )}
+              {m.role === 'spectator' && <Eye className="inline size-3 ml-1 opacity-70" />}
             </span>
             <span className="text-text/40 text-[10px] ml-1.5">
               {new Date(m.at).toLocaleTimeString([], {
@@ -58,10 +51,7 @@ export const RaceChat: React.FC<RaceChatProps> = ({
         ))}
         <div ref={bottomRef} />
       </div>
-      <form
-        onSubmit={submit}
-        className="flex gap-2 p-2 border-t border-accent/15"
-      >
+      <form onSubmit={submit} className="flex gap-2 p-2 border-t border-accent/15">
         <input
           value={text}
           onChange={(e) => setText(e.target.value)}

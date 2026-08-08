@@ -1,13 +1,13 @@
+import { useEffect } from 'react';
 import {
   absoluteUrl,
   DEFAULT_OG_IMAGE,
   DEFAULT_OG_IMAGE_SIZE,
+  type PageMeta,
   SITE_NAME,
   SITE_URL,
   TWITTER_CARD_TYPE,
-  type PageMeta,
 } from '@/lib/seo';
-import { useEffect } from 'react';
 
 function setMetaByName(name: string, content: string) {
   let el = document.querySelector(`meta[name="${name}"]`);

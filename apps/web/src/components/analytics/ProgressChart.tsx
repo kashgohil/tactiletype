@@ -1,5 +1,3 @@
-import { ThemeContext } from '@/contexts/ThemeContext';
-import { cn } from '@/lib/utils';
 import type { ProgressChart as ProgressChartType } from '@tactile/types';
 import {
   CategoryScale,
@@ -13,8 +11,11 @@ import {
   Tooltip,
 } from 'chart.js';
 import { MoveRight, TrendingDown, TrendingUp } from 'lucide-react';
-import React, { useContext } from 'react';
+import type React from 'react';
+import { useContext } from 'react';
 import { Line } from 'react-chartjs-2';
+import { ThemeContext } from '@/contexts/ThemeContext';
+import { cn } from '@/lib/utils';
 
 ChartJS.register(
   CategoryScale,
@@ -31,10 +32,7 @@ ChartJS.register(
 function withAlpha(color: string, alpha: number): string {
   const hex = color.trim();
   if (!hex.startsWith('#')) return hex;
-  const full =
-    hex.length === 4
-      ? `#${hex[1]}${hex[1]}${hex[2]}${hex[2]}${hex[3]}${hex[3]}`
-      : hex;
+  const full = hex.length === 4 ? `#${hex[1]}${hex[1]}${hex[2]}${hex[2]}${hex[3]}${hex[3]}` : hex;
   const int = parseInt(full.slice(1), 16);
   if (Number.isNaN(int)) return hex;
   const r = (int >> 16) & 255;
@@ -59,11 +57,7 @@ export const ChartTrend: React.FC<{
   className?: string;
 }> = ({ trend, percentage, className }) => {
   const Icon =
-    trend === 'improving'
-      ? TrendingUp
-      : trend === 'declining'
-        ? TrendingDown
-        : MoveRight;
+    trend === 'improving' ? TrendingUp : trend === 'declining' ? TrendingDown : MoveRight;
 
   return (
     <span
@@ -95,11 +89,7 @@ interface ProgressChartProps {
  * Plot only — no surface, no title, no caption. Whoever renders it owns the
  * framing, which keeps charts from sitting in a box inside a box.
  */
-export const ProgressChart: React.FC<ProgressChartProps> = ({
-  chart,
-  height = 240,
-  className,
-}) => {
+export const ProgressChart: React.FC<ProgressChartProps> = ({ chart, height = 240, className }) => {
   const context = useContext(ThemeContext);
   const theme = context?.themeToApply;
 

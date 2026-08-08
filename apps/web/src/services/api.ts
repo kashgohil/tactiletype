@@ -1,7 +1,7 @@
-import { VITE_API_URL } from '@/constants';
-import { ensureCsrfToken, refreshCsrfToken } from '@/utils/csrf';
 import type { Difficulty } from '@tactile/types';
 import axios, { AxiosHeaders, type InternalAxiosRequestConfig } from 'axios';
+import { VITE_API_URL } from '@/constants';
+import { ensureCsrfToken, refreshCsrfToken } from '@/utils/csrf';
 
 const api = axios.create({
   baseURL: VITE_API_URL,
@@ -42,12 +42,7 @@ api.interceptors.response.use(undefined, async (error) => {
   // The browser's XHR adapter hands back a Blob; Node's adapter (used by the
   // prerender build) ignores responseType and leaves the body an unparsed
   // string. Either way `data.error` is undefined until we unwrap it.
-  const body =
-    data instanceof Blob
-      ? await data.text()
-      : typeof data === 'string'
-        ? data
-        : null;
+  const body = data instanceof Blob ? await data.text() : typeof data === 'string' ? data : null;
 
   if (body) {
     try {
@@ -260,10 +255,7 @@ export const usersApi = {
 
 // Leaderboard API
 export const leaderboardApi = {
-  get: async (params?: {
-    timeframe?: 'daily' | 'weekly' | 'monthly' | 'all';
-    limit?: number;
-  }) => {
+  get: async (params?: { timeframe?: 'daily' | 'weekly' | 'monthly' | 'all'; limit?: number }) => {
     const response = await api.get('/api/tests/leaderboard', { params });
     return response.data.leaderboard as LeaderboardEntry[];
   },

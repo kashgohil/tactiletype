@@ -174,10 +174,7 @@ async function serialiseWithImages(sheet: HTMLElement): Promise<string> {
         if (!response.ok) return;
         const blob = await response.blob();
         const base64 = toBase64(await blob.arrayBuffer());
-        image.setAttribute(
-          'src',
-          `data:${blob.type || 'image/png'};base64,${base64}`
-        );
+        image.setAttribute('src', `data:${blob.type || 'image/png'};base64,${base64}`);
       } catch {
         // Leave the original path. The report loses one image rather than
         // failing to save at all.
@@ -195,10 +192,7 @@ const escapeHtml = (value: string): string =>
  * Serialises the live sheet into a file that stands on its own — styles, font
  * and charts all inlined, so it renders identically with no network at all.
  */
-export async function downloadReportHtml(
-  report: ReportModel,
-  sheet: HTMLElement
-): Promise<void> {
+export async function downloadReportHtml(report: ReportModel, sheet: HTMLElement): Promise<void> {
   const [font, body] = [await inlineFont(), await serialiseWithImages(sheet)];
   const styles = collectStyles();
 
@@ -217,8 +211,5 @@ ${body}
 </body>
 </html>`;
 
-  download(
-    reportFilename(report, 'html'),
-    new Blob([html], { type: 'text/html;charset=utf-8' })
-  );
+  download(reportFilename(report, 'html'), new Blob([html], { type: 'text/html;charset=utf-8' }));
 }

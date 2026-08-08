@@ -23,12 +23,12 @@ export const accuracyVsSpeed: ContentPage = {
           items: [
             { value: '1 keystroke', label: 'to make a mistake' },
             { value: '3+ keystrokes', label: 'to repair one' },
-            { value: '~30%', label: 'of a 90%-accuracy typist\'s keystrokes go to corrections' },
+            { value: '~30%', label: "of a 90%-accuracy typist's keystrokes go to corrections" },
           ],
         },
         {
           kind: 'p',
-          text: 'So the 90% typist spends roughly 650 keystrokes producing 500 characters. The 98% typist spends about 530. Even if the careful typist\'s fingers move 20% slower, they press far fewer keys — and they finish first.',
+          text: "So the 90% typist spends roughly 650 keystrokes producing 500 characters. The 98% typist spends about 530. Even if the careful typist's fingers move 20% slower, they press far fewer keys — and they finish first.",
         },
         {
           kind: 'note',
@@ -124,8 +124,20 @@ export const accuracyVsSpeed: ContentPage = {
     },
   ],
   related: [
-    { label: 'What is WPM?', to: '/guides/what-is-wpm', hint: 'Raw, net, and where the averages come from.' },
-    { label: 'How to improve typing speed', to: '/guides/how-to-improve-typing-speed', hint: 'The full method, in order.' },
-    { label: 'Drill your weak spots', to: '/practice', hint: 'Accuracy work aimed at your actual misses.' },
+    {
+      label: 'What is WPM?',
+      to: '/guides/what-is-wpm',
+      hint: 'Raw, net, and where the averages come from.',
+    },
+    {
+      label: 'How to improve typing speed',
+      to: '/guides/how-to-improve-typing-speed',
+      hint: 'The full method, in order.',
+    },
+    {
+      label: 'Drill your weak spots',
+      to: '/practice',
+      hint: 'Accuracy work aimed at your actual misses.',
+    },
   ],
 };

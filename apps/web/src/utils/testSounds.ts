@@ -11,8 +11,7 @@ function getCtx(): AudioContext | null {
     if (!ctx) {
       const AC =
         window.AudioContext ||
-        (window as unknown as { webkitAudioContext: typeof AudioContext })
-          .webkitAudioContext;
+        (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
       ctx = new AC();
     }
     if (ctx.state === 'suspended') {
@@ -24,12 +23,7 @@ function getCtx(): AudioContext | null {
   }
 }
 
-function beep(
-  frequency: number,
-  durationMs: number,
-  type: OscillatorType = 'sine',
-  gain = 0.04
-) {
+function beep(frequency: number, durationMs: number, type: OscillatorType = 'sine', gain = 0.04) {
   const audio = getCtx();
   if (!audio) return;
 

@@ -1,16 +1,11 @@
-import { Toaster } from '@/components/ui/sonner';
-import {
-  MutationCache,
-  QueryClient,
-  QueryClientProvider,
-} from '@tanstack/react-query';
-import { RouterProvider, createRouter } from '@tanstack/react-router';
+import { MutationCache, QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { createRouter, RouterProvider } from '@tanstack/react-router';
 import { toast } from 'sonner';
+import { Toaster } from '@/components/ui/sonner';
 import { AuthProvider, ThemeProvider } from './contexts';
-import { describeError } from './utils/describeError';
-
 // Import the generated route tree
 import { routeTree } from './routeTree.gen';
+import { describeError } from './utils/describeError';
 
 declare module '@tanstack/react-query' {
   interface Register {

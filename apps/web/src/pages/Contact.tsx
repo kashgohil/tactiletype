@@ -1,8 +1,8 @@
+import { Bug, Lightbulb, Mail, Users } from 'lucide-react';
+import type React from 'react';
 import { JsonLd } from '@/components/JsonLd';
 import { Panel } from '@/components/ui/panel';
-import { SITE_EMAIL, faqPageSchema, webPageSchema } from '@/lib/seo';
-import { Bug, Lightbulb, Mail, Users } from 'lucide-react';
-import React from 'react';
+import { faqPageSchema, SITE_EMAIL, webPageSchema } from '@/lib/seo';
 
 type Channel = {
   icon: React.ReactNode;
@@ -99,9 +99,7 @@ function ChannelRow({ icon, title, description, href, cta }: Channel) {
       </div>
       <div className="min-w-0">
         <h3 className="font-semibold tracking-tight">{title}</h3>
-        <p className="text-sm text-text/50 mt-1 leading-relaxed">
-          {description}
-        </p>
+        <p className="text-sm text-text/50 mt-1 leading-relaxed">{description}</p>
         <a
           href={href}
           className="inline-block text-sm text-accent mt-1.5 underline-offset-2 hover:underline break-all"
@@ -140,15 +138,12 @@ export const Contact: React.FC = () => {
           Contact & support
         </h1>
         <p className="text-text/50 max-w-2xl leading-relaxed text-[15px]">
-          Questions about tactiletype, a bug to report, or an idea worth
-          building — pick the channel that fits and we'll get back to you.
+          Questions about tactiletype, a bug to report, or an idea worth building — pick the channel
+          that fits and we'll get back to you.
         </p>
       </header>
 
-      <Panel
-        title="Get in touch"
-        description="For anything that doesn't fit a category below."
-      >
+      <Panel title="Get in touch" description="For anything that doesn't fit a category below.">
         <div className="grid md:grid-cols-2 gap-6">
           {REACH.map((channel) => (
             <ChannelRow key={channel.title} {...channel} />
@@ -180,9 +175,7 @@ export const Contact: React.FC = () => {
           {FAQ.map((item) => (
             <div key={item.q} className="py-4 first:pt-0 last:pb-0">
               <h3 className="font-medium tracking-tight">{item.q}</h3>
-              <p className="text-sm text-text/50 mt-1.5 leading-relaxed max-w-2xl">
-                {item.a}
-              </p>
+              <p className="text-sm text-text/50 mt-1.5 leading-relaxed max-w-2xl">{item.a}</p>
             </div>
           ))}
         </div>

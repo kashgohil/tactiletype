@@ -1,4 +1,5 @@
-import React, { useLayoutEffect, useRef, useState } from 'react';
+import type React from 'react';
+import { useLayoutEffect, useRef, useState } from 'react';
 
 /**
  * Shows its child at true A4 width, scaled down to fit the space available.
@@ -15,9 +16,7 @@ import React, { useLayoutEffect, useRef, useState } from 'react';
  */
 export const A4_WIDTH = '210mm';
 
-export const A4Frame: React.FC<{ children: React.ReactNode }> = ({
-  children,
-}) => {
+export const A4Frame: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const viewport = useRef<HTMLDivElement>(null);
   const page = useRef<HTMLDivElement>(null);
   const [scale, setScale] = useState(1);
@@ -44,9 +43,7 @@ export const A4Frame: React.FC<{ children: React.ReactNode }> = ({
       setScale(nextScale);
       // Sub-pixel churn would otherwise keep the observer firing forever.
       setHeight((current) =>
-        current !== undefined && Math.abs(current - nextHeight) < 0.5
-          ? current
-          : nextHeight
+        current !== undefined && Math.abs(current - nextHeight) < 0.5 ? current : nextHeight
       );
     };
 

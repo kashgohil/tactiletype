@@ -1,26 +1,17 @@
+import { useNavigate } from '@tanstack/react-router';
+import type React from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { PlayResultCard, PlayShell } from '@/components/play/PlayHud';
-import {
-  Kbd,
-  PanelHint,
-  PlayTestPanel,
-} from '@/components/play/PlayTestPanel';
-import {
-  TypingSurface,
-  type CharStatus,
-} from '@/components/test/TypingSurface';
+import { Kbd, PanelHint, PlayTestPanel } from '@/components/play/PlayTestPanel';
+import { type CharStatus, TypingSurface } from '@/components/test/TypingSurface';
 import { useAuth } from '@/contexts';
 import { cn } from '@/lib/utils';
-import { isNonPrintingKey } from '@/utils/typingEngine';
-import {
-  pickWords,
-  savePlayBest,
-} from '@/utils/playModes';
 import { isActiveDailyForMode } from '@/utils/dailyRun';
+import { pickWords, savePlayBest } from '@/utils/playModes';
 import { submitPlayResult } from '@/utils/submitPlayResult';
 import { playCompleteChime, playErrorBeep } from '@/utils/testSounds';
+import { isNonPrintingKey } from '@/utils/typingEngine';
 import { recordKeyAttempt } from '@/utils/weakKeys';
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { useNavigate } from '@tanstack/react-router';
 
 type Phase = 'ready' | 'running' | 'dead';
 
@@ -58,22 +49,25 @@ export const SuddenDeathMode: React.FC = () => {
 
   const currentWord = words[wordIndex] ?? '';
 
-  const reset = useCallback((livesCount: 1 | 3 = livesMode) => {
-    setWords(pickWords(STREAM_SIZE, 'medium'));
-    setWordIndex(0);
-    setTyped('');
-    setWordsCleared(0);
-    setCorrectChars(0);
-    setErrors(0);
-    setLiveWpm(0);
-    setPeakWpm(0);
-    setLives(livesCount);
-    setPhase('ready');
-    setIsNewBest(false);
-    startMs.current = null;
-    submitted.current = false;
-    requestAnimationFrame(() => focusRef.current?.focus());
-  }, [livesMode]);
+  const reset = useCallback(
+    (livesCount: 1 | 3 = livesMode) => {
+      setWords(pickWords(STREAM_SIZE, 'medium'));
+      setWordIndex(0);
+      setTyped('');
+      setWordsCleared(0);
+      setCorrectChars(0);
+      setErrors(0);
+      setLiveWpm(0);
+      setPeakWpm(0);
+      setLives(livesCount);
+      setPhase('ready');
+      setIsNewBest(false);
+      startMs.current = null;
+      submitted.current = false;
+      requestAnimationFrame(() => focusRef.current?.focus());
+    },
+    [livesMode]
+  );
 
   useEffect(() => {
     // Daily mode is always hardcore (1 life)
@@ -83,7 +77,7 @@ export const SuddenDeathMode: React.FC = () => {
     } else {
       reset(livesMode);
     }
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  }, []);
 
   // Live WPM tick
   useEffect(() => {
@@ -160,8 +154,7 @@ export const SuddenDeathMode: React.FC = () => {
       // The stream renders a space between words and the caret parks on it, so
       // the space is a key you press — advancing for you meant the space the
       // player could plainly see was the one keystroke that ended the run.
-      const expectedChar =
-        typed.length === expected.length ? ' ' : expected[typed.length]!;
+      const expectedChar = typed.length === expected.length ? ' ' : expected[typed.length]!;
       recordKeyAttempt(expectedChar, e.key === expectedChar);
 
       // Wrong character → lose a life / die
@@ -195,18 +188,7 @@ export const SuddenDeathMode: React.FC = () => {
 
       setTyped(typed + e.key);
     },
-    [
-      phase,
-      typed,
-      currentWord,
-      lives,
-      errors,
-      correctChars,
-      wordsCleared,
-      wordIndex,
-      words,
-      die,
-    ]
+    [phase, typed, currentWord, lives, errors, correctChars, wordsCleared, wordIndex, words, die]
   );
 
   const exit = () => navigate({ to: '/play' });
@@ -235,8 +217,7 @@ export const SuddenDeathMode: React.FC = () => {
   const windowStart = Math.floor(wordIndex / WINDOW) * WINDOW;
   const stream = words.slice(windowStart, windowStart + WINDOW * 3).join(' ');
   const offset =
-    words.slice(windowStart, wordIndex).join(' ').length +
-    (wordIndex > windowStart ? 1 : 0);
+    words.slice(windowStart, wordIndex).join(' ').length + (wordIndex > windowStart ? 1 : 0);
 
   const charStatus = (i: number): CharStatus => {
     if (i < offset) return 'correct';

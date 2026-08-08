@@ -1,15 +1,16 @@
+import { Link, useNavigate } from '@tanstack/react-router';
+import { motion } from 'motion/react';
+import type React from 'react';
+import { useState } from 'react';
 import { Github } from '@/assets/github';
 import { Google } from '@/assets/google';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { panelSurface } from '@/components/ui/panel';
-import { cn } from '@/lib/utils';
 import { usePrefersReducedMotion } from '@/hooks/usePrefersReducedMotion';
 import { authCardEnter } from '@/lib/motion';
+import { cn } from '@/lib/utils';
 import api from '@/services/api';
-import { Link, useNavigate } from '@tanstack/react-router';
-import { motion } from 'motion/react';
-import React, { useState } from 'react';
 import { useAuth } from '../contexts';
 
 export const Login: React.FC = () => {
@@ -63,12 +64,7 @@ export const Login: React.FC = () => {
       className={cn(panelSurface, 'max-w-md w-full my-auto mx-auto p-8')}
     >
       <h1 className="flex items-center justify-center gap-2 text-2xl font-bold text-center mb-8">
-        <img
-          src="/tactiletype-256x256.png"
-          alt="tactiletype"
-          height={36}
-          width={36}
-        />
+        <img src="/tactiletype-256x256.png" alt="tactiletype" height={36} width={36} />
         <span>tactiletype</span>
       </h1>
 
@@ -155,10 +151,7 @@ export const Login: React.FC = () => {
       <div className="mt-6 text-center">
         <p>
           Don't have an account?{' '}
-          <Link
-            to="/register"
-            className="text-accent font-medium hover:underline"
-          >
+          <Link to="/register" className="text-accent font-medium hover:underline">
             Sign up
           </Link>
         </p>

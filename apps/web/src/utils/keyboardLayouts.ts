@@ -1,26 +1,11 @@
 export type LayoutId = 'qwerty' | 'colemak' | 'dvorak';
 
 /** Physical key positions (row strings, left-to-right). */
-const QWERTY_ROWS = [
-  '`1234567890-=',
-  'qwertyuiop[]\\',
-  "asdfghjkl;'",
-  'zxcvbnm,./',
-];
+const QWERTY_ROWS = ['`1234567890-=', 'qwertyuiop[]\\', "asdfghjkl;'", 'zxcvbnm,./'];
 
-const COLEMAK_ROWS = [
-  '`1234567890-=',
-  'qwfpgjluy;[]\\',
-  "arstdhneio'",
-  'zxcvbkm,./',
-];
+const COLEMAK_ROWS = ['`1234567890-=', 'qwfpgjluy;[]\\', "arstdhneio'", 'zxcvbkm,./'];
 
-const DVORAK_ROWS = [
-  '`1234567890[]',
-  "',.pyfgcrl/=\\",
-  'aoeuidhtns-',
-  ';qjkxbmwvz',
-];
+const DVORAK_ROWS = ['`1234567890[]', "',.pyfgcrl/=\\", 'aoeuidhtns-', ';qjkxbmwvz'];
 
 const LAYOUTS: Record<LayoutId, string[]> = {
   qwerty: QWERTY_ROWS,
@@ -85,10 +70,7 @@ export function getHeatmapLetterRows(layout: LayoutId): {
  * Map a character to a row/column for heatmap positioning.
  * Returns null for unmapped chars.
  */
-export function charPosition(
-  char: string,
-  layout: LayoutId
-): { row: number; col: number } | null {
+export function charPosition(char: string, layout: LayoutId): { row: number; col: number } | null {
   const c = char.toLowerCase();
   const rows = LAYOUTS[layout];
   for (let r = 0; r < rows.length; r++) {

@@ -1,6 +1,6 @@
-import { Button } from "@/components/ui/button";
-import type { TypingStats } from "@/utils/typingEngine";
-import { formatTime } from "@/utils/typingEngine";
+import { Button } from '@/components/ui/button';
+import type { TypingStats } from '@/utils/typingEngine';
+import { formatTime } from '@/utils/typingEngine';
 
 interface ResultsSummaryProps {
   stats: TypingStats;
@@ -26,9 +26,7 @@ export function ResultsSummary({ stats, onRestart }: ResultsSummaryProps) {
             <div className="text-sm">Correct characters</div>
           </div>
           <div>
-            <div className="text-xl font-semibold">
-              {formatTime(stats.timeElapsed)}
-            </div>
+            <div className="text-xl font-semibold">{formatTime(stats.timeElapsed)}</div>
             <div className="text-sm">Time taken</div>
           </div>
         </div>

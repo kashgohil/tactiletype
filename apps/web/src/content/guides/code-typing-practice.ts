@@ -127,13 +127,22 @@ export const codeTypingPractice: ContentPage = {
   ],
   sources: [
     {
-      label: 'Dhakal, Feit, Kristensson & Oulasvirta — Observations on Typing from 136 Million Keystrokes (CHI 2018)',
+      label:
+        'Dhakal, Feit, Kristensson & Oulasvirta — Observations on Typing from 136 Million Keystrokes (CHI 2018)',
       href: 'https://userinterfaces.aalto.fi/136Mkeystrokes/',
     },
   ],
   related: [
-    { label: 'Accuracy vs speed', to: '/guides/accuracy-vs-speed', hint: 'Why errors cost more than they look like they do.' },
-    { label: 'How to improve typing speed', to: '/guides/how-to-improve-typing-speed', hint: 'The method, in the order that works.' },
+    {
+      label: 'Accuracy vs speed',
+      to: '/guides/accuracy-vs-speed',
+      hint: 'Why errors cost more than they look like they do.',
+    },
+    {
+      label: 'How to improve typing speed',
+      to: '/guides/how-to-improve-typing-speed',
+      hint: 'The method, in the order that works.',
+    },
     { label: 'Practice drills', to: '/practice', hint: 'Concentrated reps on the pairs you miss.' },
   ],
 };

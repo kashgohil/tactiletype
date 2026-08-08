@@ -1,3 +1,6 @@
+import { ChevronLeft, ChevronRight, LayoutGrid, List } from 'lucide-react';
+import type React from 'react';
+import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Panel } from '@/components/ui/panel';
 import {
@@ -17,8 +20,6 @@ import {
 } from '@/components/ui/table';
 import type { TestResult } from '@/services/api';
 import { formatTime } from '@/utils/typingEngine';
-import { ChevronLeft, ChevronRight, LayoutGrid, List } from 'lucide-react';
-import React, { useState } from 'react';
 import { Skeleton } from '../ui/skeleton';
 
 export interface ResultFilters {
@@ -51,8 +52,7 @@ function relativeTime(dateStr: string): string {
   return date.toLocaleDateString(undefined, {
     month: 'short',
     day: 'numeric',
-    year:
-      date.getFullYear() !== new Date().getFullYear() ? 'numeric' : undefined,
+    year: date.getFullYear() !== new Date().getFullYear() ? 'numeric' : undefined,
   });
 }
 
@@ -77,17 +77,13 @@ function ResultCard({ result }: { result: TestResult }) {
           <h3 className="font-medium text-sm truncate">
             {result.testText?.title || 'Custom text'}
           </h3>
-          <p className="text-xs text-text/40 mt-0.5">
-            {relativeTime(result.completedAt)}
-          </p>
+          <p className="text-xs text-text/40 mt-0.5">{relativeTime(result.completedAt)}</p>
         </div>
         <div className="shrink-0 text-right">
           <div className="text-2xl font-bold font-mono text-accent leading-none">
             {Math.round(Number(result.wpm))}
           </div>
-          <div className="text-[10px] uppercase tracking-wide text-text/40 mt-0.5">
-            WPM
-          </div>
+          <div className="text-[10px] uppercase tracking-wide text-text/40 mt-0.5">WPM</div>
         </div>
       </div>
 
@@ -95,9 +91,7 @@ function ResultCard({ result }: { result: TestResult }) {
         <span className="text-xs font-mono bg-accent/20 text-text/80 px-2 py-0.5 rounded-md">
           {Number(result.accuracy).toFixed(1)}% acc
         </span>
-        <span className="text-xs text-text/50 font-mono">
-          {formatTime(result.timeTaken)}
-        </span>
+        <span className="text-xs text-text/50 font-mono">{formatTime(result.timeTaken)}</span>
         {modeLabel && (
           <span className="text-xs text-text/50 bg-primary/40 px-2 py-0.5 rounded-md">
             {modeLabel}
@@ -212,35 +206,26 @@ export const ResultCards: React.FC<ResultCardsProps> = ({
       title="Recent results"
       action={
         <div className="flex flex-wrap items-center gap-2">
-          {onFiltersChange && (
-            <>
-              {FILTERS.map((filter) => (
-                <Select
-                  key={filter.key}
-                  value={filters[filter.key] ?? ALL}
-                  onValueChange={(value) =>
-                    updateFilter(filter.key, value === ALL ? '' : value)
-                  }
-                >
-                  <SelectTrigger
-                    size="sm"
-                    className="h-8 text-xs"
-                    aria-label={filter.label}
-                  >
-                    <SelectValue placeholder={filter.label} />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value={ALL}>{filter.label}</SelectItem>
-                    {filter.options.map((option) => (
-                      <SelectItem key={option.value} value={option.value}>
-                        {option.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              ))}
-            </>
-          )}
+          {onFiltersChange &&
+            FILTERS.map((filter) => (
+              <Select
+                key={filter.key}
+                value={filters[filter.key] ?? ALL}
+                onValueChange={(value) => updateFilter(filter.key, value === ALL ? '' : value)}
+              >
+                <SelectTrigger size="sm" className="h-8 text-xs" aria-label={filter.label}>
+                  <SelectValue placeholder={filter.label} />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value={ALL}>{filter.label}</SelectItem>
+                  {filter.options.map((option) => (
+                    <SelectItem key={option.value} value={option.value}>
+                      {option.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            ))}
           <div className="flex items-center gap-1 rounded-lg border border-accent/15 p-0.5">
             <Button
               size="sm"
@@ -271,9 +256,7 @@ export const ResultCards: React.FC<ResultCardsProps> = ({
           ))}
         </div>
       ) : results.length === 0 && !isFetching ? (
-        <p className="py-8 text-center text-text/50">
-          No test results found for this page
-        </p>
+        <p className="py-8 text-center text-text/50">No test results found for this page</p>
       ) : view === 'cards' ? (
         <div className="grid sm:grid-cols-2 gap-3">
           {results.map((result, index) =>
@@ -318,8 +301,7 @@ export const ResultCards: React.FC<ResultCardsProps> = ({
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div className="text-sm text-text/50">
               Showing {(currentPage - 1) * pageSize + 1} to{' '}
-              {(currentPage - 1) * pageSize + results.length} of {totalCount}{' '}
-              results
+              {(currentPage - 1) * pageSize + results.length} of {totalCount} results
               {isFetching && <span className="ml-2">(Loading...)</span>}
             </div>
             <div className="flex items-center space-x-2">

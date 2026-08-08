@@ -1,27 +1,19 @@
+import { useNavigate } from '@tanstack/react-router';
+import type React from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { PlayResultCard, PlayShell } from '@/components/play/PlayHud';
-import {
-  Kbd,
-  PanelHint,
-  PlayTestPanel,
-} from '@/components/play/PlayTestPanel';
+import { Kbd, PanelHint, PlayTestPanel } from '@/components/play/PlayTestPanel';
 import { TypingSurface } from '@/components/test/TypingSurface';
 import { Button } from '@/components/ui/button';
 import { Panel } from '@/components/ui/panel';
 import { useAuth } from '@/contexts';
 import { useArmedHotkey } from '@/hooks/useArmedHotkey';
 import { cn } from '@/lib/utils';
-import { isNonPrintingKey } from '@/utils/typingEngine';
-import {
-  loadPlayBests,
-  pickPhrase,
-  savePlayBest,
-  type PlayBests,
-} from '@/utils/playModes';
-import { scoreRecall, type RecallScore } from '@/utils/recall';
+import { loadPlayBests, type PlayBests, pickPhrase, savePlayBest } from '@/utils/playModes';
+import { type RecallScore, scoreRecall } from '@/utils/recall';
 import { submitPlayResult } from '@/utils/submitPlayResult';
 import { playCompleteChime, playErrorBeep, playKeyClick } from '@/utils/testSounds';
-import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { useNavigate } from '@tanstack/react-router';
+import { isNonPrintingKey } from '@/utils/typingEngine';
 
 type Phase = 'ready' | 'flash' | 'type' | 'round-result' | 'over';
 
@@ -168,9 +160,7 @@ export const MemoryFlashMode: React.FC = () => {
       setLastScore(score);
       allPhrases.current.push(phrase);
       hitCharsTotal.current += score.hitChars;
-      typeMsTotal.current += typeStartedAt.current
-        ? Date.now() - typeStartedAt.current
-        : 0;
+      typeMsTotal.current += typeStartedAt.current ? Date.now() - typeStartedAt.current : 0;
 
       const recalled = wordsRecalled + score.hits;
       setWordsRecalled(recalled);
@@ -180,9 +170,7 @@ export const MemoryFlashMode: React.FC = () => {
       ]);
 
       const livesLeft = score.perfect ? lives : lives - 1;
-      const climbedTo = score.perfect
-        ? Math.min(MAX_SPAN, span + 1)
-        : Math.max(MIN_SPAN, span - 1);
+      const climbedTo = score.perfect ? Math.min(MAX_SPAN, span + 1) : Math.max(MIN_SPAN, span - 1);
       const best = score.perfect ? Math.max(bestSpan, span) : bestSpan;
       setLives(livesLeft);
       setNextSpan(climbedTo);
@@ -209,16 +197,14 @@ export const MemoryFlashMode: React.FC = () => {
 
       if (!submitted.current) {
         submitted.current = true;
-        const targetWords = allPhrases.current.join(' ').split(/\s+/)
-          .filter(Boolean).length;
+        const targetWords = allPhrases.current.join(' ').split(/\s+/).filter(Boolean).length;
         await submitPlayResult(
           {
             modeId: 'memory-flash',
             title: `Memory Flash · ${label}`,
             content: allPhrases.current.join(' · '),
             wpm,
-            accuracy:
-              targetWords > 0 ? Math.round((recalled / targetWords) * 100) : 0,
+            accuracy: targetWords > 0 ? Math.round((recalled / targetWords) * 100) : 0,
             errors: Math.max(0, targetWords - recalled),
             timeTaken: Math.max(1, Math.round(typeMsTotal.current / 1000)),
             wordCount: targetWords,
@@ -295,11 +281,7 @@ export const MemoryFlashMode: React.FC = () => {
     return (
       <PlayShell modeId="memory-flash" title="Memory Flash" onExit={exit}>
         <PlayResultCard
-          title={
-            bestSpan > 0
-              ? `${bestSpan}-word recall span`
-              : 'No phrase held whole'
-          }
+          title={bestSpan > 0 ? `${bestSpan}-word recall span` : 'No phrase held whole'}
           hint={
             bestSpan > 0
               ? `You held ${bestSpan} words at once and typed them back exactly.`
@@ -363,12 +345,8 @@ export const MemoryFlashMode: React.FC = () => {
               <dl className="space-y-3.5">
                 {RULES.map((rule) => (
                   <div key={rule.term} className="flex gap-3 items-baseline">
-                    <dt className="font-mono text-xs text-accent w-14 shrink-0">
-                      {rule.term}
-                    </dt>
-                    <dd className="text-sm text-text/60 leading-relaxed">
-                      {rule.detail}
-                    </dd>
+                    <dt className="font-mono text-xs text-accent w-14 shrink-0">{rule.term}</dt>
+                    <dd className="text-sm text-text/60 leading-relaxed">{rule.detail}</dd>
                   </div>
                 ))}
               </dl>
@@ -376,14 +354,9 @@ export const MemoryFlashMode: React.FC = () => {
           </div>
         </Panel>
 
-        <Panel
-          tone="accent"
-          bodyClassName="flex flex-wrap items-center justify-between gap-4"
-        >
+        <Panel tone="accent" bodyClassName="flex flex-wrap items-center justify-between gap-4">
           <div>
-            <p className="text-sm font-medium tracking-tight">
-              Ready when you are
-            </p>
+            <p className="text-sm font-medium tracking-tight">Ready when you are</p>
             <p className="text-xs text-text/45 mt-0.5 font-mono">
               Starts at {START_SPAN} words
               {storedBest ? ` · best ${storedBest.label}` : ''}
@@ -403,7 +376,8 @@ export const MemoryFlashMode: React.FC = () => {
   }
 
   return (
-    <PlayShell modeId="memory-flash"
+    <PlayShell
+      modeId="memory-flash"
       title="Memory Flash"
       subtitle="Hold the phrase, then type it back blind. It grows until you drop it."
       onExit={exit}
@@ -419,8 +393,7 @@ export const MemoryFlashMode: React.FC = () => {
           },
           {
             label: 'Phase',
-            value:
-              phase === 'flash' ? 'Memorize' : phase === 'type' ? 'Type' : 'Result',
+            value: phase === 'flash' ? 'Memorize' : phase === 'type' ? 'Type' : 'Result',
           },
         ]}
         meter={phase === 'flash' ? flashLeft : null}
@@ -466,6 +439,7 @@ export const MemoryFlashMode: React.FC = () => {
                 you have left to reach, which is recall, not guesswork. */}
             <div
               className="flex items-center justify-center gap-1.5 px-8"
+              role="img"
               aria-label={`${typedWordCount} of ${span} words typed`}
             >
               {Array.from({ length: span }, (_, i) => (
@@ -506,12 +480,7 @@ export const MemoryFlashMode: React.FC = () => {
                 </span>
               ))}
             </p>
-            <p
-              className={cn(
-                'text-sm',
-                lastScore.perfect ? 'text-success' : 'text-text/45'
-              )}
-            >
+            <p className={cn('text-sm', lastScore.perfect ? 'text-success' : 'text-text/45')}>
               {lastScore.perfect
                 ? `Held it — ${span} words up to ${nextSpan}`
                 : `Life lost — ${span} words down to ${nextSpan}, ${lives} left`}

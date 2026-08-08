@@ -3,6 +3,7 @@ import { cn } from '@/lib/utils';
 export function Github(props: { className?: string }) {
   return (
     <svg
+      aria-hidden="true"
       className={cn('w-4 h-4', props.className)}
       fill="currentColor"
       viewBox="0 0 24 24"

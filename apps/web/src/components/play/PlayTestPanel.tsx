@@ -1,12 +1,8 @@
-import { Button } from '@/components/ui/button';
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from '@/components/ui/tooltip';
-import { cn } from '@/lib/utils';
 import { RotateCcw } from 'lucide-react';
-import React from 'react';
+import type React from 'react';
+import { Button } from '@/components/ui/button';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+import { cn } from '@/lib/utils';
 
 export interface PanelStat {
   label: string;
@@ -22,11 +18,7 @@ export function PanelStatItem({ label, value, accent, tone }: PanelStat) {
       <span
         className={cn(
           'font-mono text-lg font-semibold tabular-nums tracking-tight leading-none',
-          tone === 'danger'
-            ? 'text-destructive'
-            : accent
-              ? 'text-accent'
-              : 'text-text'
+          tone === 'danger' ? 'text-destructive' : accent ? 'text-accent' : 'text-text'
         )}
       >
         {value}
@@ -115,14 +107,7 @@ export function PanelHint({
   className?: string;
 }) {
   return (
-    <p
-      className={cn(
-        'px-8 pb-7 -mt-3 text-center text-sm text-text/45',
-        className
-      )}
-    >
-      {children}
-    </p>
+    <p className={cn('px-8 pb-7 -mt-3 text-center text-sm text-text/45', className)}>{children}</p>
   );
 }
 

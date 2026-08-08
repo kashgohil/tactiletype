@@ -9,11 +9,11 @@ export const QUOTES: Array<{ text: string; author: string }> = [
     author: 'Edgar Allan Poe',
   },
   {
-    text: 'I wandered lonely as a cloud that floats on high o\'er vales and hills, when all at once I saw a crowd, a host, of golden daffodils.',
+    text: "I wandered lonely as a cloud that floats on high o'er vales and hills, when all at once I saw a crowd, a host, of golden daffodils.",
     author: 'William Wordsworth',
   },
   {
-    text: 'To be, or not to be, that is the question: Whether \'tis nobler in the mind to suffer the slings and arrows of outrageous fortune, or to take arms against a sea of troubles.',
+    text: "To be, or not to be, that is the question: Whether 'tis nobler in the mind to suffer the slings and arrows of outrageous fortune, or to take arms against a sea of troubles.",
     author: 'William Shakespeare',
   },
   {
@@ -25,7 +25,7 @@ export const QUOTES: Array<{ text: string; author: string }> = [
     author: 'Charles Dickens',
   },
   {
-    text: 'Happy families are all alike; every unhappy family is unhappy in its own way. Everything was in confusion in the Oblonskys\' house.',
+    text: "Happy families are all alike; every unhappy family is unhappy in its own way. Everything was in confusion in the Oblonskys' house.",
     author: 'Leo Tolstoy',
   },
   {
@@ -33,7 +33,7 @@ export const QUOTES: Array<{ text: string; author: string }> = [
     author: 'J.R.R. Tolkien',
   },
   {
-    text: 'The only way to do great work is to love what you do. If you haven\'t found it yet, keep looking. Don\'t settle. As with all matters of the heart, you\'ll know when you find it.',
+    text: "The only way to do great work is to love what you do. If you haven't found it yet, keep looking. Don't settle. As with all matters of the heart, you'll know when you find it.",
     author: 'Steve Jobs',
   },
   {
@@ -101,7 +101,7 @@ export const QUOTES: Array<{ text: string; author: string }> = [
     author: 'Albert Einstein',
   },
   {
-    text: 'Stay hungry. Stay foolish. Your time is limited, so don\'t waste it living someone else\'s life. Don\'t be trapped by dogma—which is living with the results of other people\'s thinking.',
+    text: "Stay hungry. Stay foolish. Your time is limited, so don't waste it living someone else's life. Don't be trapped by dogma—which is living with the results of other people's thinking.",
     author: 'Steve Jobs',
   },
   {

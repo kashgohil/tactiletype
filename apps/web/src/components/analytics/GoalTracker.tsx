@@ -9,19 +9,14 @@ import {
   Trash,
   Trophy,
 } from 'lucide-react';
-import React, { useState } from 'react';
+import type React from 'react';
+import { useState } from 'react';
 import { Button } from '../ui/button';
-import { Panel } from '../ui/panel';
 import { DatePicker } from '../ui/date-picker';
 import { Input } from '../ui/input';
+import { Panel } from '../ui/panel';
 import { Progress } from '../ui/progress';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '../ui/select';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
 
 interface GoalTrackerProps {
   goals: UserGoal[];
@@ -33,11 +28,7 @@ interface GoalTrackerProps {
   onDeleteGoal: (goalId: string) => void;
 }
 
-export const GoalTracker: React.FC<GoalTrackerProps> = ({
-  goals,
-  onCreateGoal,
-  onDeleteGoal,
-}) => {
+export const GoalTracker: React.FC<GoalTrackerProps> = ({ goals, onCreateGoal, onDeleteGoal }) => {
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [newGoal, setNewGoal] = useState({
     goalType: 'wpm' as 'wpm' | 'accuracy' | 'consistency' | 'daily_tests',
@@ -50,9 +41,7 @@ export const GoalTracker: React.FC<GoalTrackerProps> = ({
     if (newGoal.targetValue > 0) {
       onCreateGoal({
         ...newGoal,
-        targetDate: newGoal.targetDate
-          ? newGoal.targetDate.toISOString().split('T')[0]
-          : undefined,
+        targetDate: newGoal.targetDate ? newGoal.targetDate.toISOString().split('T')[0] : undefined,
       });
       setNewGoal({
         goalType: 'wpm',
@@ -117,24 +106,17 @@ export const GoalTracker: React.FC<GoalTrackerProps> = ({
       title="Your goals"
       icon={<Target className="size-4 text-accent" />}
       action={
-        <Button
-          size="sm"
-          variant="ghost"
-          onClick={() => setShowCreateForm(!showCreateForm)}
-        >
+        <Button size="sm" variant="ghost" onClick={() => setShowCreateForm(!showCreateForm)}>
           {showCreateForm ? 'Cancel' : 'Add goal'}
         </Button>
       }
     >
       {/* Create Goal Form — separated by a rule, not by a second fill. */}
       {showCreateForm && (
-        <form
-          onSubmit={handleSubmit}
-          className="mb-5 pb-5 border-b border-accent/10"
-        >
+        <form onSubmit={handleSubmit} className="mb-5 pb-5 border-b border-accent/10">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div>
-              <label className="block text-sm font-medium text-text/55 mb-1">
+              <label htmlFor="goal-type" className="block text-sm font-medium text-text/55 mb-1">
                 Goal Type
               </label>
               <Select
@@ -142,19 +124,12 @@ export const GoalTracker: React.FC<GoalTrackerProps> = ({
                 onValueChange={(value) =>
                   setNewGoal({
                     ...newGoal,
-                    goalType: value as
-                      | 'wpm'
-                      | 'accuracy'
-                      | 'consistency'
-                      | 'daily_tests',
+                    goalType: value as 'wpm' | 'accuracy' | 'consistency' | 'daily_tests',
                   })
                 }
               >
-                <SelectTrigger className="w-full">
-                  <SelectValue
-                    className="capitalize"
-                    placeholder="Select a goal type"
-                  />
+                <SelectTrigger id="goal-type" className="w-full">
+                  <SelectValue className="capitalize" placeholder="Select a goal type" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="wpm">Words Per Minute</SelectItem>
@@ -166,10 +141,11 @@ export const GoalTracker: React.FC<GoalTrackerProps> = ({
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-text/55 mb-1">
+              <label htmlFor="goal-target" className="block text-sm font-medium text-text/55 mb-1">
                 Target Value
               </label>
               <Input
+                id="goal-target"
                 type="number"
                 value={newGoal.targetValue || ''}
                 onChange={(e) =>
@@ -184,10 +160,11 @@ export const GoalTracker: React.FC<GoalTrackerProps> = ({
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-text/55 mb-1">
+              <label htmlFor="goal-date" className="block text-sm font-medium text-text/55 mb-1">
                 Target Date (Optional)
               </label>
               <DatePicker
+                id="goal-date"
                 date={newGoal.targetDate}
                 onDateChange={(date: Date | undefined) =>
                   setNewGoal({ ...newGoal, targetDate: date })
@@ -223,16 +200,13 @@ export const GoalTracker: React.FC<GoalTrackerProps> = ({
               <li key={goal.id} className="py-4 space-y-2.5">
                 <div className="flex items-start justify-between gap-2">
                   <div className="flex items-center gap-2.5 min-w-0">
-                    <span className="[&>svg]:size-4 shrink-0">
-                      {getGoalIcon(goal.goalType)}
-                    </span>
+                    <span className="[&>svg]:size-4 shrink-0">{getGoalIcon(goal.goalType)}</span>
                     <div className="min-w-0">
                       <h4 className="font-medium text-sm capitalize truncate">
                         {goal.goalType.replace('_', ' ')}
                       </h4>
                       <p className="text-xs text-text/45 font-mono tabular-nums">
-                        {Number(goal.currentValue)} /{' '}
-                        {Number(goal.targetValue)}
+                        {Number(goal.currentValue)} / {Number(goal.targetValue)}
                         {getGoalUnit(goal.goalType)}
                       </p>
                     </div>

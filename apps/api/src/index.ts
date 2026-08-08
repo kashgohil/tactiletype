@@ -77,7 +77,10 @@ let connectionSeq = 0;
 
 export default {
   port,
-  async fetch(req: Request, server: { upgrade: (req: Request, opts?: { data?: unknown }) => boolean }) {
+  async fetch(
+    req: Request,
+    server: { upgrade: (req: Request, opts?: { data?: unknown }) => boolean }
+  ) {
     const url = new URL(req.url);
     if (url.pathname === '/ws') {
       const upgraded = server.upgrade(req, {
@@ -93,10 +96,7 @@ export default {
       const id = ws.data.connectionId;
       multiplayerHub.onOpen(id, ws);
     },
-    async message(
-      ws: { data: { connectionId: string } },
-      message: string | Buffer
-    ) {
+    async message(ws: { data: { connectionId: string } }, message: string | Buffer) {
       await multiplayerHub.onMessage(ws.data.connectionId, message);
     },
     close(ws: { data: { connectionId: string } }) {

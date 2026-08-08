@@ -1,3 +1,7 @@
+import type { TestText } from '@tactile/types';
+import { Loader2 } from 'lucide-react';
+import type React from 'react';
+import { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -15,9 +19,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import type { TestText } from '@tactile/types';
-import { Loader2 } from 'lucide-react';
-import React, { useEffect, useState } from 'react';
 import { multiplayerApi } from '../../services/multiplayerApi';
 
 interface CreateRoomModalProps {
@@ -53,9 +54,7 @@ export const CreateRoomModal: React.FC<CreateRoomModalProps> = ({
         const texts = await multiplayerApi.getTestTexts();
         setTestTexts(texts);
       } catch (err) {
-        setError(
-          err instanceof Error ? err.message : 'Failed to load test texts'
-        );
+        setError(err instanceof Error ? err.message : 'Failed to load test texts');
       } finally {
         setLoadingTexts(false);
       }
@@ -131,9 +130,7 @@ export const CreateRoomModal: React.FC<CreateRoomModalProps> = ({
             <Input
               id="roomName"
               value={formData.name}
-              onChange={(e) =>
-                setFormData((prev) => ({ ...prev, name: e.target.value }))
-              }
+              onChange={(e) => setFormData((prev) => ({ ...prev, name: e.target.value }))}
               placeholder="Friday night sprints"
               maxLength={100}
               autoFocus
@@ -152,9 +149,7 @@ export const CreateRoomModal: React.FC<CreateRoomModalProps> = ({
             ) : (
               <Select
                 value={formData.testTextId}
-                onValueChange={(value) =>
-                  setFormData((prev) => ({ ...prev, testTextId: value }))
-                }
+                onValueChange={(value) => setFormData((prev) => ({ ...prev, testTextId: value }))}
               >
                 <SelectTrigger id="testText" className="w-full">
                   <SelectValue placeholder="Choose a text..." />
@@ -180,10 +175,7 @@ export const CreateRoomModal: React.FC<CreateRoomModalProps> = ({
           </div>
 
           <div className="space-y-1.5">
-            <label
-              htmlFor="maxPlayers"
-              className="text-sm font-medium text-muted"
-            >
+            <label htmlFor="maxPlayers" className="text-sm font-medium text-muted">
               Maximum players
             </label>
             <Select

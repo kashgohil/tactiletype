@@ -1,8 +1,8 @@
-import { Button } from '@/components/ui/button';
-import { Panel } from '@/components/ui/panel';
 import type { ErrorAnalysisSummary } from '@tactile/types';
 import { Crosshair } from 'lucide-react';
-import React from 'react';
+import type React from 'react';
+import { Button } from '@/components/ui/button';
+import { Panel } from '@/components/ui/panel';
 import { Skeleton } from '../ui/skeleton';
 
 interface WeakSpotsPanelProps {
@@ -10,10 +10,7 @@ interface WeakSpotsPanelProps {
   isLoading?: boolean;
 }
 
-export const WeakSpotsPanel: React.FC<WeakSpotsPanelProps> = ({
-  errorAnalysis,
-  isLoading,
-}) => {
+export const WeakSpotsPanel: React.FC<WeakSpotsPanelProps> = ({ errorAnalysis, isLoading }) => {
   if (isLoading) {
     return <Skeleton className="h-48 rounded-2xl" />;
   }
@@ -30,16 +27,14 @@ export const WeakSpotsPanel: React.FC<WeakSpotsPanelProps> = ({
     >
       {chars.length === 0 && words.length === 0 ? (
         <p className="text-sm text-text/50 flex-1">
-          Complete a few tests to surface weak keys and words. Analytics need
-          keystroke data from finished sessions.
+          Complete a few tests to surface weak keys and words. Analytics need keystroke data from
+          finished sessions.
         </p>
       ) : (
         <div className="space-y-4 flex-1">
           {chars.length > 0 && (
             <div>
-              <p className="text-xs uppercase tracking-wide text-text/40 mb-2">
-                Keys
-              </p>
+              <p className="text-xs uppercase tracking-wide text-text/40 mb-2">Keys</p>
               <div className="flex flex-wrap gap-2">
                 {chars.map((c) => (
                   <a
@@ -50,9 +45,7 @@ export const WeakSpotsPanel: React.FC<WeakSpotsPanelProps> = ({
                     <span className="text-accent font-bold">
                       {c.character === ' ' ? '␣' : c.character}
                     </span>
-                    <span className="text-text/40 text-xs">
-                      {c.errorCount}×
-                    </span>
+                    <span className="text-text/40 text-xs">{c.errorCount}×</span>
                   </a>
                 ))}
               </div>
@@ -75,9 +68,7 @@ export const WeakSpotsPanel: React.FC<WeakSpotsPanelProps> = ({
 
           {words.length > 0 && (
             <div>
-              <p className="text-xs uppercase tracking-wide text-text/40 mb-2">
-                Words
-              </p>
+              <p className="text-xs uppercase tracking-wide text-text/40 mb-2">Words</p>
               <div className="flex flex-wrap gap-2">
                 {words.map((w) => (
                   <a

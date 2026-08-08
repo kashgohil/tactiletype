@@ -1,8 +1,5 @@
 import type { ErrorAnalysisSummary } from '@tactile/types';
-import {
-  curriculumCompletionPercent,
-  loadCurriculumProgress,
-} from '@/utils/curriculum';
+import { curriculumCompletionPercent, loadCurriculumProgress } from '@/utils/curriculum';
 import { mergeWeakKeys } from '@/utils/weakKeys';
 
 export type RecommendedExercise = {
@@ -29,17 +26,13 @@ export function buildRecommendation(input: {
   currentStreak?: number;
   lastPracticeHoursAgo?: number | null;
 }): RecommendedExercise {
-  const weakKeys = mergeWeakKeys(
-    input.errorAnalysis?.mostProblematicChars,
-    5
-  );
+  const weakKeys = mergeWeakKeys(input.errorAnalysis?.mostProblematicChars, 5);
 
   if (weakKeys.length >= 2) {
     return {
       id: 'weak-storm',
       title: `Weak Storm: ${weakKeys.map((k) => k.toUpperCase()).join(' ')}`,
-      description:
-        'Rising-timer storm aimed at the keys you miss most — not the same free test.',
+      description: 'Rising-timer storm aimed at the keys you miss most — not the same free test.',
       reason: 'Weak keys detected from your recent typing',
       href: '/play/weak-storm',
       priority: 5,

@@ -1,6 +1,6 @@
-import { ActivityHeatmap } from '@/components/analytics/ActivityHeatmap';
 import { Flame } from 'lucide-react';
-import React from 'react';
+import type React from 'react';
+import { ActivityHeatmap } from '@/components/analytics/ActivityHeatmap';
 
 interface ActivitySectionProps {
   year?: number;
@@ -17,8 +17,7 @@ export const ActivitySection: React.FC<ActivitySectionProps> = ({
 }) => {
   let narrative: string;
   if (totalTests === 0) {
-    narrative =
-      'No activity yet this year. One short session starts your map.';
+    narrative = 'No activity yet this year. One short session starts your map.';
   } else if (currentStreak === 0) {
     narrative = `You've completed ${totalTests} test${totalTests === 1 ? '' : 's'} this year. Jump back in to restart your streak.`;
   } else if (currentStreak >= longestStreak && currentStreak >= 3) {
@@ -37,9 +36,7 @@ export const ActivitySection: React.FC<ActivitySectionProps> = ({
             <Flame className="size-5 text-accent" />
             Activity
           </h2>
-          <p className="text-sm text-text/50 mt-1 max-w-xl leading-relaxed">
-            {narrative}
-          </p>
+          <p className="text-sm text-text/50 mt-1 max-w-xl leading-relaxed">{narrative}</p>
         </div>
       </div>
       <ActivityHeatmap year={year} title="Year in tests" />

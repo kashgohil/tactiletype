@@ -86,29 +86,25 @@ export const PAGE_META: Record<string, PageMeta> = {
   },
   '/leaderboard': {
     title: 'Typing Leaderboard | tactiletype',
-    description:
-      'See top WPM scores daily, weekly, monthly, and all-time on tactiletype.',
+    description: 'See top WPM scores daily, weekly, monthly, and all-time on tactiletype.',
     path: '/leaderboard',
     robots: INDEX,
   },
   '/multiplayer': {
     title: 'Multiplayer Typing Races | tactiletype',
-    description:
-      'Join live typing races, create rooms, and compete in real time.',
+    description: 'Join live typing races, create rooms, and compete in real time.',
     path: '/multiplayer',
     robots: INDEX,
   },
   '/contact': {
     title: 'Contact & Support | tactiletype',
-    description:
-      'Get help with tactiletype: support email, bug reports, feature ideas, and FAQs.',
+    description: 'Get help with tactiletype: support email, bug reports, feature ideas, and FAQs.',
     path: '/contact',
     robots: INDEX,
   },
   '/privacy': {
     title: 'Privacy Policy | tactiletype',
-    description:
-      'How tactiletype collects, uses, and protects your data.',
+    description: 'How tactiletype collects, uses, and protects your data.',
     path: '/privacy',
     robots: INDEX,
   },
@@ -312,11 +308,7 @@ export function webApplicationSchema(): Schema {
   };
 }
 
-export function webPageSchema(meta: {
-  path: string;
-  title: string;
-  description: string;
-}): Schema {
+export function webPageSchema(meta: { path: string; title: string; description: string }): Schema {
   return {
     '@type': 'WebPage',
     '@id': `${absoluteUrl(meta.path)}#webpage`,
@@ -332,10 +324,7 @@ export function webPageSchema(meta: {
  * Only emit this where the questions and answers are actually visible on the
  * page — Google treats FAQ markup that doesn't match rendered content as spam.
  */
-export function faqPageSchema(
-  items: { q: string; a: string }[],
-  path: string
-): Schema {
+export function faqPageSchema(items: { q: string; a: string }[], path: string): Schema {
   return {
     '@type': 'FAQPage',
     '@id': `${absoluteUrl(path)}#faq`,
@@ -347,9 +336,7 @@ export function faqPageSchema(
   };
 }
 
-export function breadcrumbSchema(
-  trail: { name: string; path: string }[]
-): Schema {
+export function breadcrumbSchema(trail: { name: string; path: string }[]): Schema {
   return {
     '@type': 'BreadcrumbList',
     itemListElement: trail.map((crumb, i) => ({
@@ -378,9 +365,7 @@ function articleSchema(page: ContentPage): Schema {
     inLanguage: 'en',
     isPartOf: { '@id': WEBSITE_ID },
     image: DEFAULT_OG_IMAGE,
-    ...(page.sources?.length
-      ? { citation: page.sources.map((s) => s.href) }
-      : {}),
+    ...(page.sources?.length ? { citation: page.sources.map((s) => s.href) } : {}),
   };
 }
 
@@ -400,11 +385,7 @@ export function contentPageGraph(
   page: ContentPage,
   trail: { name: string; path: string }[]
 ): Schema {
-  const graph: Schema[] = [
-    webPageSchema(page),
-    articleSchema(page),
-    breadcrumbSchema(trail),
-  ];
+  const graph: Schema[] = [webPageSchema(page), articleSchema(page), breadcrumbSchema(trail)];
   if (page.faq?.length) graph.push(faqPageSchema(page.faq, page.path));
   return { '@context': 'https://schema.org', '@graph': graph };
 }

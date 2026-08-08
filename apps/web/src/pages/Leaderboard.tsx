@@ -1,3 +1,7 @@
+import { useQuery } from '@tanstack/react-query';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
+import type React from 'react';
+import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { panelSurface } from '@/components/ui/panel';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -10,15 +14,10 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { cn } from '@/lib/utils';
-import { useQuery } from '@tanstack/react-query';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
-import React, { useState } from 'react';
 import { leaderboardApi } from '../services/api';
 
 export const Leaderboard: React.FC = () => {
-  const [timeframe, setTimeframe] = useState<
-    'daily' | 'weekly' | 'monthly' | 'all'
-  >('all');
+  const [timeframe, setTimeframe] = useState<'daily' | 'weekly' | 'monthly' | 'all'>('all');
   const [currentPage, setCurrentPage] = useState(1);
   const pageSize = 20;
 
@@ -73,8 +72,7 @@ export const Leaderboard: React.FC = () => {
           Typing leaderboard
         </h1>
         <p className="text-text/50 max-w-2xl leading-relaxed text-[15px]">
-          The fastest typists on tactiletype, ranked by their best run in the
-          window you pick.
+          The fastest typists on tactiletype, ranked by their best run in the window you pick.
         </p>
       </header>
 
@@ -144,15 +142,9 @@ export const Leaderboard: React.FC = () => {
       {error && (
         <div className="rounded-2xl border border-destructive/40 bg-destructive/10 p-6 text-center">
           <p className="text-destructive">
-            {error instanceof Error
-              ? error.message
-              : 'Failed to load leaderboard data'}
+            {error instanceof Error ? error.message : 'Failed to load leaderboard data'}
           </p>
-          <Button
-            onClick={() => refetch()}
-            variant="destructive"
-            className="mt-4"
-          >
+          <Button onClick={() => refetch()} variant="destructive" className="mt-4">
             Try Again
           </Button>
         </div>
@@ -206,9 +198,7 @@ export const Leaderboard: React.FC = () => {
                       <span className="tabular-nums">{entry.avgAccuracy}%</span>
                     </TableCell>
                     <TableCell className="px-5 sm:px-6 py-3">
-                      <span className="text-text/50 tabular-nums">
-                        {entry.testCount}
-                      </span>
+                      <span className="text-text/50 tabular-nums">{entry.testCount}</span>
                     </TableCell>
                   </TableRow>
                 ))}
@@ -222,18 +212,13 @@ export const Leaderboard: React.FC = () => {
       {!isLoading && !error && leaderboard.length > 0 && (
         <div className="mt-8 grid grid-cols-1 md:grid-cols-3 gap-6">
           <div className={cn(panelSurface, 'p-6 text-center')}>
-            <div className="text-2xl font-bold text-accent">
-              {leaderboard[0]?.bestWpm || 0}
-            </div>
-            <div className="text-sm text-text/50">
-              Highest WPM ({getTimeframeLabel(timeframe)})
-            </div>
+            <div className="text-2xl font-bold text-accent">{leaderboard[0]?.bestWpm || 0}</div>
+            <div className="text-sm text-text/50">Highest WPM ({getTimeframeLabel(timeframe)})</div>
           </div>
           <div className={cn(panelSurface, 'p-6 text-center')}>
             <div className="text-2xl font-bold text-accent">
               {(
-                leaderboard.reduce((sum, entry) => sum + entry.avgWpm, 0) /
-                  leaderboard.length || 0
+                leaderboard.reduce((sum, entry) => sum + entry.avgWpm, 0) / leaderboard.length || 0
               ).toFixed(2)}
             </div>
             <div className="text-sm text-text/50">Average WPM</div>
@@ -251,8 +236,7 @@ export const Leaderboard: React.FC = () => {
           <div className="flex items-center justify-between">
             <div className="text-sm text-text/50">
               Showing {(currentPage - 1) * pageSize + 1} to{' '}
-              {Math.min(currentPage * pageSize, totalCount)} of {totalCount}{' '}
-              players
+              {Math.min(currentPage * pageSize, totalCount)} of {totalCount} players
             </div>
             <div className="flex items-center space-x-2">
               <Button

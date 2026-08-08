@@ -41,7 +41,5 @@ export function Stopwatch({
     return () => clearInterval(intervalId);
   }, [duration, onEnd, startTime]);
 
-  return (
-    <span className="flex items-center">{`${hours}:${minutes}:${seconds}`}</span>
-  );
+  return <span className="flex items-center">{`${hours}:${minutes}:${seconds}`}</span>;
 }

@@ -1,8 +1,8 @@
-import api, { testResultsApi } from '@/services/api';
-import { mergeGuestResults } from '@/utils/guestResults';
 import type { AuthResponse, User } from '@tactile/types';
 import axios from 'axios';
 import React, { useEffect, useState } from 'react';
+import api, { testResultsApi } from '@/services/api';
+import { mergeGuestResults } from '@/utils/guestResults';
 import { AuthContext, type AuthContextType } from './context';
 
 interface AuthProviderProps {
@@ -45,15 +45,11 @@ function logApiFailure(label: string, error: unknown): void {
 
 async function tryMergeGuestResults() {
   try {
-    const result = await mergeGuestResults((data) =>
-      testResultsApi.submit(data)
-    );
+    const result = await mergeGuestResults((data) => testResultsApi.submit(data));
     if (result.succeeded > 0) {
       console.log(
         `Merged ${result.succeeded}/${result.attempted} guest result(s)` +
-          (result.remaining
-            ? ` (${result.remaining} remaining for next login)`
-            : '')
+          (result.remaining ? ` (${result.remaining} remaining for next login)` : '')
       );
     }
   } catch (err) {
@@ -92,9 +88,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       // 5xx, or an API restart mid-request destroyed a valid 30-day session and
       // read to the user as being logged out for no reason. Anything else is
       // treated as transient: keep the token and let the next load try again.
-      const status = axios.isAxiosError(error)
-        ? error.response?.status
-        : undefined;
+      const status = axios.isAxiosError(error) ? error.response?.status : undefined;
 
       if (status === 401 || status === 403) {
         localStorage.removeItem('auth_token');
@@ -142,29 +136,26 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   };
 
-  const register = React.useCallback(
-    async (email: string, username: string, password: string) => {
-      try {
-        // Axios post(url, body) — send fields at top level, not under `data`
-        const response = await api.post('/api/auth/register', {
-          email,
-          username,
-          password,
-        });
+  const register = React.useCallback(async (email: string, username: string, password: string) => {
+    try {
+      // Axios post(url, body) — send fields at top level, not under `data`
+      const response = await api.post('/api/auth/register', {
+        email,
+        username,
+        password,
+      });
 
-        const data: AuthResponse = response.data;
+      const data: AuthResponse = response.data;
 
-        setUser(data.user);
-        setToken(data.token);
-        localStorage.setItem('auth_token', data.token);
-        await tryMergeGuestResults();
-      } catch (error) {
-        logApiFailure('Registration error:', error);
-        throw new Error(getApiErrorMessage(error, 'Registration failed'));
-      }
-    },
-    []
-  );
+      setUser(data.user);
+      setToken(data.token);
+      localStorage.setItem('auth_token', data.token);
+      await tryMergeGuestResults();
+    } catch (error) {
+      logApiFailure('Registration error:', error);
+      throw new Error(getApiErrorMessage(error, 'Registration failed'));
+    }
+  }, []);
 
   const logout = React.useCallback(() => {
     setUser(null);

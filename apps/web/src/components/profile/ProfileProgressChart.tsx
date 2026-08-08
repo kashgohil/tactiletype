@@ -1,9 +1,10 @@
+import type { ProgressChart as ProgressChartType } from '@tactile/types';
+import type React from 'react';
+import { useMemo, useState } from 'react';
 import { ChartTrend, ProgressChart } from '@/components/analytics/ProgressChart';
 import { Panel } from '@/components/ui/panel';
 import { cn } from '@/lib/utils';
 import type { ProgressPoint } from '@/services/api';
-import type { ProgressChart as ProgressChartType } from '@tactile/types';
-import React, { useMemo, useState } from 'react';
 import { Skeleton } from '../ui/skeleton';
 
 interface ProfileProgressChartProps {
@@ -28,9 +29,7 @@ export const ProfileProgressChart: React.FC<ProfileProgressChartProps> = ({
 
   const chart: ProgressChartType | null = useMemo(() => {
     if (!series.length) return null;
-    const values = series.map((p) =>
-      metric === 'wpm' ? p.avgWpm : p.avgAccuracy
-    );
+    const values = series.map((p) => (metric === 'wpm' ? p.avgWpm : p.avgAccuracy));
     const first = values[0] ?? 0;
     const last = values[values.length - 1] ?? 0;
     const delta = first === 0 ? 0 : ((last - first) / first) * 100;
@@ -88,8 +87,7 @@ export const ProfileProgressChart: React.FC<ProfileProgressChartProps> = ({
       ) : !chart ? (
         <div className="min-h-[240px] flex items-center justify-center">
           <p className="text-sm text-text/40 text-center max-w-xs leading-relaxed">
-            Complete tests over a few days and your {days}-day trend shows up
-            here.
+            Complete tests over a few days and your {days}-day trend shows up here.
           </p>
         </div>
       ) : (
@@ -98,14 +96,9 @@ export const ProfileProgressChart: React.FC<ProfileProgressChartProps> = ({
           <div className="flex items-baseline gap-3 mb-4">
             <span className="text-3xl font-bold font-mono tabular-nums tracking-tight">
               {latest != null ? Math.round(latest) : '—'}
-              <span className="text-base text-text/40 ml-1 font-sans font-normal">
-                {unit}
-              </span>
+              <span className="text-base text-text/40 ml-1 font-sans font-normal">{unit}</span>
             </span>
-            <ChartTrend
-              trend={chart.trend}
-              percentage={chart.trendPercentage}
-            />
+            <ChartTrend trend={chart.trend} percentage={chart.trendPercentage} />
           </div>
           <ProgressChart chart={chart} height={220} />
         </>

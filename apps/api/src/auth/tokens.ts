@@ -27,10 +27,7 @@ const REVOCATION_CACHE_TTL_MS = 60_000;
 /** Bounds the cache so a burst of distinct users cannot grow it without limit. */
 const REVOCATION_CACHE_MAX_ENTRIES = 10_000;
 
-const revocationCache = new Map<
-  string,
-  { version: number; expiresAt: number }
->();
+const revocationCache = new Map<string, { version: number; expiresAt: number }>();
 
 /** The token is not acceptable — bad signature, expired, or revoked. Answer 401. */
 export class InvalidTokenError extends Error {
@@ -51,10 +48,7 @@ export class RevocationCheckUnavailableError extends Error {
 }
 
 const rememberTokenVersion = (userId: string, version: number): void => {
-  if (
-    revocationCache.size >= REVOCATION_CACHE_MAX_ENTRIES &&
-    !revocationCache.has(userId)
-  ) {
+  if (revocationCache.size >= REVOCATION_CACHE_MAX_ENTRIES && !revocationCache.has(userId)) {
     // Map iterates in insertion order, so the first key is the oldest write.
     const oldest = revocationCache.keys().next();
     if (!oldest.done) revocationCache.delete(oldest.value);
@@ -76,7 +70,7 @@ const currentTokenVersion = async (userId: string): Promise<number | null> => {
     return cached.version;
   }
 
-  let row;
+  let row: { tokenVersion: number } | undefined;
   try {
     row = await db.query.users.findFirst({
       where: eq(users.id, userId),
@@ -136,9 +130,7 @@ export const signAccessToken = (user: TokenSubject): Promise<string> =>
  * RevocationCheckUnavailableError when it might be fine but cannot be
  * confirmed. Callers must keep those apart — see the note on the latter.
  */
-export const verifyAccessToken = async (
-  token: string
-): Promise<AccessTokenPayload> => {
+export const verifyAccessToken = async (token: string): Promise<AccessTokenPayload> => {
   let payload: AccessTokenPayload;
   try {
     payload = (await verify(token, JWT_SECRET)) as unknown as AccessTokenPayload;

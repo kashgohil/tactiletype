@@ -2,12 +2,7 @@ import { CODE_SNIPPETS } from './code';
 import { QUOTES } from './quotes';
 import { REAL_WORLD_LINES, SYMBOL_LINES } from './symbols';
 import type { ContentItem, ExercisePack, PackDifficulty } from './types';
-import {
-  HARD_WORDS,
-  TOP_1000_WORDS,
-  TOP_200_WORDS,
-  uniqueWords,
-} from './words';
+import { HARD_WORDS, TOP_200_WORDS, TOP_1000_WORDS, uniqueWords } from './words';
 
 function wordCount(text: string): number {
   return text.trim().split(/\s+/).filter(Boolean).length;
@@ -25,11 +20,7 @@ function pick<T>(arr: readonly T[], n: number, seed: number): T[] {
 }
 
 /** Deterministic-ish passage from a word bank. */
-export function generateWordPassage(
-  bank: readonly string[],
-  count: number,
-  seed: number
-): string {
+export function generateWordPassage(bank: readonly string[], count: number, seed: number): string {
   return pick(uniqueWords(bank), count, seed).join(' ');
 }
 
@@ -176,15 +167,7 @@ export function buildAllPacks(): ExercisePack[] {
     })),
   };
 
-  return [
-    wordsEasy,
-    wordsMedium,
-    wordsHard,
-    quotesPack,
-    symbolsPack,
-    realWorldPack,
-    codePack,
-  ];
+  return [wordsEasy, wordsMedium, wordsHard, quotesPack, symbolsPack, realWorldPack, codePack];
 }
 
 export function flattenPackItems(packs: ExercisePack[] = buildAllPacks()): ContentItem[] {

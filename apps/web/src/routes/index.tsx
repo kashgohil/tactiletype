@@ -1,5 +1,5 @@
-import { TypingTest } from '@/pages/TypingTest';
 import { createFileRoute } from '@tanstack/react-router';
+import { TypingTest } from '@/pages/TypingTest';
 
 export const Route = createFileRoute('/')({
   component: TypingTest,

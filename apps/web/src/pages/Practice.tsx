@@ -1,26 +1,20 @@
-import { Button } from '@/components/ui/button';
 import {
   generateAccuracyChallenge,
   generateBigramDrill,
   generateKeyDrill,
   generateWordDrill,
 } from '@tactile/content';
+import { Link, useNavigate, useSearch } from '@tanstack/react-router';
+import { ChevronRight, Crosshair, Gamepad2, Target, Type, Zap } from 'lucide-react';
+import { motion } from 'motion/react';
+import type React from 'react';
+import { useMemo } from 'react';
+import { Button } from '@/components/ui/button';
 import { usePrefersReducedMotion } from '@/hooks/usePrefersReducedMotion';
 import { useTestPreferences } from '@/hooks/useTestPreferences';
 import { EASE_OUT, uiTransition } from '@/lib/motion';
 import { cn } from '@/lib/utils';
 import { getHomeRow } from '@/utils/keyboardLayouts';
-import { Link, useNavigate, useSearch } from '@tanstack/react-router';
-import {
-  ChevronRight,
-  Crosshair,
-  Gamepad2,
-  Target,
-  Type,
-  Zap,
-} from 'lucide-react';
-import { motion } from 'motion/react';
-import React, { useMemo } from 'react';
 
 /** Only drills with a real training purpose — not “another text type”. */
 const DRILLS = [
@@ -110,12 +104,8 @@ export const Practice: React.FC = () => {
           Typing practice, one weak spot at a time
         </h1>
         <p className="text-text/50 max-w-2xl leading-relaxed text-[15px]">
-          Generated for a skill — keys, bigrams, hard words. For game-like
-          training, use{' '}
-          <Link
-            to="/play"
-            className="text-accent underline-offset-2 hover:underline"
-          >
+          Generated for a skill — keys, bigrams, hard words. For game-like training, use{' '}
+          <Link to="/play" className="text-accent underline-offset-2 hover:underline">
             Play modes
           </Link>
           .
@@ -134,12 +124,10 @@ export const Practice: React.FC = () => {
               <Gamepad2 className="size-5 text-accent" />
             </div>
             <div>
-              <h2 className="text-lg font-semibold tracking-tight">
-                Want something different?
-              </h2>
+              <h2 className="text-lg font-semibold tracking-tight">Want something different?</h2>
               <p className="text-sm text-text/48 mt-1 max-w-md leading-relaxed">
-                Lesson Path, Weak Storm, Sudden Death, Ghost Race — each with
-                different rules, not the same test with a new label.
+                Lesson Path, Weak Storm, Sudden Death, Ghost Race — each with different rules, not
+                the same test with a new label.
               </p>
             </div>
           </div>
@@ -161,18 +149,13 @@ export const Practice: React.FC = () => {
         >
           <div className="flex flex-wrap items-start justify-between gap-3">
             <div>
-              <h2 className="text-lg font-semibold tracking-tight">
-                {drillPreview.title}
-              </h2>
+              <h2 className="text-lg font-semibold tracking-tight">{drillPreview.title}</h2>
               <p className="text-sm text-text/45 mt-1">
                 Preview — start when ready. Result saves with exercise metadata.
               </p>
             </div>
             <div className="flex gap-2">
-              <Button
-                variant="outline"
-                onClick={() => navigate({ to: '/practice' })}
-              >
+              <Button variant="outline" onClick={() => navigate({ to: '/practice' })}>
                 Back
               </Button>
               <Button onClick={startDrill}>Start drill</Button>
@@ -186,9 +169,7 @@ export const Practice: React.FC = () => {
 
       {!activeDrill && (
         <section>
-          <h2 className="text-base font-semibold mb-1 tracking-tight">
-            Drill types
-          </h2>
+          <h2 className="text-base font-semibold mb-1 tracking-tight">Drill types</h2>
           <p className="text-sm text-text/40 mb-4">
             Still the main typing screen — text is generated for one skill.
           </p>
@@ -217,12 +198,8 @@ export const Practice: React.FC = () => {
                     )}
                   >
                     <Icon className="size-5 text-accent mb-3" />
-                    <h3 className="font-semibold tracking-tight mb-1">
-                      {ex.title}
-                    </h3>
-                    <p className="text-sm text-text/45 leading-relaxed">
-                      {ex.description}
-                    </p>
+                    <h3 className="font-semibold tracking-tight mb-1">{ex.title}</h3>
+                    <p className="text-sm text-text/45 leading-relaxed">{ex.description}</p>
                   </Link>
                 </motion.div>
               );
@@ -234,10 +211,7 @@ export const Practice: React.FC = () => {
       {!activeDrill && (
         <p className="text-sm text-text/38">
           Free sandbox (timer / words / code / symbols / quotes) lives on{' '}
-          <Link
-            to="/"
-            className="text-accent hover:underline underline-offset-2"
-          >
+          <Link to="/" className="text-accent hover:underline underline-offset-2">
             the test page
           </Link>
           . New to drilling?{' '}

@@ -5,11 +5,7 @@ export interface AuthContextType {
   user: User | null;
   token: string | null;
   login: (email: string, password: string) => Promise<void>;
-  register: (
-    email: string,
-    username: string,
-    password: string
-  ) => Promise<void>;
+  register: (email: string, username: string, password: string) => Promise<void>;
   logout: () => void;
   /** Revokes this user's tokens on every device, then logs out locally */
   logoutEverywhere: () => Promise<void>;
@@ -17,9 +13,7 @@ export interface AuthContextType {
   isLoading: boolean;
 }
 
-export const AuthContext = createContext<AuthContextType | undefined>(
-  undefined
-);
+export const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const useAuth = () => {
   const context = useContext(AuthContext);

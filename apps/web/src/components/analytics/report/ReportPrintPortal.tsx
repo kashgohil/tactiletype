@@ -1,4 +1,5 @@
-import React, { useEffect, useState } from 'react';
+import type React from 'react';
+import { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 
 /**
@@ -12,9 +13,7 @@ import { createPortal } from 'react-dom';
  * Mounted only while a print is in flight, so an ordinary Ctrl+P on the
  * analytics page still prints the page.
  */
-export const ReportPrintPortal: React.FC<{ children: React.ReactNode }> = ({
-  children,
-}) => {
+export const ReportPrintPortal: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   // Built *and attached* during render, which is unusual enough to explain.
   //
   // The report measures itself to paginate, from a layout effect. React runs

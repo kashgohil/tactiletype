@@ -30,8 +30,7 @@ export function packPages(
   let used = 0;
 
   heights.forEach((height, index) => {
-    const limit =
-      pages.length === 0 ? contentHeight : contentHeight - footerHeight;
+    const limit = pages.length === 0 ? contentHeight : contentHeight - footerHeight;
     if (current.length && used + height > limit) {
       pages.push(current);
       current = [];

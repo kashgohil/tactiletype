@@ -56,9 +56,7 @@ export const userProfiles = pgTable('user_profiles', {
   bio: text('bio'),
   country: varchar('country', { length: 2 }),
   keyboard: varchar('keyboard', { length: 100 }),
-  preferredLanguage: varchar('preferred_language', { length: 10 }).default(
-    'en'
-  ),
+  preferredLanguage: varchar('preferred_language', { length: 10 }).default('en'),
   isPublic: boolean('is_public').default(true),
 });
 
@@ -76,9 +74,7 @@ export const testTexts = pgTable(
     isActive: boolean('is_active').default(true),
     createdAt: timestamp('created_at').defaultNow().notNull(),
   },
-  (table) => [
-    index('test_texts_lang_diff_idx').on(table.language, table.difficulty),
-  ]
+  (table) => [index('test_texts_lang_diff_idx').on(table.language, table.difficulty)]
 );
 
 // Completed Tests - Merged table containing test text and results
@@ -110,10 +106,7 @@ export const completedTests = pgTable(
     completedAt: timestamp('completed_at').defaultNow().notNull(),
   },
   (table) => [
-    index('completed_tests_user_completed_idx').on(
-      table.userId,
-      table.completedAt
-    ),
+    index('completed_tests_user_completed_idx').on(table.userId, table.completedAt),
     index('completed_tests_wpm_idx').on(table.wpm),
     index('completed_tests_lang_diff_idx').on(table.language, table.difficulty),
     index('completed_tests_mode_type_idx').on(table.mode, table.testType),
@@ -156,9 +149,7 @@ export const roomParticipants = pgTable(
     finalWpm: decimal('final_wpm', { precision: 5, scale: 2 }),
     finalAccuracy: decimal('final_accuracy', { precision: 5, scale: 2 }),
   },
-  (table) => [
-    index('room_participants_room_user_idx').on(table.roomId, table.userId),
-  ]
+  (table) => [index('room_participants_room_user_idx').on(table.roomId, table.userId)]
 );
 
 // Relations
@@ -216,20 +207,17 @@ export const completedTestsRelations = relations(completedTests, ({ one }) => ({
   }),
 }));
 
-export const multiplayerRoomsRelations = relations(
-  multiplayerRooms,
-  ({ one, many }) => ({
-    host: one(users, {
-      fields: [multiplayerRooms.hostId],
-      references: [users.id],
-    }),
-    testText: one(testTexts, {
-      fields: [multiplayerRooms.testTextId],
-      references: [testTexts.id],
-    }),
-    participants: many(roomParticipants),
-  })
-);
+export const multiplayerRoomsRelations = relations(multiplayerRooms, ({ one, many }) => ({
+  host: one(users, {
+    fields: [multiplayerRooms.hostId],
+    references: [users.id],
+  }),
+  testText: one(testTexts, {
+    fields: [multiplayerRooms.testTextId],
+    references: [testTexts.id],
+  }),
+  participants: many(roomParticipants),
+}));
 
 // Advanced Analytics Tables for Phase 4
 
@@ -320,9 +308,7 @@ export const userGoals = pgTable(
       .notNull(),
     goalType: varchar('goal_type', { length: 50 }).notNull(), // 'wpm', 'accuracy', 'consistency', 'daily_tests'
     targetValue: decimal('target_value', { precision: 8, scale: 2 }).notNull(),
-    currentValue: decimal('current_value', { precision: 8, scale: 2 }).default(
-      '0'
-    ),
+    currentValue: decimal('current_value', { precision: 8, scale: 2 }).default('0'),
     targetDate: timestamp('target_date'),
     isActive: boolean('is_active').default(true),
     isAchieved: boolean('is_achieved').default(false),
@@ -374,10 +360,7 @@ export const userAchievements = pgTable(
   (table) => [
     index('user_achievements_user_idx').on(table.userId),
     index('user_achievements_achievement_idx').on(table.achievementId),
-    index('user_achievements_user_achievement_idx').on(
-      table.userId,
-      table.achievementId
-    ),
+    index('user_achievements_user_achievement_idx').on(table.userId, table.achievementId),
   ]
 );
 
@@ -429,19 +412,16 @@ export const practiceSessions = pgTable(
 );
 
 // Analytics Relations
-export const keystrokeAnalyticsRelations = relations(
-  keystrokeAnalytics,
-  ({ one }) => ({
-    completedTest: one(completedTests, {
-      fields: [keystrokeAnalytics.completedTestId],
-      references: [completedTests.id],
-    }),
-    user: one(users, {
-      fields: [keystrokeAnalytics.userId],
-      references: [users.id],
-    }),
-  })
-);
+export const keystrokeAnalyticsRelations = relations(keystrokeAnalytics, ({ one }) => ({
+  completedTest: one(completedTests, {
+    fields: [keystrokeAnalytics.completedTestId],
+    references: [completedTests.id],
+  }),
+  user: one(users, {
+    fields: [keystrokeAnalytics.userId],
+    references: [users.id],
+  }),
+}));
 
 export const errorAnalyticsRelations = relations(errorAnalytics, ({ one }) => ({
   completedTest: one(completedTests, {
@@ -454,15 +434,12 @@ export const errorAnalyticsRelations = relations(errorAnalytics, ({ one }) => ({
   }),
 }));
 
-export const performanceInsightsRelations = relations(
-  performanceInsights,
-  ({ one }) => ({
-    user: one(users, {
-      fields: [performanceInsights.userId],
-      references: [users.id],
-    }),
-  })
-);
+export const performanceInsightsRelations = relations(performanceInsights, ({ one }) => ({
+  user: one(users, {
+    fields: [performanceInsights.userId],
+    references: [users.id],
+  }),
+}));
 
 export const userGoalsRelations = relations(userGoals, ({ one }) => ({
   user: one(users, {
@@ -475,50 +452,38 @@ export const achievementsRelations = relations(achievements, ({ many }) => ({
   userAchievements: many(userAchievements),
 }));
 
-export const userAchievementsRelations = relations(
-  userAchievements,
-  ({ one }) => ({
-    user: one(users, {
-      fields: [userAchievements.userId],
-      references: [users.id],
-    }),
-    achievement: one(achievements, {
-      fields: [userAchievements.achievementId],
-      references: [achievements.id],
-    }),
-  })
-);
+export const userAchievementsRelations = relations(userAchievements, ({ one }) => ({
+  user: one(users, {
+    fields: [userAchievements.userId],
+    references: [users.id],
+  }),
+  achievement: one(achievements, {
+    fields: [userAchievements.achievementId],
+    references: [achievements.id],
+  }),
+}));
 
-export const userRecommendationsRelations = relations(
-  userRecommendations,
-  ({ one }) => ({
-    user: one(users, {
-      fields: [userRecommendations.userId],
-      references: [users.id],
-    }),
-  })
-);
+export const userRecommendationsRelations = relations(userRecommendations, ({ one }) => ({
+  user: one(users, {
+    fields: [userRecommendations.userId],
+    references: [users.id],
+  }),
+}));
 
-export const practiceSessionsRelations = relations(
-  practiceSessions,
-  ({ one }) => ({
-    user: one(users, {
-      fields: [practiceSessions.userId],
-      references: [users.id],
-    }),
-  })
-);
+export const practiceSessionsRelations = relations(practiceSessions, ({ one }) => ({
+  user: one(users, {
+    fields: [practiceSessions.userId],
+    references: [users.id],
+  }),
+}));
 
-export const roomParticipantsRelations = relations(
-  roomParticipants,
-  ({ one }) => ({
-    room: one(multiplayerRooms, {
-      fields: [roomParticipants.roomId],
-      references: [multiplayerRooms.id],
-    }),
-    user: one(users, {
-      fields: [roomParticipants.userId],
-      references: [users.id],
-    }),
-  })
-);
+export const roomParticipantsRelations = relations(roomParticipants, ({ one }) => ({
+  room: one(multiplayerRooms, {
+    fields: [roomParticipants.roomId],
+    references: [multiplayerRooms.id],
+  }),
+  user: one(users, {
+    fields: [roomParticipants.userId],
+    references: [users.id],
+  }),
+}));

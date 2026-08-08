@@ -44,9 +44,7 @@ const ALPHA = 'abcdefghijklmnopqrstuvwxyz';
 
 function wordsFromCharset(charset: string, count: number): string {
   const letters = charset.replace(/[^a-z]/gi, '').toLowerCase();
-  const bank = uniqueWords(TOP_200_WORDS).filter((w) =>
-    [...w].every((c) => letters.includes(c))
-  );
+  const bank = uniqueWords(TOP_200_WORDS).filter((w) => [...w].every((c) => letters.includes(c)));
   const pool = bank.length >= 8 ? bank : fabricateWords(letters, 30);
   const out: string[] = [];
   for (let i = 0; i < count; i++) {
@@ -82,7 +80,30 @@ function numberPassage(count: number): string {
 }
 
 function symbolishPassage(count: number): string {
-  const symbols = ['@', '#', '$', '%', '&', '*', '(', ')', '-', '_', '=', '+', '[', ']', '{', '}', ';', ':', ',', '.', '/', '?'];
+  const symbols = [
+    '@',
+    '#',
+    '$',
+    '%',
+    '&',
+    '*',
+    '(',
+    ')',
+    '-',
+    '_',
+    '=',
+    '+',
+    '[',
+    ']',
+    '{',
+    '}',
+    ';',
+    ':',
+    ',',
+    '.',
+    '/',
+    '?',
+  ];
   const bank = uniqueWords(TOP_200_WORDS);
   const parts: string[] = [];
   for (let i = 0; i < count; i++) {

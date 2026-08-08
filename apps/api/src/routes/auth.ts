@@ -6,6 +6,7 @@ import { Hono } from 'hono';
 import { z } from 'zod';
 import { OAuthProviderFactory } from '../auth/oauth';
 import {
+  type AccessTokenPayload,
   RevocationCheckUnavailableError,
   revokeAllTokens,
   signAccessToken,
@@ -90,60 +91,55 @@ authRoutes.post('/register', zValidator('json', registerSchema), async (c) => {
 //
 // The throttle sits ahead of the validator so a flood of malformed bodies still
 // counts toward nothing — only the 401s the handler returns do.
-authRoutes.post(
-  '/login',
-  loginRateLimit(),
-  zValidator('json', loginSchema),
-  async (c) => {
-    try {
-      const { email, password } = c.req.valid('json');
+authRoutes.post('/login', loginRateLimit(), zValidator('json', loginSchema), async (c) => {
+  try {
+    const { email, password } = c.req.valid('json');
 
-      // Find user
-      const user = await db.query.users.findFirst({
-        where: eq(users.email, email),
-      });
+    // Find user
+    const user = await db.query.users.findFirst({
+      where: eq(users.email, email),
+    });
 
-      if (!user || !user.passwordHash) {
-        return c.json({ error: 'Invalid credentials' }, 401);
-      }
-
-      // Verify password
-      const isValidPassword = await bcrypt.compare(password, user.passwordHash);
-
-      if (!isValidPassword) {
-        return c.json({ error: 'Invalid credentials' }, 401);
-      }
-
-      const token = await signAccessToken(user);
-
-      setCsrfCookie(c);
-
-      return c.json({
-        message: 'Login successful',
-        user: {
-          id: user.id,
-          email: user.email,
-          username: user.username,
-          createdAt: user.createdAt,
-        },
-        token,
-      });
-    } catch (error) {
-      console.error('Login error:', error);
-      return c.json({ error: 'Login failed' }, 500);
+    if (!user?.passwordHash) {
+      return c.json({ error: 'Invalid credentials' }, 401);
     }
+
+    // Verify password
+    const isValidPassword = await bcrypt.compare(password, user.passwordHash);
+
+    if (!isValidPassword) {
+      return c.json({ error: 'Invalid credentials' }, 401);
+    }
+
+    const token = await signAccessToken(user);
+
+    setCsrfCookie(c);
+
+    return c.json({
+      message: 'Login successful',
+      user: {
+        id: user.id,
+        email: user.email,
+        username: user.username,
+        createdAt: user.createdAt,
+      },
+      token,
+    });
+  } catch (error) {
+    console.error('Login error:', error);
+    return c.json({ error: 'Login failed' }, 500);
   }
-);
+});
 
 // Get current user endpoint
 authRoutes.get('/me', async (c) => {
   const authHeader = c.req.header('Authorization');
 
-  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+  if (!authHeader?.startsWith('Bearer ')) {
     return c.json({ error: 'No token provided' }, 401);
   }
 
-  let payload;
+  let payload: AccessTokenPayload;
   try {
     payload = await verifyAccessToken(authHeader.substring(7));
   } catch (error) {
@@ -243,7 +239,7 @@ authRoutes.get('/sso/:provider/callback', async (c) => {
       provider,
       hasCode: !!code,
       hasState: !!state,
-      state: state?.substring(0, 8) + '...',
+      state: `${state?.substring(0, 8)}...`,
       timestamp: new Date().toISOString(),
     });
 
@@ -264,15 +260,14 @@ authRoutes.get('/sso/:provider/callback', async (c) => {
     if (!oauthProvider.validateOAuthState(state)) {
       console.error('OAuth state validation failed:', {
         provider,
-        state: state?.substring(0, 8) + '...',
+        state: `${state?.substring(0, 8)}...`,
         timestamp: new Date().toISOString(),
         userAgent: c.req.header('User-Agent'),
       });
       return c.json(
         {
           error: 'Invalid state parameter',
-          message:
-            'The OAuth state has expired or is invalid. Please try logging in again.',
+          message: 'The OAuth state has expired or is invalid. Please try logging in again.',
         },
         403
       );

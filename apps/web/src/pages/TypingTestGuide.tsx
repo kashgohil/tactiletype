@@ -1,9 +1,9 @@
+import { Link } from '@tanstack/react-router';
+import { Keyboard } from 'lucide-react';
+import type React from 'react';
 import { ContentArticle } from '@/components/content/ContentArticle';
 import { Button } from '@/components/ui/button';
 import { typingTestPage } from '@/content/typing-test';
-import { Link } from '@tanstack/react-router';
-import { Keyboard } from 'lucide-react';
-import React from 'react';
 
 /**
  * `/typing-test` — the explainer that feeds `/`.

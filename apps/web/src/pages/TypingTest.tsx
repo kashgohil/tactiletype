@@ -1,65 +1,48 @@
-import { TimelineChart } from "@/components/analytics/TimelineChart";
-import { Stopwatch } from "@/components/stopwatch";
-import { CustomPasteModal } from "@/components/test/CustomPasteModal";
-import { Button } from "@/components/ui/button";
+import type { Difficulty, TestMode, TestType } from '@tactile/types';
+import { useSearch } from '@tanstack/react-router';
+import {
+  ALargeSmall,
+  AtSign,
+  Braces,
+  Hash,
+  type LucideIcon,
+  Quote,
+  RotateCcw,
+  Sigma,
+  Timer,
+  WholeWord,
+} from 'lucide-react';
+import { AnimatePresence, motion } from 'motion/react';
+import type React from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { toast } from 'sonner';
+import { TimelineChart } from '@/components/analytics/TimelineChart';
+import { Stopwatch } from '@/components/stopwatch';
+import { CustomPasteModal } from '@/components/test/CustomPasteModal';
+import { ResultsSummary } from '@/components/test/ResultsSummary';
+import { TypingSurface } from '@/components/test/TypingSurface';
+import { Button } from '@/components/ui/button';
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select";
-import { Separator } from "@/components/ui/separator";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
-import { TypingSurface } from "@/components/test/TypingSurface";
-import { usePrefersReducedMotion } from "@/hooks/usePrefersReducedMotion";
-import { useTestPreferences } from "@/hooks/useTestPreferences";
-import type { Difficulty, TestMode, TestType } from "@tactile/types";
-import { useSearch } from "@tanstack/react-router";
-import {
-  ALargeSmall,
-  AtSign,
-  Braces,
-  Hash,
-  Quote,
-  RotateCcw,
-  Sigma,
-  Timer,
-  WholeWord,
-  type LucideIcon,
-} from "lucide-react";
-import { AnimatePresence, motion } from "motion/react";
-import React, {
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from "react";
-import { useAuth } from "../contexts";
-import { analyticsApi } from "../services/analyticsApi";
-import type { TestText } from "../services/api";
-import { testResultsApi } from "../services/api";
-import { tokenizeCodeChars } from "../utils/codeHighlight";
-import { saveGuestResult } from "../utils/guestResults";
-import { ResultsSummary } from "@/components/test/ResultsSummary";
-import {
-  playCompleteChime,
-  playErrorBeep,
-  playKeyClick,
-} from "../utils/testSounds";
-import type { TypingState, TypingStats } from "../utils/typingEngine";
-import {
-  TypingEngine,
-  initializeText,
-  isNonPrintingKey,
-} from "../utils/typingEngine";
-import { recordFromKeystrokes, recordKeyAttempt } from "../utils/weakKeys";
-import { toast } from "sonner";
+} from '@/components/ui/select';
+import { Separator } from '@/components/ui/separator';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+import { usePrefersReducedMotion } from '@/hooks/usePrefersReducedMotion';
+import { useTestPreferences } from '@/hooks/useTestPreferences';
+import { useAuth } from '../contexts';
+import { analyticsApi } from '../services/analyticsApi';
+import type { TestText } from '../services/api';
+import { testResultsApi } from '../services/api';
+import { tokenizeCodeChars } from '../utils/codeHighlight';
+import { saveGuestResult } from '../utils/guestResults';
+import { playCompleteChime, playErrorBeep, playKeyClick } from '../utils/testSounds';
+import type { TypingState, TypingStats } from '../utils/typingEngine';
+import { initializeText, isNonPrintingKey, TypingEngine } from '../utils/typingEngine';
+import { recordFromKeystrokes, recordKeyAttempt } from '../utils/weakKeys';
 
 type PracticeDrillPayload = {
   content: string;
@@ -70,9 +53,9 @@ type PracticeDrillPayload = {
 
 function readPracticeDrill(): PracticeDrillPayload | null {
   try {
-    const raw = sessionStorage.getItem("tactile_practice_drill");
+    const raw = sessionStorage.getItem('tactile_practice_drill');
     if (!raw) return null;
-    sessionStorage.removeItem("tactile_practice_drill");
+    sessionStorage.removeItem('tactile_practice_drill');
     return JSON.parse(raw) as PracticeDrillPayload;
   } catch {
     return null;
@@ -83,38 +66,35 @@ const TimerOptions = [10, 15, 30, 60];
 const wordsOptions = [25, 50, 75, 100, 200];
 
 const Difficulties: Record<Difficulty, { id: Difficulty; label: string }> = {
-  easy: { id: "easy", label: "Easy" },
-  medium: { id: "medium", label: "Medium" },
-  hard: { id: "hard", label: "Hard" },
+  easy: { id: 'easy', label: 'Easy' },
+  medium: { id: 'medium', label: 'Medium' },
+  hard: { id: 'hard', label: 'Hard' },
 };
 
 const Types: Record<
   TestType,
   { id: TestType; label: string; icon: LucideIcon; available?: boolean }
 > = {
-  text: { id: "text", label: "Text", icon: ALargeSmall, available: true },
+  text: { id: 'text', label: 'Text', icon: ALargeSmall, available: true },
   punctuation: {
-    id: "punctuation",
-    label: "Punctuation",
+    id: 'punctuation',
+    label: 'Punctuation',
     icon: AtSign,
     available: true,
   },
-  numbers: { id: "numbers", label: "Numbers", icon: Hash, available: true },
-  quotes: { id: "quotes", label: "Quotes", icon: Quote, available: true },
+  numbers: { id: 'numbers', label: 'Numbers', icon: Hash, available: true },
+  quotes: { id: 'quotes', label: 'Quotes', icon: Quote, available: true },
   // Reachable via ?type=code / ?type=symbols and the play modes, but kept out
   // of the toolbar so it matches the four-type row.
-  code: { id: "code", label: "Code", icon: Braces, available: false },
-  symbols: { id: "symbols", label: "Symbols", icon: Sigma, available: false },
+  code: { id: 'code', label: 'Code', icon: Braces, available: false },
+  symbols: { id: 'symbols', label: 'Symbols', icon: Sigma, available: false },
 };
 
 const availableTypes = Object.values(Types).filter((t) => t.available !== false);
 
-const Modes: Record<
-  TestMode,
-  { id: TestMode; label: string; icon: LucideIcon }
-> = {
-  timer: { id: "timer", label: "Timer", icon: Timer },
-  words: { id: "words", label: "Words", icon: WholeWord },
+const Modes: Record<TestMode, { id: TestMode; label: string; icon: LucideIcon }> = {
+  timer: { id: 'timer', label: 'Timer', icon: Timer },
+  words: { id: 'words', label: 'Words', icon: WholeWord },
 };
 
 export const TypingTest: React.FC = () => {
@@ -128,27 +108,27 @@ export const TypingTest: React.FC = () => {
     duration?: string;
     paste?: string;
   };
-  const [pasteOpen, setPasteOpen] = useState(search.paste === "1");
+  const [pasteOpen, setPasteOpen] = useState(search.paste === '1');
 
-  const initialType = (["text", "punctuation", "numbers", "quotes", "code", "symbols"].includes(
-    search.type ?? "",
-  )
-    ? search.type
-    : "text") as TestType;
-  const initialMode = (search.mode === "words" ? "words" : "timer") as TestMode;
+  const initialType = (
+    ['text', 'punctuation', 'numbers', 'quotes', 'code', 'symbols'].includes(search.type ?? '')
+      ? search.type
+      : 'text'
+  ) as TestType;
+  const initialMode = (search.mode === 'words' ? 'words' : 'timer') as TestMode;
   const initialDuration = search.duration
     ? Number(search.duration) || TimerOptions[0]
     : TimerOptions[0];
 
   const [wordsCount, setWordsCount] = useState(wordsOptions[0]);
   const [timerDuration, setTimerDuration] = useState(
-    TimerOptions.includes(initialDuration) ? initialDuration : TimerOptions[0],
+    TimerOptions.includes(initialDuration) ? initialDuration : TimerOptions[0]
   );
   const [currentMode, setCurrentMode] = useState<TestMode>(initialMode);
   const [currentType, setCurrentType] = useState<TestType>(initialType);
-  const [testText, setTestText] = useState("");
+  const [testText, setTestText] = useState('');
   const [currentTestText, setCurrentTestText] = useState<TestText | null>(null);
-  const [difficulty, setDifficulty] = useState<Difficulty>("medium");
+  const [difficulty, setDifficulty] = useState<Difficulty>('medium');
   const [engine, setEngine] = useState<TypingEngine | null>(null);
   const [practiceMeta, setPracticeMeta] = useState<{
     exerciseKind?: string;
@@ -164,7 +144,7 @@ export const TypingTest: React.FC = () => {
   });
   const [state, setState] = useState<TypingState>({
     currentIndex: 0,
-    userInput: "",
+    userInput: '',
     errors: new Set(),
     startTime: null,
     endTime: null,
@@ -187,10 +167,9 @@ export const TypingTest: React.FC = () => {
     (callback?: (engine: TypingEngine) => void) => {
       let selectedText: string;
       let title = `${currentType} test - ${difficulty}`;
-      let meta: { exerciseKind?: string; exercisePackId?: string } | null =
-        null;
+      let meta: { exerciseKind?: string; exercisePackId?: string } | null = null;
 
-      if (!practiceConsumed.current && search.practice === "1") {
+      if (!practiceConsumed.current && search.practice === '1') {
         const drill = readPracticeDrill();
         if (drill?.content) {
           practiceConsumed.current = true;
@@ -207,7 +186,7 @@ export const TypingTest: React.FC = () => {
             currentMode,
             timerDuration,
             wordsCount,
-            difficulty,
+            difficulty
           );
         }
       } else {
@@ -216,7 +195,7 @@ export const TypingTest: React.FC = () => {
           currentMode,
           timerDuration,
           wordsCount,
-          difficulty,
+          difficulty
         );
         setPracticeMeta(null);
       }
@@ -224,12 +203,12 @@ export const TypingTest: React.FC = () => {
       setTestText(selectedText);
 
       const tempTestText: TestText = {
-        id: "temp-" + Date.now(),
+        id: `temp-${Date.now()}`,
         title,
         content: selectedText,
-        language: "en",
+        language: 'en',
         difficulty: difficulty,
-        wordCount: selectedText.split(" ").length,
+        wordCount: selectedText.split(' ').length,
         createdAt: new Date().toISOString(),
       };
 
@@ -239,21 +218,14 @@ export const TypingTest: React.FC = () => {
       const newEngine = new TypingEngine(
         selectedText,
         (newStats) => setStats(newStats),
-        (newState) => setState(newState),
+        (newState) => setState(newState)
       );
 
       callback?.(newEngine);
 
       setEngine(newEngine);
     },
-    [
-      currentType,
-      currentMode,
-      wordsCount,
-      timerDuration,
-      difficulty,
-      search.practice,
-    ],
+    [currentType, currentMode, wordsCount, timerDuration, difficulty, search.practice]
   );
 
   // Submit test result (or stash for guests)
@@ -281,7 +253,7 @@ export const TypingTest: React.FC = () => {
         wordCount: currentTestText.wordCount,
         mode: currentMode,
         testType: currentType,
-        modeTarget: currentMode === "timer" ? timerDuration : wordsCount,
+        modeTarget: currentMode === 'timer' ? timerDuration : wordsCount,
         exerciseKind: practiceMeta?.exerciseKind,
         exercisePackId: practiceMeta?.exercisePackId,
         wpm: finalStats.wpm,
@@ -305,19 +277,18 @@ export const TypingTest: React.FC = () => {
             try {
               await analyticsApi.processTestResult(response.result.id);
             } catch (analyticsError) {
-              console.error("Failed to process analytics:", analyticsError);
+              console.error('Failed to process analytics:', analyticsError);
             }
           }
         } catch (error) {
-          console.error("Failed to submit test result:", error);
+          console.error('Failed to submit test result:', error);
           setResultSubmitted(false);
           // A fixed id keeps a burst of failures to a single toast, and the run
           // is recoverable from here — the stats are still in hand.
-          toast.error("Result not saved", {
-            id: "test-result-submit-failed",
-            description:
-              "We could not reach the server. This run is missing from your history.",
-            action: { label: "Retry", onClick: () => void send() },
+          toast.error('Result not saved', {
+            id: 'test-result-submit-failed',
+            description: 'We could not reach the server. This run is missing from your history.',
+            action: { label: 'Retry', onClick: () => void send() },
           });
         }
       };
@@ -336,7 +307,7 @@ export const TypingTest: React.FC = () => {
       practiceMeta,
       prefs.soundEnabled,
       prefs.errorSoundEnabled,
-    ],
+    ]
   );
 
   // Timer end handler
@@ -366,10 +337,10 @@ export const TypingTest: React.FC = () => {
     if (bestComputedRef.current) return;
     bestComputedRef.current = true;
 
-    const stored = Number(localStorage.getItem("tactile-best-wpm"));
+    const stored = Number(localStorage.getItem('tactile-best-wpm'));
     const prev = Number.isFinite(stored) && stored > 0 ? stored : null;
     if (prev === null || stats.wpm > prev) {
-      localStorage.setItem("tactile-best-wpm", String(stats.wpm));
+      localStorage.setItem('tactile-best-wpm', String(stats.wpm));
     }
   }, [state.isComplete, stats.wpm]);
 
@@ -377,13 +348,13 @@ export const TypingTest: React.FC = () => {
   useEffect(() => {
     if (!state.isComplete) return;
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Enter") {
+      if (e.key === 'Enter') {
         e.preventDefault();
         resetTest();
       }
     };
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
   }, [state.isComplete, resetTest]);
 
   // Handle key press
@@ -416,20 +387,13 @@ export const TypingTest: React.FC = () => {
       }
 
       // Check if test is complete
-      if (engine.getState().isComplete && currentMode === "words") {
+      if (engine.getState().isComplete && currentMode === 'words') {
         setIsTestActive(false);
         const finalStats = engine.calculateStats();
         submitResult(finalStats);
       }
     },
-    [
-      engine,
-      isTestActive,
-      currentMode,
-      submitResult,
-      prefs.soundEnabled,
-      prefs.errorSoundEnabled,
-    ],
+    [engine, isTestActive, currentMode, submitResult, prefs.soundEnabled, prefs.errorSoundEnabled]
   );
 
   // Initialize test on component mount
@@ -445,9 +409,8 @@ export const TypingTest: React.FC = () => {
   }, [currentType, currentMode, timerDuration, wordsCount, difficulty]);
 
   const codeTokens = useMemo(
-    () =>
-      currentType === "code" ? tokenizeCodeChars(testText) : null,
-    [currentType, testText],
+    () => (currentType === 'code' ? tokenizeCodeChars(testText) : null),
+    [currentType, testText]
   );
 
   // The January panel drifted up as it settled; keep that, minus the travel
@@ -472,7 +435,7 @@ export const TypingTest: React.FC = () => {
       }
     : {
         initial: { opacity: 0, y: 20 },
-        animate: { opacity: 1, y: "-20%" },
+        animate: { opacity: 1, y: '-20%' },
         exit: { opacity: 0, y: 20 },
       };
 
@@ -482,23 +445,21 @@ export const TypingTest: React.FC = () => {
     <div className="grow flex flex-col gap-4 items-center justify-center">
       {/* SEO: one H1 for the primary landing surface without competing with
           the test chrome. Visually hidden; title/meta carry the SERP story. */}
-      <h1 className="sr-only">
-        Free typing test — check your WPM and accuracy
-      </h1>
+      <h1 className="sr-only">Free typing test — check your WPM and accuracy</h1>
       <CustomPasteModal
         open={pasteOpen}
         onClose={() => setPasteOpen(false)}
         onStart={(content, title) => {
           setPracticeMeta({
-            exerciseKind: "custom_paste",
-            exercisePackId: "playlist-local",
+            exerciseKind: 'custom_paste',
+            exercisePackId: 'playlist-local',
           });
           setTestText(content);
           setCurrentTestText({
-            id: "custom-" + Date.now(),
+            id: `custom-${Date.now()}`,
             title,
             content,
-            language: "en",
+            language: 'en',
             difficulty,
             wordCount: content.split(/\s+/).filter(Boolean).length,
             createdAt: new Date().toISOString(),
@@ -508,7 +469,7 @@ export const TypingTest: React.FC = () => {
           const newEngine = new TypingEngine(
             content,
             (newStats) => setStats(newStats),
-            (newState) => setState(newState),
+            (newState) => setState(newState)
           );
           setEngine(newEngine);
           setTimeout(() => inputRef.current?.focus(), 50);
@@ -524,7 +485,7 @@ export const TypingTest: React.FC = () => {
             exit={panelMotion.exit}
             transition={{
               duration: reducedMotion ? 0 : 0.3,
-              ease: "easeInOut",
+              ease: 'easeInOut',
             }}
             data-allow-transform-motion=""
             onAnimationComplete={() => {
@@ -536,14 +497,14 @@ export const TypingTest: React.FC = () => {
             <div className="flex items-center justify-between p-8 rounded-lg gap-2 w-full">
               {isTestActive ? (
                 <div className="h-9 text-xl flex items-center justify-center w-full gap-2 relative">
-                  {currentMode === "timer" && state.startTime && (
+                  {currentMode === 'timer' && state.startTime && (
                     <Stopwatch
                       duration={timerDuration}
                       onEnd={handleTimerEnd}
                       startTime={state.startTime}
                     />
                   )}
-                  {currentMode === "words" && (
+                  {currentMode === 'words' && (
                     <span>
                       {engine?.getCompletedWords() || 0} / {wordsCount} words
                     </span>
@@ -575,7 +536,7 @@ export const TypingTest: React.FC = () => {
                               inputRef.current?.focus();
                             }}
                             size="icon"
-                            className={id === currentType ? "bg-accent/50" : ""}
+                            className={id === currentType ? 'bg-accent/50' : ''}
                           >
                             <Icon />
                           </Button>
@@ -594,7 +555,7 @@ export const TypingTest: React.FC = () => {
                               inputRef.current?.focus();
                             }}
                             size="icon"
-                            className={id === currentMode ? "bg-accent/50" : ""}
+                            className={id === currentMode ? 'bg-accent/50' : ''}
                           >
                             <Icon />
                           </Button>
@@ -603,18 +564,16 @@ export const TypingTest: React.FC = () => {
                       </Tooltip>
                     ))}
                     <Separator orientation="vertical" className="mx-4" />
-                    {currentMode === "timer" && (
+                    {currentMode === 'timer' && (
                       <Select
                         value={String(timerDuration)}
                         onValueChange={(value) => {
-                          setTimerDuration(parseInt(value));
+                          setTimerDuration(parseInt(value, 10));
                           inputRef.current?.focus();
                         }}
                       >
                         <SelectTrigger>
-                          <SelectValue className="capitalize">
-                            {timerDuration} s
-                          </SelectValue>
+                          <SelectValue className="capitalize">{timerDuration} s</SelectValue>
                         </SelectTrigger>
                         <SelectContent>
                           {TimerOptions.map((option) => (
@@ -625,18 +584,16 @@ export const TypingTest: React.FC = () => {
                         </SelectContent>
                       </Select>
                     )}
-                    {currentMode === "words" && (
+                    {currentMode === 'words' && (
                       <Select
                         value={String(wordsCount)}
                         onValueChange={(value) => {
-                          setWordsCount(parseInt(value));
+                          setWordsCount(parseInt(value, 10));
                           inputRef.current?.focus();
                         }}
                       >
                         <SelectTrigger>
-                          <SelectValue className="capitalize">
-                            {wordsCount} words
-                          </SelectValue>
+                          <SelectValue className="capitalize">{wordsCount} words</SelectValue>
                         </SelectTrigger>
                         <SelectContent>
                           {wordsOptions.map((option) => (
@@ -684,7 +641,7 @@ export const TypingTest: React.FC = () => {
 
             <TypingSurface
               text={testText}
-              getStatus={(i) => engine?.getCharacterStatus(i) ?? "pending"}
+              getStatus={(i) => engine?.getCharacterStatus(i) ?? 'pending'}
               caretIndex={state.isComplete ? null : state.currentIndex}
               onKeyDown={handleKeyDown}
               surfaceRef={inputRef}
@@ -700,14 +657,11 @@ export const TypingTest: React.FC = () => {
             className="flex flex-col gap-4 items-center w-full"
             transition={{
               duration: reducedMotion ? 0 : 0.3,
-              ease: "easeInOut",
+              ease: 'easeInOut',
             }}
             data-allow-transform-motion=""
           >
-            <TimelineChart
-              keystrokeEvents={state.keystrokeEvents}
-              height={300}
-            />
+            <TimelineChart keystrokeEvents={state.keystrokeEvents} height={300} />
             <ResultsSummary stats={stats} onRestart={resetTest} />
           </motion.div>
         )}

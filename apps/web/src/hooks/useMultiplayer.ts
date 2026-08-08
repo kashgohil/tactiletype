@@ -1,8 +1,4 @@
-import type {
-  CountdownMessage,
-  RaceStartedMessage,
-  RoomUpdatedMessage,
-} from '@tactile/types';
+import type { CountdownMessage, RaceStartedMessage, RoomUpdatedMessage } from '@tactile/types';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type {
   ChatMessageData,
@@ -56,27 +52,15 @@ export interface MultiplayerState {
 export interface MultiplayerActions {
   connect: (token: string) => Promise<void>;
   disconnect: () => void;
-  joinRoom: (
-    roomId: string,
-    userId: string,
-    username: string,
-    spectate?: boolean
-  ) => void;
+  joinRoom: (roomId: string, userId: string, username: string, spectate?: boolean) => void;
   leaveRoom: () => void;
   startRace: () => void;
-  sendTypingProgress: (
-    progress: number,
-    wpm: number,
-    accuracy: number,
-    errors: number
-  ) => void;
+  sendTypingProgress: (progress: number, wpm: number, accuracy: number, errors: number) => void;
   sendChat: (text: string) => void;
   clearError: () => void;
 }
 
-export const useMultiplayer = (
-  userId?: string
-): [MultiplayerState, MultiplayerActions] => {
+export const useMultiplayer = (userId?: string): [MultiplayerState, MultiplayerActions] => {
   const ws = useWebSocket();
   const [state, setState] = useState<MultiplayerState>({
     connectionStatus: 'disconnected',
@@ -157,11 +141,9 @@ export const useMultiplayer = (
   const handleRoomUpdated = useCallback((data: RoomUpdatedMessage['data']) => {
     if (data.room) {
       setState((prev) => {
-        const hostId =
-          (data.room as { hostId?: string }).hostId ?? prev.currentRoom?.hostId;
+        const hostId = (data.room as { hostId?: string }).hostId ?? prev.currentRoom?.hostId;
         const spectators =
-          (data.room as { spectators?: MultiplayerRoom['spectators'] })
-            .spectators ??
+          (data.room as { spectators?: MultiplayerRoom['spectators'] }).spectators ??
           prev.currentRoom?.spectators ??
           [];
         const room: MultiplayerRoom = {
@@ -187,9 +169,7 @@ export const useMultiplayer = (
     setState((prev) => {
       if (!prev.currentRoom) return prev;
       const updated = [...prev.currentRoom.participants];
-      const idx = updated.findIndex(
-        (p) => p.userId === data.participant.userId
-      );
+      const idx = updated.findIndex((p) => p.userId === data.participant.userId);
       if (idx >= 0) updated[idx] = data.participant;
       else updated.push(data.participant);
       return {
@@ -206,12 +186,8 @@ export const useMultiplayer = (
         ...prev,
         currentRoom: {
           ...prev.currentRoom,
-          participants: prev.currentRoom.participants.filter(
-            (p) => p.userId !== data.userId
-          ),
-          spectators: prev.currentRoom.spectators.filter(
-            (s) => s.userId !== data.userId
-          ),
+          participants: prev.currentRoom.participants.filter((p) => p.userId !== data.userId),
+          spectators: prev.currentRoom.spectators.filter((s) => s.userId !== data.userId),
         },
       };
     });
@@ -242,48 +218,40 @@ export const useMultiplayer = (
     }));
   }, []);
 
-  const handleParticipantFinished = useCallback(
-    (data: ParticipantFinishedData) => {
-      setState((prev) => {
-        if (!prev.currentRoom) return prev;
-        return {
-          ...prev,
-          currentRoom: {
-            ...prev.currentRoom,
-            participants: prev.currentRoom.participants.map((p) =>
-              p.userId === data.userId
-                ? {
-                    ...p,
-                    finished: true,
-                    wpm: data.wpm,
-                    accuracy: data.accuracy,
-                  }
-                : p
-            ),
-          },
-        };
-      });
-    },
-    []
-  );
-
-  const handleChatMessage = useCallback(
-    (data: { message: ChatMessageData }) => {
-      setState((prev) => ({
+  const handleParticipantFinished = useCallback((data: ParticipantFinishedData) => {
+    setState((prev) => {
+      if (!prev.currentRoom) return prev;
+      return {
         ...prev,
-        chat: [...prev.chat, data.message].slice(-100),
-      }));
-    },
-    []
-  );
+        currentRoom: {
+          ...prev.currentRoom,
+          participants: prev.currentRoom.participants.map((p) =>
+            p.userId === data.userId
+              ? {
+                  ...p,
+                  finished: true,
+                  wpm: data.wpm,
+                  accuracy: data.accuracy,
+                }
+              : p
+          ),
+        },
+      };
+    });
+  }, []);
+
+  const handleChatMessage = useCallback((data: { message: ChatMessageData }) => {
+    setState((prev) => ({
+      ...prev,
+      chat: [...prev.chat, data.message].slice(-100),
+    }));
+  }, []);
 
   const handleSpectatorJoined = useCallback(
     (data: { spectator: { userId: string; username: string } }) => {
       setState((prev) => {
         if (!prev.currentRoom) return prev;
-        const exists = prev.currentRoom.spectators.some(
-          (s) => s.userId === data.spectator.userId
-        );
+        const exists = prev.currentRoom.spectators.some((s) => s.userId === data.spectator.userId);
         if (exists) return prev;
         return {
           ...prev,
@@ -353,12 +321,7 @@ export const useMultiplayer = (
   }, [ws]);
 
   const joinRoom = useCallback(
-    (
-      roomId: string,
-      userId: string,
-      username: string,
-      spectate = false
-    ) => {
+    (roomId: string, userId: string, username: string, spectate = false) => {
       if (!ws.isConnected()) {
         setState((prev) => ({ ...prev, error: 'Not connected to server' }));
         return;
@@ -388,14 +351,7 @@ export const useMultiplayer = (
       const currentRoom = currentRoomRef.current;
       const currentUserId = userIdRef.current;
       if (!currentRoom || !currentUserId) return;
-      ws.sendTypingProgress(
-        currentRoom.id,
-        currentUserId,
-        progress,
-        wpm,
-        accuracy,
-        errors
-      );
+      ws.sendTypingProgress(currentRoom.id, currentUserId, progress, wpm, accuracy, errors);
     },
     [ws]
   );

@@ -1,9 +1,3 @@
-import { Button } from '@/components/ui/button';
-import { usePrefersReducedMotion } from '@/hooks/usePrefersReducedMotion';
-import { EASE_OUT, uiTransition } from '@/lib/motion';
-import { cn } from '@/lib/utils';
-import { beginDailyRun, clearDailyRun } from '@/utils/dailyRun';
-import { loadPlayBests, PLAY_MODES, type PlayModeId } from '@/utils/playModes';
 import { getDailyModeForDate } from '@tactile/content';
 import { Link, useNavigate } from '@tanstack/react-router';
 import {
@@ -14,12 +8,19 @@ import {
   Flame,
   Ghost,
   GraduationCap,
+  type LucideIcon,
   Swords,
   Zap,
-  type LucideIcon,
 } from 'lucide-react';
 import { motion } from 'motion/react';
-import React, { useMemo } from 'react';
+import type React from 'react';
+import { useMemo } from 'react';
+import { Button } from '@/components/ui/button';
+import { usePrefersReducedMotion } from '@/hooks/usePrefersReducedMotion';
+import { EASE_OUT, uiTransition } from '@/lib/motion';
+import { cn } from '@/lib/utils';
+import { beginDailyRun, clearDailyRun } from '@/utils/dailyRun';
+import { loadPlayBests, PLAY_MODES, type PlayModeId } from '@/utils/playModes';
 
 const ICONS: Record<PlayModeId, LucideIcon> = {
   'sudden-death': Swords,
@@ -67,8 +68,7 @@ export const Play: React.FC = () => {
           Typing games a timer can&apos;t teach
         </h1>
         <p className="text-text/50 leading-relaxed text-[15px]">
-          Six modes, six different rules. Same goal — type faster without
-          falling apart.
+          Six modes, six different rules. Same goal — type faster without falling apart.
         </p>
       </motion.header>
 
@@ -152,9 +152,7 @@ export const Play: React.FC = () => {
                   <h3 className="text-lg font-semibold tracking-tight group-hover:text-accent transition-colors duration-150">
                     {mode.title}
                   </h3>
-                  <p className="text-sm font-medium text-text/65 mt-0.5">
-                    {mode.tagline}
-                  </p>
+                  <p className="text-sm font-medium text-text/65 mt-0.5">{mode.tagline}</p>
                   <p className="text-sm text-text/40 leading-relaxed mt-2 line-clamp-2">
                     {mode.description}
                   </p>
@@ -163,8 +161,7 @@ export const Play: React.FC = () => {
                       mode, previously never shown. */}
                   {mode.howToPlay[1] && (
                     <p className="text-xs font-mono text-text/40 mt-3 leading-relaxed">
-                      <span className="text-accent/70">rule ·</span>{' '}
-                      {mode.howToPlay[1]}
+                      <span className="text-accent/70">rule ·</span> {mode.howToPlay[1]}
                     </p>
                   )}
 
@@ -205,8 +202,7 @@ export const Play: React.FC = () => {
           <div>
             <h3 className="font-semibold tracking-tight">Need targeted drills?</h3>
             <p className="text-sm text-text/45 mt-1 max-w-md leading-relaxed">
-              Weak keys, bigrams, and accuracy focus — generated for a skill, not
-              random categories.
+              Weak keys, bigrams, and accuracy focus — generated for a skill, not random categories.
             </p>
           </div>
         </div>

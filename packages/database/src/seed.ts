@@ -31,22 +31,16 @@ async function seed() {
       await db.insert(testTexts).values(batch);
     }
 
-    console.log(
-      `Inserted ${rows.length} practice units from ${packs.length} packs`
-    );
+    console.log(`Inserted ${rows.length} practice units from ${packs.length} packs`);
     for (const pack of packs) {
-      console.log(
-        `  - ${pack.id}: ${pack.items.length} items (${pack.category})`
-      );
+      console.log(`  - ${pack.id}: ${pack.items.length} items (${pack.category})`);
     }
     console.log(`Total practice units: ${countPracticeUnits(packs)}`);
 
     // Seed starter achievements (skip if name already exists)
     const existing = await db.select().from(achievements);
     const existingNames = new Set(existing.map((a) => a.name));
-    const toInsert = STARTER_ACHIEVEMENTS.filter(
-      (a) => !existingNames.has(a.name)
-    ).map((a) => ({
+    const toInsert = STARTER_ACHIEVEMENTS.filter((a) => !existingNames.has(a.name)).map((a) => ({
       name: a.name,
       description: a.description,
       category: a.category,

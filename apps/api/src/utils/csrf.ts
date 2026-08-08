@@ -1,4 +1,4 @@
-import { randomBytes } from 'crypto';
+import { randomBytes } from 'node:crypto';
 
 interface Token {
   token: string;
@@ -10,19 +10,17 @@ const store = new Map<string, Token>();
 export class CSRFProtection {
   private static readonly TOKEN_LENGTH = 32;
   private static readonly TOKEN_EXPIRY = 15 * 60 * 1000; // 15 minutes
-  private static readonly DEVELOPMENT_MODE =
-    process.env.NODE_ENV !== 'production';
 
   /**
    * Generate a new CSRF token
    */
   static generateToken(): string {
-    return randomBytes(this.TOKEN_LENGTH).toString('hex');
+    return randomBytes(CSRFProtection.TOKEN_LENGTH).toString('hex');
   }
 
   static generateOAuthToken(): string {
-    const token = randomBytes(this.TOKEN_LENGTH).toString('hex');
-    const expiresAt = Date.now() + this.TOKEN_EXPIRY;
+    const token = randomBytes(CSRFProtection.TOKEN_LENGTH).toString('hex');
+    const expiresAt = Date.now() + CSRFProtection.TOKEN_EXPIRY;
 
     store.set(token, { token, expiresAt });
 
@@ -38,22 +36,17 @@ export class CSRFProtection {
     const storedToken = store.get(token);
 
     if (!storedToken) {
-      console.error(
-        'OAuth state validation failed - token not found in store:',
-        {
-          token: token.substring(0, 8) + '...',
-          storeSize: store.size,
-          allTokens: Array.from(store.keys()).map(
-            (t) => t.substring(0, 8) + '...'
-          ),
-        }
-      );
+      console.error('OAuth state validation failed - token not found in store:', {
+        token: `${token.substring(0, 8)}...`,
+        storeSize: store.size,
+        allTokens: Array.from(store.keys()).map((t) => `${t.substring(0, 8)}...`),
+      });
       return false;
     }
 
     if (storedToken.expiresAt < Date.now()) {
       console.error('OAuth state validation failed - token expired:', {
-        token: token.substring(0, 8) + '...',
+        token: `${token.substring(0, 8)}...`,
         expiredAt: new Date(storedToken.expiresAt).toISOString(),
         now: new Date().toISOString(),
       });
@@ -61,10 +54,7 @@ export class CSRFProtection {
       return false;
     }
 
-    console.log(
-      'OAuth state validation successful for token:',
-      token.substring(0, 8) + '...'
-    );
+    console.log('OAuth state validation successful for token:', `${token.substring(0, 8)}...`);
     store.delete(token);
     return true;
   }

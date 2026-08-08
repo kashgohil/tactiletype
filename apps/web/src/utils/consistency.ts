@@ -21,8 +21,7 @@ export function computeConsistency(events: DetailedKeystrokeEvent[]): number {
 
   const mean = intervals.reduce((a, b) => a + b, 0) / intervals.length;
   if (mean === 0) return 100;
-  const variance =
-    intervals.reduce((a, b) => a + (b - mean) ** 2, 0) / intervals.length;
+  const variance = intervals.reduce((a, b) => a + (b - mean) ** 2, 0) / intervals.length;
   const cv = Math.sqrt(variance) / mean;
 
   return Math.max(0, Math.min(100, Math.round((1 - cv) * 100)));

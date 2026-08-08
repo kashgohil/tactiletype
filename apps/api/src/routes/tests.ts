@@ -1,6 +1,6 @@
 import { zValidator } from '@hono/zod-validator';
 import { completedTests, db, testTexts, users } from '@tactile/database';
-import { and, desc, eq, gte, sql } from 'drizzle-orm';
+import { and, desc, eq, gte, type SQL, sql } from 'drizzle-orm';
 import { Hono } from 'hono';
 import { z } from 'zod';
 import { authMiddleware } from '../middleware/auth';
@@ -57,9 +57,9 @@ testRoutes.get('/texts', optionalAuthMiddleware, async (c) => {
   try {
     const language = c.req.query('language') || 'en';
     const difficulty = c.req.query('difficulty');
-    const limit = parseInt(c.req.query('limit') || '20');
+    const limit = parseInt(c.req.query('limit') || '20', 10);
 
-    let whereConditions = [eq(testTexts.isActive, true)];
+    const whereConditions = [eq(testTexts.isActive, true)];
 
     if (language) {
       whereConditions.push(eq(testTexts.language, language));
@@ -121,146 +121,126 @@ testRoutes.get('/texts/:id', optionalAuthMiddleware, async (c) => {
 });
 
 // Create new test text
-testRoutes.post(
-  '/texts',
-  authMiddleware,
-  zValidator('json', createTestTextSchema),
-  async (c) => {
-    try {
-      const user = c.get('user') as any;
-      const testTextData = c.req.valid('json');
+testRoutes.post('/texts', authMiddleware, zValidator('json', createTestTextSchema), async (c) => {
+  try {
+    const testTextData = c.req.valid('json');
 
-      // Insert new test text
-      const [newTestText] = await db
-        .insert(testTexts)
-        .values({
-          title: testTextData.title,
-          content: testTextData.content,
-          language: testTextData.language,
-          difficulty: testTextData.difficulty,
-          wordCount: testTextData.wordCount,
-          isActive: true,
-        })
-        .returning();
+    // Insert new test text
+    const [newTestText] = await db
+      .insert(testTexts)
+      .values({
+        title: testTextData.title,
+        content: testTextData.content,
+        language: testTextData.language,
+        difficulty: testTextData.difficulty,
+        wordCount: testTextData.wordCount,
+        isActive: true,
+      })
+      .returning();
 
-      if (!newTestText) {
-        return c.json({ error: 'Failed to create test text' }, 500);
-      }
-
-      return c.json({
-        message: 'Test text created successfully',
-        text: {
-          id: newTestText.id,
-          title: newTestText.title,
-          content: newTestText.content,
-          language: newTestText.language,
-          difficulty: newTestText.difficulty,
-          wordCount: newTestText.wordCount,
-          createdAt: newTestText.createdAt,
-        },
-      });
-    } catch (error) {
-      console.error('Create test text error:', error);
+    if (!newTestText) {
       return c.json({ error: 'Failed to create test text' }, 500);
     }
+
+    return c.json({
+      message: 'Test text created successfully',
+      text: {
+        id: newTestText.id,
+        title: newTestText.title,
+        content: newTestText.content,
+        language: newTestText.language,
+        difficulty: newTestText.difficulty,
+        wordCount: newTestText.wordCount,
+        createdAt: newTestText.createdAt,
+      },
+    });
+  } catch (error) {
+    console.error('Create test text error:', error);
+    return c.json({ error: 'Failed to create test text' }, 500);
   }
-);
+});
 
 // Submit test result
-testRoutes.post(
-  '/results',
-  authMiddleware,
-  zValidator('json', submitResultSchema),
-  async (c) => {
-    try {
-      const user = c.get('user') as any;
-      const resultData = c.req.valid('json');
+testRoutes.post('/results', authMiddleware, zValidator('json', submitResultSchema), async (c) => {
+  try {
+    const user = c.get('user') as any;
+    const resultData = c.req.valid('json');
 
-      // Insert completed test with embedded test text data
-      const [result] = await db
-        .insert(completedTests)
-        .values({
-          userId: user.userId,
-          // Test text data
-          title: resultData.title,
-          content: resultData.content,
-          language: resultData.language,
-          difficulty: resultData.difficulty,
-          wordCount: resultData.wordCount,
-          // Session metadata
-          mode: resultData.mode ?? 'timer',
-          testType: resultData.testType ?? 'text',
-          modeTarget: resultData.modeTarget,
-          exercisePackId: resultData.exercisePackId,
-          exerciseKind: resultData.exerciseKind,
-          // Test results data
-          wpm: resultData.wpm.toString(),
-          accuracy: resultData.accuracy.toString(),
-          errors: resultData.errors,
-          timeTaken: resultData.timeTaken,
-          keystrokeData: resultData.keystrokeData,
-        })
-        .returning();
+    // Insert completed test with embedded test text data
+    const [result] = await db
+      .insert(completedTests)
+      .values({
+        userId: user.userId,
+        // Test text data
+        title: resultData.title,
+        content: resultData.content,
+        language: resultData.language,
+        difficulty: resultData.difficulty,
+        wordCount: resultData.wordCount,
+        // Session metadata
+        mode: resultData.mode ?? 'timer',
+        testType: resultData.testType ?? 'text',
+        modeTarget: resultData.modeTarget,
+        exercisePackId: resultData.exercisePackId,
+        exerciseKind: resultData.exerciseKind,
+        // Test results data
+        wpm: resultData.wpm.toString(),
+        accuracy: resultData.accuracy.toString(),
+        errors: resultData.errors,
+        timeTaken: resultData.timeTaken,
+        keystrokeData: resultData.keystrokeData,
+      })
+      .returning();
 
-      if (!result) {
-        return c.json({ error: 'Failed to save test result' }, 500);
-      }
-
-      let newlyUnlocked: string[] = [];
-      try {
-        newlyUnlocked = await evaluateAchievements(user.userId);
-      } catch (achErr) {
-        console.error('Achievement evaluation failed:', achErr);
-      }
-
-      return c.json({
-        message: 'Test result submitted successfully',
-        result: {
-          id: result.id,
-          wpm: parseFloat(result.wpm),
-          accuracy: parseFloat(result.accuracy),
-          errors: result.errors,
-          timeTaken: result.timeTaken,
-          mode: result.mode,
-          testType: result.testType,
-          modeTarget: result.modeTarget,
-          completedAt: result.completedAt,
-        },
-        newlyUnlocked,
-      });
-    } catch (error) {
-      console.error('Submit result error:', error);
-      return c.json({ error: 'Failed to submit test result' }, 500);
+    if (!result) {
+      return c.json({ error: 'Failed to save test result' }, 500);
     }
+
+    let newlyUnlocked: string[] = [];
+    try {
+      newlyUnlocked = await evaluateAchievements(user.userId);
+    } catch (achErr) {
+      console.error('Achievement evaluation failed:', achErr);
+    }
+
+    return c.json({
+      message: 'Test result submitted successfully',
+      result: {
+        id: result.id,
+        wpm: parseFloat(result.wpm),
+        accuracy: parseFloat(result.accuracy),
+        errors: result.errors,
+        timeTaken: result.timeTaken,
+        mode: result.mode,
+        testType: result.testType,
+        modeTarget: result.modeTarget,
+        completedAt: result.completedAt,
+      },
+      newlyUnlocked,
+    });
+  } catch (error) {
+    console.error('Submit result error:', error);
+    return c.json({ error: 'Failed to submit test result' }, 500);
   }
-);
+});
 
 // Get leaderboard
 testRoutes.get('/leaderboard', async (c) => {
   try {
     const timeframe = c.req.query('timeframe') || 'all'; // daily, weekly, monthly, all
-    const limit = parseInt(c.req.query('limit') || '50');
-    const offset = parseInt(c.req.query('offset') || '0');
+    const limit = parseInt(c.req.query('limit') || '50', 10);
+    const offset = parseInt(c.req.query('offset') || '0', 10);
 
-    let timeFilter;
+    let timeFilter: SQL | undefined;
     switch (timeframe) {
       case 'daily':
-        timeFilter = gte(
-          completedTests.completedAt,
-          sql`now() - interval '1 day'`
-        );
+        timeFilter = gte(completedTests.completedAt, sql`now() - interval '1 day'`);
         break;
       case 'weekly':
-        timeFilter = gte(
-          completedTests.completedAt,
-          sql`now() - interval '1 week'`
-        );
+        timeFilter = gte(completedTests.completedAt, sql`now() - interval '1 week'`);
         break;
       case 'monthly':
-        timeFilter = gte(
-          completedTests.completedAt,
-          sql`now() - interval '1 month'`
-        );
+        timeFilter = gte(completedTests.completedAt, sql`now() - interval '1 month'`);
         break;
       default:
         timeFilter = undefined;
@@ -329,8 +309,8 @@ testRoutes.get('/leaderboard', async (c) => {
 testRoutes.get('/results', authMiddleware, async (c) => {
   try {
     const user = c.get('user') as any;
-    const limit = parseInt(c.req.query('limit') || '50');
-    const offset = parseInt(c.req.query('offset') || '0');
+    const limit = parseInt(c.req.query('limit') || '50', 10);
+    const offset = parseInt(c.req.query('offset') || '0', 10);
     const mode = c.req.query('mode');
     const testType = c.req.query('testType');
     const difficulty = c.req.query('difficulty');
@@ -388,7 +368,7 @@ testRoutes.get('/results', authMiddleware, async (c) => {
 testRoutes.get('/progress', authMiddleware, async (c) => {
   try {
     const user = c.get('user') as any;
-    const days = Math.min(parseInt(c.req.query('days') || '30'), 90);
+    const days = Math.min(parseInt(c.req.query('days') || '30', 10), 90);
     const since = new Date();
     since.setDate(since.getDate() - days);
     since.setHours(0, 0, 0, 0);
@@ -401,12 +381,7 @@ testRoutes.get('/progress', authMiddleware, async (c) => {
         testCount: sql<number>`COUNT(*)`,
       })
       .from(completedTests)
-      .where(
-        and(
-          eq(completedTests.userId, user.userId),
-          gte(completedTests.completedAt, since)
-        )
-      )
+      .where(and(eq(completedTests.userId, user.userId), gte(completedTests.completedAt, since)))
       .groupBy(sql`DATE(${completedTests.completedAt})`)
       .orderBy(sql`DATE(${completedTests.completedAt})`);
 

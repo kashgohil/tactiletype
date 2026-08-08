@@ -1,30 +1,15 @@
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-} from '@/components/ui/select';
-import { Panel, panelSurface } from '@/components/ui/panel';
-import { Skeleton } from '@/components/ui/skeleton';
-import { cn } from '@/lib/utils';
 import type { AnalyticsDashboard, UserRecommendation } from '@tactile/types';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import {
-  ChartBar,
-  Lightbulb,
-  LineChart,
-  Sparkle,
-  Target,
-  Timer,
-} from 'lucide-react';
+import { ChartBar, Lightbulb, LineChart, Sparkle, Target, Timer } from 'lucide-react';
 import React from 'react';
 import { toast } from 'sonner';
+import { Panel, panelSurface } from '@/components/ui/panel';
+import { Select, SelectContent, SelectItem, SelectTrigger } from '@/components/ui/select';
+import { Skeleton } from '@/components/ui/skeleton';
+import { cn } from '@/lib/utils';
 import { ErrorHeatmap } from '../components/analytics/ErrorHeatmap';
 import { GoalTracker } from '../components/analytics/GoalTracker';
-import {
-  ChartTrend,
-  ProgressChart,
-} from '../components/analytics/ProgressChart';
+import { ChartTrend, ProgressChart } from '../components/analytics/ProgressChart';
 import { RecommendationsPanel } from '../components/analytics/RecommendationsPanel';
 import { ReportGenerator } from '../components/analytics/ReportGenerator';
 import { useAuth } from '../contexts';
@@ -34,9 +19,9 @@ import { describeError } from '../utils/describeError';
 export const Analytics: React.FC = () => {
   const { user } = useAuth();
   const queryClient = useQueryClient();
-  const [selectedTimeframe, setSelectedTimeframe] = React.useState<
-    'daily' | 'weekly' | 'monthly'
-  >('daily');
+  const [selectedTimeframe, setSelectedTimeframe] = React.useState<'daily' | 'weekly' | 'monthly'>(
+    'daily'
+  );
 
   // Queries for data fetching
   const overviewQuery = useQuery({
@@ -74,11 +59,7 @@ export const Analytics: React.FC = () => {
     queryFn: () =>
       analyticsApi.getAccuracyHeatmap({
         timeframe:
-          selectedTimeframe === 'daily'
-            ? 'week'
-            : selectedTimeframe === 'weekly'
-              ? 'month'
-              : 'all',
+          selectedTimeframe === 'daily' ? 'week' : selectedTimeframe === 'weekly' ? 'month' : 'all',
       }),
     enabled: !!user,
   });
@@ -198,20 +179,14 @@ export const Analytics: React.FC = () => {
   if (!user) {
     return (
       <div className="text-center py-12">
-        <h1 className="text-2xl font-bold tracking-tight mb-3">
-          Analytics Dashboard
-        </h1>
-        <p className="text-text/50">
-          Please log in to view your typing analytics.
-        </p>
+        <h1 className="text-2xl font-bold tracking-tight mb-3">Analytics Dashboard</h1>
+        <p className="text-text/50">Please log in to view your typing analytics.</p>
       </div>
     );
   }
 
   const isLoading =
-    overviewQuery.isLoading ||
-    trendsQuery.isLoading ||
-    errorAnalysisQuery.isLoading;
+    overviewQuery.isLoading || trendsQuery.isLoading || errorAnalysisQuery.isLoading;
 
   if (isLoading) {
     return (
@@ -284,10 +259,7 @@ export const Analytics: React.FC = () => {
             <Skeleton className="h-6 w-32 mb-4" />
             <div className="space-y-3">
               {[...Array(3)].map((_, i) => (
-                <div
-                  key={i}
-                  className="flex items-start space-x-3 p-3 rounded-lg bg-accent/[0.06]"
-                >
+                <div key={i} className="flex items-start space-x-3 p-3 rounded-lg bg-accent/[0.06]">
                   <Skeleton className="h-5 w-5 mt-0.5" />
                   <div className="space-y-1 flex-1">
                     <Skeleton className="h-4 w-full" />
@@ -341,12 +313,9 @@ export const Analytics: React.FC = () => {
   if (!dashboardData) {
     return (
       <div className="text-center py-12">
-        <h1 className="text-2xl font-bold tracking-tight mb-3">
-          Analytics Dashboard
-        </h1>
+        <h1 className="text-2xl font-bold tracking-tight mb-3">Analytics Dashboard</h1>
         <p className="text-text/50">
-          No analytics data available. Complete some typing tests to see your
-          progress!
+          No analytics data available. Complete some typing tests to see your progress!
         </p>
       </div>
     );
@@ -356,16 +325,14 @@ export const Analytics: React.FC = () => {
     <div>
       <div className="flex items-center justify-end mb-8">
         <div className="flex items-center space-x-4">
-          <label className="text-sm font-medium text-text/60">
+          <label htmlFor="analytics-timeframe" className="text-sm font-medium text-text/60">
             Timeframe:
           </label>
           <Select
             value={selectedTimeframe}
-            onValueChange={(val) =>
-              setSelectedTimeframe(val as 'daily' | 'weekly' | 'monthly')
-            }
+            onValueChange={(val) => setSelectedTimeframe(val as 'daily' | 'weekly' | 'monthly')}
           >
-            <SelectTrigger>{selectedTimeframe}</SelectTrigger>
+            <SelectTrigger id="analytics-timeframe">{selectedTimeframe}</SelectTrigger>
             <SelectContent>
               <SelectItem value="daily">Daily</SelectItem>
               <SelectItem value="weekly">Weekly</SelectItem>
@@ -381,9 +348,7 @@ export const Analytics: React.FC = () => {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium">Total Tests</p>
-              <p className="text-2xl font-bold text-accent">
-                {dashboardData.overview.totalTests}
-              </p>
+              <p className="text-2xl font-bold text-accent">{dashboardData.overview.totalTests}</p>
             </div>
             <ChartBar className="text-accent" />
           </div>
@@ -393,9 +358,7 @@ export const Analytics: React.FC = () => {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium ">Average WPM</p>
-              <p className="text-2xl font-bold text-accent">
-                {dashboardData.overview.averageWpm}
-              </p>
+              <p className="text-2xl font-bold text-accent">{dashboardData.overview.averageWpm}</p>
             </div>
             <Sparkle className="text-accent" />
           </div>
@@ -458,12 +421,7 @@ export const Analytics: React.FC = () => {
             key={index}
             title={<span className="capitalize">{chart.type} progress</span>}
             description={`${chart.timeframe} trend · ${chart.data.length} points`}
-            action={
-              <ChartTrend
-                trend={chart.trend}
-                percentage={chart.trendPercentage}
-              />
-            }
+            action={<ChartTrend trend={chart.trend} percentage={chart.trendPercentage} />}
           >
             <ProgressChart chart={chart} height={250} />
           </Panel>
@@ -486,35 +444,25 @@ export const Analytics: React.FC = () => {
         <div className={cn(panelSurface, 'p-6')}>
           <h3 className="text-lg mb-4 font-semibold">Characters to Improve</h3>
           <div className="space-y-3">
-            {dashboardData.errorAnalysis.mostProblematicChars
-              .slice(0, 5)
-              .map((char, index) => (
-                <div
-                  key={index}
-                  className="flex items-center justify-between p-3 rounded-lg bg-accent/[0.06]"
-                >
-                  <div className="flex items-center space-x-3">
-                    <div className="w-8 h-8 bg-destructive/15 rounded-lg flex items-center justify-center">
-                      <span className="font-mono font-bold text-destructive">
-                        {char.character}
-                      </span>
-                    </div>
-                    <div>
-                      <p className="font-medium">
-                        {char.errorCount} errors
-                      </p>
-                      <p className="text-sm text-text/50">
-                        {char.errorRate.toFixed(1)}% error rate
-                      </p>
-                    </div>
+            {dashboardData.errorAnalysis.mostProblematicChars.slice(0, 5).map((char, index) => (
+              <div
+                key={index}
+                className="flex items-center justify-between p-3 rounded-lg bg-accent/[0.06]"
+              >
+                <div className="flex items-center space-x-3">
+                  <div className="w-8 h-8 bg-destructive/15 rounded-lg flex items-center justify-center">
+                    <span className="font-mono font-bold text-destructive">{char.character}</span>
                   </div>
-                  <div className="text-right">
-                    <p className="text-sm text-text/50">
-                      {char.suggestions[0]}
-                    </p>
+                  <div>
+                    <p className="font-medium">{char.errorCount} errors</p>
+                    <p className="text-sm text-text/50">{char.errorRate.toFixed(1)}% error rate</p>
                   </div>
                 </div>
-              ))}
+                <div className="text-right">
+                  <p className="text-sm text-text/50">{char.suggestions[0]}</p>
+                </div>
+              </div>
+            ))}
           </div>
         </div>
 
@@ -536,17 +484,15 @@ export const Analytics: React.FC = () => {
             <div className="flex items-start space-x-3 p-3 rounded-lg bg-accent/[0.06]">
               <Target className="text-accent" />
               <p>
-                Your consistency score is{' '}
-                {dashboardData.overview.consistencyScore.toFixed(1)}%. Try to
-                maintain steady typing rhythm.
+                Your consistency score is {dashboardData.overview.consistencyScore.toFixed(1)}%. Try
+                to maintain steady typing rhythm.
               </p>
             </div>
 
             <div className="flex items-start space-x-3 p-3 rounded-lg bg-accent/[0.06]">
               <LineChart className="text-accent" />
               <p>
-                You're improving at{' '}
-                {dashboardData.overview.improvementRate.toFixed(1)}% rate. Keep
+                You're improving at {dashboardData.overview.improvementRate.toFixed(1)}% rate. Keep
                 up the great work!
               </p>
             </div>

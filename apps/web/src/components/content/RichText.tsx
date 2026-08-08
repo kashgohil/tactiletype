@@ -1,5 +1,5 @@
 import { Link } from '@tanstack/react-router';
-import React from 'react';
+import type React from 'react';
 
 /**
  * Inline markup for authored copy. Two forms only:
@@ -19,12 +19,10 @@ type AnyPath = never;
 export const RichText: React.FC<{ text: string }> = ({ text }) => {
   const nodes: React.ReactNode[] = [];
   let cursor = 0;
-  let match: RegExpExecArray | null;
 
-  // Fresh regex per render: `lastIndex` is stateful on a shared /g literal.
-  const re = new RegExp(TOKEN.source, 'g');
-
-  while ((match = re.exec(text)) !== null) {
+  // `matchAll` iterates against its own copy, so the shared /g literal's
+  // stateful `lastIndex` never leaks between renders.
+  for (const match of text.matchAll(TOKEN)) {
     if (match.index > cursor) nodes.push(text.slice(cursor, match.index));
 
     const [, label, href, code] = match;

@@ -1,10 +1,11 @@
+import { useNavigate, useSearch } from '@tanstack/react-router';
+import { motion } from 'motion/react';
+import type React from 'react';
+import { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { panelSurface } from '@/components/ui/panel';
 import { useAuth } from '@/contexts';
 import { cn } from '@/lib/utils';
-import { useNavigate, useSearch } from '@tanstack/react-router';
-import { motion } from 'motion/react';
-import React, { useEffect, useState } from 'react';
 
 export const AuthCallback: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
@@ -34,15 +35,9 @@ export const AuthCallback: React.FC = () => {
         console.error('OAuth callback error:', err);
 
         // Check if it's a state parameter error and provide helpful message
-        const errorMessage =
-          err instanceof Error ? err.message : 'Authentication failed';
-        if (
-          errorMessage.includes('state parameter') ||
-          errorMessage.includes('Invalid state')
-        ) {
-          setError(
-            'Authentication session expired. Please try logging in again.'
-          );
+        const errorMessage = err instanceof Error ? err.message : 'Authentication failed';
+        if (errorMessage.includes('state parameter') || errorMessage.includes('Invalid state')) {
+          setError('Authentication session expired. Please try logging in again.');
         } else {
           setError(errorMessage);
         }
@@ -62,12 +57,7 @@ export const AuthCallback: React.FC = () => {
         className={cn(panelSurface, 'max-w-md w-full my-auto mx-auto p-8')}
       >
         <h1 className="flex items-center justify-center gap-2 text-2xl font-bold text-center mb-8">
-          <img
-            src="/tactiletype-256x256.png"
-            alt="tactiletype"
-            height={36}
-            width={36}
-          />
+          <img src="/tactiletype-256x256.png" alt="tactiletype" height={36} width={36} />
           <span>tactiletype</span>
         </h1>
 
@@ -95,12 +85,7 @@ export const AuthCallback: React.FC = () => {
       className={cn(panelSurface, 'max-w-md w-full my-auto mx-auto p-8')}
     >
       <h1 className="flex items-center justify-center gap-2 text-2xl font-bold text-center mb-8">
-        <img
-          src="/tactiletype-256x256.png"
-          alt="tactiletype"
-          height={36}
-          width={36}
-        />
+        <img src="/tactiletype-256x256.png" alt="tactiletype" height={36} width={36} />
         <span>tactiletype</span>
       </h1>
 
@@ -109,9 +94,7 @@ export const AuthCallback: React.FC = () => {
           <div className="w-8 h-8 border-2 border-line border-t-accent rounded-full animate-spin mx-auto" />
         </div>
         <h2 className="text-xl font-semibold mb-2">Completing sign in</h2>
-        <p className="text-text/50">
-          Please wait while we finish setting up your account...
-        </p>
+        <p className="text-text/50">Please wait while we finish setting up your account...</p>
       </div>
     </motion.div>
   );

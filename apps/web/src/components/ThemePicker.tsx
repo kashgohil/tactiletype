@@ -1,9 +1,9 @@
-import { usePrefersReducedMotion } from '@/hooks/usePrefersReducedMotion';
-import { EASE_OUT } from '@/lib/motion';
-import { cn } from '@/lib/utils';
 import { Check } from 'lucide-react';
 import { motion } from 'motion/react';
 import React from 'react';
+import { usePrefersReducedMotion } from '@/hooks/usePrefersReducedMotion';
+import { EASE_OUT } from '@/lib/motion';
+import { cn } from '@/lib/utils';
 import type { Theme } from '../contexts/themes';
 import { themes } from '../contexts/themes';
 import { useTheme } from '../hooks/useTheme';
@@ -19,10 +19,7 @@ const mix = (color: string, pct: number, into: string) =>
 
 /** The current theme as a three-wedge disc — the trigger IS a swatch, so the
  *  nav always shows which theme is live (and morphs while previewing). */
-const ThemeOrb: React.FC<{ theme: Theme; className?: string }> = ({
-  theme,
-  className,
-}) => (
+const ThemeOrb: React.FC<{ theme: Theme; className?: string }> = ({ theme, className }) => (
   <span
     aria-hidden
     className={cn('block size-5 rounded-full', className)}
@@ -41,11 +38,7 @@ const ThemeMiniature: React.FC<{ theme: Theme }> = ({ theme }) => {
   const pending = mix(text, 32, slab);
 
   const bar = (width: number, color: string, key: number) => (
-    <span
-      key={key}
-      className="h-[5px] rounded-full"
-      style={{ width, background: color }}
-    />
+    <span key={key} className="h-[5px] rounded-full" style={{ width, background: color }} />
   );
 
   return (
@@ -58,10 +51,7 @@ const ThemeMiniature: React.FC<{ theme: Theme }> = ({ theme }) => {
     >
       <div className="flex items-center gap-[5px]">
         {[16, 11].map((w, i) => bar(w, text, i))}
-        <span
-          className="w-[2px] h-[11px] rounded-full"
-          style={{ background: accent }}
-        />
+        <span className="w-[2px] h-[11px] rounded-full" style={{ background: accent }} />
         {[13, 20].map((w, i) => bar(w, pending, i))}
       </div>
       <div className="flex items-center gap-[5px]">
@@ -91,9 +81,7 @@ export const ThemePicker: React.FC = () => {
   // steps one and up/down steps a row; focus carries the live preview with it.
   const cardRefs = React.useRef<(HTMLButtonElement | null)[]>([]);
   const handleKeyDown = (e: React.KeyboardEvent, i: number) => {
-    const step = { ArrowRight: 1, ArrowLeft: -1, ArrowDown: 2, ArrowUp: -2 }[
-      e.key
-    ];
+    const step = { ArrowRight: 1, ArrowLeft: -1, ArrowDown: 2, ArrowUp: -2 }[e.key];
     if (!step) return;
     e.preventDefault();
     const next = (i + step + themes.length) % themes.length;
@@ -136,16 +124,10 @@ export const ThemePicker: React.FC = () => {
             Theme
           </p>
           {/* Follows the preview, so the name always matches what you're seeing */}
-          <p className="text-xs font-medium text-accent truncate">
-            {themeToApply.name}
-          </p>
+          <p className="text-xs font-medium text-accent truncate">{themeToApply.name}</p>
         </div>
 
-        <div
-          role="radiogroup"
-          aria-label="Theme"
-          className="grid grid-cols-2 gap-2 px-3"
-        >
+        <div role="radiogroup" aria-label="Theme" className="grid grid-cols-2 gap-2 px-3">
           {themes.map((theme, i) => {
             const active = currentTheme.id === theme.id;
             return (
@@ -186,9 +168,7 @@ export const ThemePicker: React.FC = () => {
               >
                 <ThemeMiniature theme={theme} />
                 <div className="flex items-center justify-between gap-2 px-0.5 pt-2 pb-0.5">
-                  <span className="text-xs font-medium truncate">
-                    {theme.name}
-                  </span>
+                  <span className="text-xs font-medium truncate">{theme.name}</span>
                   {active && <Check className="size-3.5 text-accent shrink-0" />}
                 </div>
               </motion.button>

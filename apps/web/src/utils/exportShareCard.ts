@@ -17,9 +17,7 @@ export interface ShareCardStats {
 const W = 1200;
 const H = 630;
 
-export async function renderShareCardPng(
-  stats: ShareCardStats
-): Promise<Blob> {
+export async function renderShareCardPng(stats: ShareCardStats): Promise<Blob> {
   const canvas = document.createElement('canvas');
   canvas.width = W;
   canvas.height = H;
@@ -107,7 +105,9 @@ export async function downloadShareCard(stats: ShareCardStats, filename?: string
   URL.revokeObjectURL(url);
 }
 
-export async function shareCardImage(stats: ShareCardStats): Promise<'shared' | 'downloaded' | 'copied'> {
+export async function shareCardImage(
+  stats: ShareCardStats
+): Promise<'shared' | 'downloaded' | 'copied'> {
   const blob = await renderShareCardPng(stats);
   const file = new File([blob], `tactiletype-${stats.username}.png`, {
     type: 'image/png',
@@ -129,9 +129,7 @@ export async function shareCardImage(stats: ShareCardStats): Promise<'shared' | 
   // Clipboard image if available
   try {
     if (navigator.clipboard && typeof ClipboardItem !== 'undefined') {
-      await navigator.clipboard.write([
-        new ClipboardItem({ 'image/png': blob }),
-      ]);
+      await navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })]);
       return 'copied';
     }
   } catch {
@@ -143,7 +141,7 @@ export async function shareCardImage(stats: ShareCardStats): Promise<'shared' | 
 }
 
 function truncate(s: string, n: number) {
-  return s.length > n ? s.slice(0, n - 1) + '…' : s;
+  return s.length > n ? `${s.slice(0, n - 1)}…` : s;
 }
 
 function roundRect(

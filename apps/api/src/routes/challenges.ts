@@ -1,11 +1,11 @@
 import { getDailyModeForDate, QUOTES } from '@tactile/content';
 import {
+  achievements,
   completedTests,
   db,
-  userAchievements,
-  achievements,
-  users,
   practiceSessions,
+  userAchievements,
+  users,
 } from '@tactile/database';
 import { and, desc, eq, gte, lt } from 'drizzle-orm';
 import { Hono } from 'hono';
@@ -25,13 +25,9 @@ const challengeRoutes = new Hono<{ Variables: Variables }>();
 
 /** Deterministic daily text from UTC date. */
 export function getDailyChallengeForDate(date = new Date()) {
-  const utc = new Date(
-    Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate())
-  );
+  const utc = new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate()));
   const dayKey = utc.toISOString().slice(0, 10);
-  const seed = dayKey
-    .split('')
-    .reduce((acc, ch) => acc + ch.charCodeAt(0), 0);
+  const seed = dayKey.split('').reduce((acc, ch) => acc + ch.charCodeAt(0), 0);
   const quote = QUOTES[seed % QUOTES.length]!;
   return {
     date: dayKey,
@@ -55,11 +51,7 @@ challengeRoutes.get('/daily', async (c) => {
   }
 });
 
-async function dailyLeaderboardForKind(
-  exerciseKind: string,
-  date: string,
-  limit: number
-) {
+async function dailyLeaderboardForKind(exerciseKind: string, date: string, limit: number) {
   const start = new Date(`${date}T00:00:00.000Z`);
   const end = new Date(start);
   end.setUTCDate(end.getUTCDate() + 1);
@@ -92,11 +84,7 @@ async function dailyLeaderboardForKind(
     const wpm = parseFloat(String(row.wpm));
     const accuracy = parseFloat(String(row.accuracy));
     const existing = best.get(row.userId);
-    if (
-      !existing ||
-      wpm > existing.wpm ||
-      (wpm === existing.wpm && accuracy > existing.accuracy)
-    ) {
+    if (!existing || wpm > existing.wpm || (wpm === existing.wpm && accuracy > existing.accuracy)) {
       best.set(row.userId, {
         userId: row.userId,
         username: row.username,
@@ -114,13 +102,9 @@ async function dailyLeaderboardForKind(
 // Daily leaderboard (results tagged as daily_challenge for today)
 challengeRoutes.get('/daily/leaderboard', async (c) => {
   try {
-    const limit = Math.min(parseInt(c.req.query('limit') || '20'), 100);
+    const limit = Math.min(parseInt(c.req.query('limit') || '20', 10), 100);
     const challenge = getDailyChallengeForDate();
-    const leaderboard = await dailyLeaderboardForKind(
-      'daily_challenge',
-      challenge.date,
-      limit
-    );
+    const leaderboard = await dailyLeaderboardForKind('daily_challenge', challenge.date, limit);
     return c.json({ date: challenge.date, leaderboard });
   } catch (error) {
     console.error('Daily leaderboard error:', error);
@@ -141,13 +125,9 @@ challengeRoutes.get('/daily/mode', async (c) => {
 
 challengeRoutes.get('/daily/mode/leaderboard', async (c) => {
   try {
-    const limit = Math.min(parseInt(c.req.query('limit') || '20'), 100);
+    const limit = Math.min(parseInt(c.req.query('limit') || '20', 10), 100);
     const mode = getDailyModeForDate();
-    const leaderboard = await dailyLeaderboardForKind(
-      'daily_mode',
-      mode.date,
-      limit
-    );
+    const leaderboard = await dailyLeaderboardForKind('daily_mode', mode.date, limit);
     return c.json({
       date: mode.date,
       modeId: mode.modeId,
@@ -183,10 +163,7 @@ challengeRoutes.get('/curriculum', authMiddleware, async (c) => {
       .select()
       .from(practiceSessions)
       .where(
-        and(
-          eq(practiceSessions.userId, user.userId),
-          eq(practiceSessions.focusArea, 'curriculum')
-        )
+        and(eq(practiceSessions.userId, user.userId), eq(practiceSessions.focusArea, 'curriculum'))
       )
       .orderBy(desc(practiceSessions.createdAt))
       .limit(1);
@@ -226,11 +203,7 @@ challengeRoutes.put('/curriculum', authMiddleware, async (c) => {
       targetContent: 'lesson-path',
       sessionData: JSON.stringify({ progress: parsed.data, v: 1 }),
       duration: 0,
-      improvementScore: String(
-        Math.round(
-          (parsed.data.completed.length / Math.max(1, 10)) * 100
-        )
-      ),
+      improvementScore: String(Math.round((parsed.data.completed.length / Math.max(1, 10)) * 100)),
     });
 
     return c.json({ ok: true, progress: parsed.data });
@@ -245,19 +218,14 @@ challengeRoutes.get('/achievements', authMiddleware, async (c) => {
   try {
     const user = c.get('user') as Variables['user'];
 
-    const all = await db
-      .select()
-      .from(achievements)
-      .where(eq(achievements.isActive, true));
+    const all = await db.select().from(achievements).where(eq(achievements.isActive, true));
 
     const unlocked = await db
       .select()
       .from(userAchievements)
       .where(eq(userAchievements.userId, user.userId));
 
-    const unlockedMap = new Map(
-      unlocked.map((u) => [u.achievementId, u])
-    );
+    const unlockedMap = new Map(unlocked.map((u) => [u.achievementId, u]));
 
     const list = all.map((a) => ({
       id: a.id,
@@ -280,10 +248,7 @@ challengeRoutes.get('/achievements', authMiddleware, async (c) => {
 
 /** Evaluate and unlock achievements for a user. Call after result submit. */
 export async function evaluateAchievements(userId: string) {
-  const all = await db
-    .select()
-    .from(achievements)
-    .where(eq(achievements.isActive, true));
+  const all = await db.select().from(achievements).where(eq(achievements.isActive, true));
 
   const unlocked = await db
     .select()
@@ -304,8 +269,7 @@ export async function evaluateAchievements(userId: string) {
 
   const stats = AnalyticsEngine.calculateUserStats(tests);
   const hasDaily = tests.some(
-    (t) =>
-      t.exerciseKind === 'daily_challenge' || t.exerciseKind === 'daily_mode'
+    (t) => t.exerciseKind === 'daily_challenge' || t.exerciseKind === 'daily_mode'
   );
   const newlyUnlocked: string[] = [];
 

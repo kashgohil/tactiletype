@@ -1,17 +1,14 @@
+import { useNavigate } from '@tanstack/react-router';
+import type React from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { PlayResultCard, PlayShell } from '@/components/play/PlayHud';
-import {
-  Kbd,
-  PanelHint,
-  PlayTestPanel,
-} from '@/components/play/PlayTestPanel';
+import { Kbd, PanelHint, PlayTestPanel } from '@/components/play/PlayTestPanel';
 import { TypingSurface } from '@/components/test/TypingSurface';
 import { useAuth } from '@/contexts';
-import { isNonPrintingKey } from '@/utils/typingEngine';
 import { pickWord, savePlayBest } from '@/utils/playModes';
 import { submitPlayResult } from '@/utils/submitPlayResult';
 import { playCompleteChime, playErrorBeep, playKeyClick } from '@/utils/testSounds';
-import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { useNavigate } from '@tanstack/react-router';
+import { isNonPrintingKey } from '@/utils/typingEngine';
 
 type Phase = 'ready' | 'running' | 'over';
 
@@ -83,7 +80,7 @@ export const WordStormMode: React.FC = () => {
 
   useEffect(() => {
     reset();
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  }, []);
 
   const endRun = useCallback(
     async (finalCleared: number, finalCombo: number, finalCorrect: number, finalErrors: number) => {
@@ -222,7 +219,8 @@ export const WordStormMode: React.FC = () => {
   }
 
   return (
-    <PlayShell modeId="word-storm"
+    <PlayShell
+      modeId="word-storm"
       title="Word Storm"
       subtitle="One word at a time. Timer shrinks as you level up."
       onExit={exit}
@@ -240,9 +238,7 @@ export const WordStormMode: React.FC = () => {
           {
             label: 'Left',
             value:
-              phase === 'running'
-                ? `${Math.ceil((timeLeft * timeLimitMs(level)) / 1000)}s`
-                : '—',
+              phase === 'running' ? `${Math.ceil((timeLeft * timeLimitMs(level)) / 1000)}s` : '—',
             tone: timeLeft < 0.25 && phase === 'running' ? 'danger' : 'default',
           },
         ]}

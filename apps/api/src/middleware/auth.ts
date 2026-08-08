@@ -1,4 +1,5 @@
 import {
+  type AccessTokenPayload,
   RevocationCheckUnavailableError,
   verifyAccessToken,
 } from '../auth/tokens';
@@ -12,11 +13,11 @@ import {
 export const authMiddleware = async (c: any, next: any) => {
   const authHeader = c.req.header('Authorization');
 
-  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+  if (!authHeader?.startsWith('Bearer ')) {
     return c.json({ error: 'No token provided' }, 401);
   }
 
-  let payload;
+  let payload: AccessTokenPayload;
   try {
     payload = await verifyAccessToken(authHeader.substring(7));
   } catch (error) {

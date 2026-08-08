@@ -1,5 +1,5 @@
+import type React from 'react';
 import { cn } from '@/lib/utils';
-import React from 'react';
 
 /**
  * The single surface recipe for dashboard-style content.
@@ -53,14 +53,10 @@ export const Panel: React.FC<PanelProps> = ({
               </h2>
             )}
             {description && (
-              <p className="text-sm text-text/45 mt-1 leading-relaxed">
-                {description}
-              </p>
+              <p className="text-sm text-text/45 mt-1 leading-relaxed">{description}</p>
             )}
           </div>
-          {action && (
-            <div className="shrink-0 flex items-center gap-2">{action}</div>
-          )}
+          {action && <div className="shrink-0 flex items-center gap-2">{action}</div>}
         </div>
       )}
       <div className={cn('flex-1 min-w-0', bodyClassName)}>{children}</div>

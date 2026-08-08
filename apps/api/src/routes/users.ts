@@ -58,53 +58,48 @@ userRoutes.get('/profile', authMiddleware, async (c) => {
 });
 
 // Update user profile
-userRoutes.put(
-  '/profile',
-  authMiddleware,
-  zValidator('json', updateProfileSchema),
-  async (c) => {
-    try {
-      const user = c.get('user') as any;
-      const profileData = c.req.valid('json');
+userRoutes.put('/profile', authMiddleware, zValidator('json', updateProfileSchema), async (c) => {
+  try {
+    const user = c.get('user') as any;
+    const profileData = c.req.valid('json');
 
-      // Check if profile exists
-      const existingProfile = await db.query.userProfiles.findFirst({
-        where: eq(userProfiles.userId, user.userId),
+    // Check if profile exists
+    const existingProfile = await db.query.userProfiles.findFirst({
+      where: eq(userProfiles.userId, user.userId),
+    });
+
+    if (existingProfile) {
+      // Update existing profile
+      const [updatedProfile] = await db
+        .update(userProfiles)
+        .set(profileData)
+        .where(eq(userProfiles.userId, user.userId))
+        .returning();
+
+      return c.json({
+        message: 'Profile updated successfully',
+        profile: updatedProfile,
       });
+    } else {
+      // Create new profile
+      const [newProfile] = await db
+        .insert(userProfiles)
+        .values({
+          userId: user.userId,
+          ...profileData,
+        })
+        .returning();
 
-      if (existingProfile) {
-        // Update existing profile
-        const [updatedProfile] = await db
-          .update(userProfiles)
-          .set(profileData)
-          .where(eq(userProfiles.userId, user.userId))
-          .returning();
-
-        return c.json({
-          message: 'Profile updated successfully',
-          profile: updatedProfile,
-        });
-      } else {
-        // Create new profile
-        const [newProfile] = await db
-          .insert(userProfiles)
-          .values({
-            userId: user.userId,
-            ...profileData,
-          })
-          .returning();
-
-        return c.json({
-          message: 'Profile created successfully',
-          profile: newProfile,
-        });
-      }
-    } catch (error) {
-      console.error('Update profile error:', error);
-      return c.json({ error: 'Failed to update profile' }, 500);
+      return c.json({
+        message: 'Profile created successfully',
+        profile: newProfile,
+      });
     }
+  } catch (error) {
+    console.error('Update profile error:', error);
+    return c.json({ error: 'Failed to update profile' }, 500);
   }
-);
+});
 
 // Get user statistics
 userRoutes.get('/stats', authMiddleware, async (c) => {

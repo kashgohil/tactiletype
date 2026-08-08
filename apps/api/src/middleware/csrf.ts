@@ -1,4 +1,4 @@
-import { type Context, type MiddlewareHandler } from 'hono';
+import type { Context, MiddlewareHandler } from 'hono';
 import { getCookie, setCookie } from 'hono/cookie';
 import { CSRFProtection } from '../utils/csrf';
 
@@ -30,8 +30,7 @@ export const csrfProtection = (): MiddlewareHandler => {
       return next();
     }
 
-    const csrfToken =
-      c.req.header('X-CSRF-Token') || c.req.header('X-XSRF-Token');
+    const csrfToken = c.req.header('X-CSRF-Token') || c.req.header('X-XSRF-Token');
 
     if (!csrfToken) {
       return c.json(

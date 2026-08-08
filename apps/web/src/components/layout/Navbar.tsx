@@ -11,7 +11,7 @@ import {
   Settings2,
   User,
 } from 'lucide-react';
-import React from 'react';
+import type React from 'react';
 import { useAuth } from '../../contexts';
 import { ThemePicker } from '../ThemePicker';
 import { Button } from '../ui/button';
@@ -28,12 +28,7 @@ export const Navbar: React.FC = () => {
       <div className="h-full w-full max-w-shell mx-auto px-8 flex flex-col justify-center">
         <div className="flex justify-between items-center">
           <Link to="/" className="text-2xl font-bold flex items-center gap-2">
-            <img
-              src="/tactiletype-256x256.png"
-              alt="TactileType"
-              height={36}
-              width={36}
-            />
+            <img src="/tactiletype-256x256.png" alt="TactileType" height={36} width={36} />
             tactiletype
           </Link>
 

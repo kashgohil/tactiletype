@@ -1,15 +1,15 @@
+import { toast } from 'sonner';
 import { analyticsApi } from '@/services/analyticsApi';
 import { testResultsApi } from '@/services/api';
-import { saveGuestResult } from '@/utils/guestResults';
 import {
   clearDailyRun,
   isActiveDailyForMode,
   peekDailyRun,
   saveLocalDailyModeScore,
 } from '@/utils/dailyRun';
+import { saveGuestResult } from '@/utils/guestResults';
 import type { PlayModeId } from '@/utils/playModes';
 import { savePlayBest } from '@/utils/playModes';
-import { toast } from 'sonner';
 
 export interface PlayResultPayload {
   modeId: PlayModeId;
@@ -37,9 +37,7 @@ export async function submitPlayResult(
   const daily = isActiveDailyForMode(payload.modeId) ? peekDailyRun() : null;
 
   const exerciseKind = daily ? 'daily_mode' : payload.modeId;
-  const exercisePackId = daily
-    ? daily.exercisePackId
-    : `play-${payload.modeId}`;
+  const exercisePackId = daily ? daily.exercisePackId : `play-${payload.modeId}`;
   const title = daily
     ? `Daily mode · ${payload.title.replace(/^Daily mode · /, '')}`
     : payload.title;

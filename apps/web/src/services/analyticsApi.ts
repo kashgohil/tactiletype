@@ -41,17 +41,13 @@ export const analyticsApi = {
   },
 
   // Get error analysis
-  getErrorAnalysis: async (params?: {
-    limit?: number;
-  }): Promise<ErrorAnalysisSummary> => {
+  getErrorAnalysis: async (params?: { limit?: number }): Promise<ErrorAnalysisSummary> => {
     const response = await api.get('/api/analytics/errors', { params });
     return response.data.errorAnalysis;
   },
 
   // Get keystroke analytics for a specific test result
-  getKeystrokeAnalytics: async (
-    testResultId: string
-  ): Promise<KeystrokeAnalytics> => {
+  getKeystrokeAnalytics: async (testResultId: string): Promise<KeystrokeAnalytics> => {
     const response = await api.get(`/api/analytics/keystrokes/${testResultId}`);
     return response.data.keystrokeAnalytics;
   },
@@ -89,19 +85,12 @@ export const analyticsApi = {
   },
 
   // Mark recommendation as applied
-  markRecommendationAsApplied: async (
-    recommendationId: string
-  ): Promise<void> => {
-    await api.patch(
-      `/api/analytics/recommendations/${recommendationId}/applied`
-    );
+  markRecommendationAsApplied: async (recommendationId: string): Promise<void> => {
+    await api.patch(`/api/analytics/recommendations/${recommendationId}/applied`);
   },
 
   // Update goal progress
-  updateGoalProgress: async (
-    goalId: string,
-    currentValue: number
-  ): Promise<UserGoal> => {
+  updateGoalProgress: async (goalId: string, currentValue: number): Promise<UserGoal> => {
     const response = await api.patch(`/api/analytics/goals/${goalId}`, {
       currentValue,
     });
@@ -124,9 +113,7 @@ export const analyticsApi = {
   },
 
   // Get accuracy heatmap data
-  getAccuracyHeatmap: async (params?: {
-    timeframe?: 'week' | 'month' | 'all';
-  }) => {
+  getAccuracyHeatmap: async (params?: { timeframe?: 'week' | 'month' | 'all' }) => {
     const response = await api.get('/api/analytics/accuracy-heatmap', {
       params,
     });

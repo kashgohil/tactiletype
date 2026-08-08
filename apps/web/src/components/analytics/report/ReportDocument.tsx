@@ -1,13 +1,10 @@
+import { Minus, TrendingDown, TrendingUp } from 'lucide-react';
+import type React from 'react';
+import { useLayoutEffect, useRef, useState } from 'react';
 import { cn } from '@/lib/utils';
 import type { ReportMetric, ReportModel } from '@/utils/report/buildReport';
-import {
-  CONTENT_WIDTH_MM,
-  PAGE_CONTENT_MM,
-  packPages,
-} from '@/utils/report/paginate';
+import { CONTENT_WIDTH_MM, PAGE_CONTENT_MM, packPages } from '@/utils/report/paginate';
 import { CHART_ASPECT } from '@/utils/report/renderChartImage';
-import { Minus, TrendingDown, TrendingUp } from 'lucide-react';
-import React, { useLayoutEffect, useRef, useState } from 'react';
 
 /**
  * The report, as sheets of paper.
@@ -42,9 +39,7 @@ const Eyebrow: React.FC<{ size?: 'sm' | 'md' }> = ({ size = 'md' }) => (
       height={size === 'md' ? 20 : 14}
       className={cn('shrink-0', size === 'md' ? 'size-5' : 'size-3.5')}
     />
-    <span className={cn(EYEBROW, 'text-report-muted')}>
-      TactileType · Performance report
-    </span>
+    <span className={cn(EYEBROW, 'text-report-muted')}>TactileType · Performance report</span>
   </div>
 );
 
@@ -52,9 +47,7 @@ const Eyebrow: React.FC<{ size?: 'sm' | 'md' }> = ({ size = 'md' }) => (
 const PageFooter: React.FC<{ page: number }> = ({ page }) => (
   <footer className="flex items-center justify-between gap-4 border-t border-report-rule pt-3">
     <Eyebrow size="sm" />
-    <span className="text-[0.6875rem] tabular-nums text-report-muted">
-      {page}
-    </span>
+    <span className="text-[0.6875rem] tabular-nums text-report-muted">{page}</span>
   </footer>
 );
 
@@ -63,9 +56,7 @@ const SectionHeading: React.FC<{ children: React.ReactNode; index: string }> = (
   index,
 }) => (
   <div className="flex items-baseline gap-3 border-b border-report-rule pb-2 mb-5">
-    <span className={cn(EYEBROW, 'text-report-muted tabular-nums')}>
-      {index}
-    </span>
+    <span className={cn(EYEBROW, 'text-report-muted tabular-nums')}>{index}</span>
     <h2 className={cn(EYEBROW, 'text-report-ink')}>{children}</h2>
   </div>
 );
@@ -75,11 +66,7 @@ const DeltaChip: React.FC<{ metric: ReportMetric }> = ({ metric }) => {
   if (!delta?.comparable) return null;
 
   const Icon =
-    delta.direction === 'up'
-      ? TrendingUp
-      : delta.direction === 'down'
-        ? TrendingDown
-        : Minus;
+    delta.direction === 'up' ? TrendingUp : delta.direction === 'down' ? TrendingDown : Minus;
 
   // A fall in a metric where higher is better is the only reading that should
   // alarm; everything else stays in ink so the page keeps one voice.
@@ -109,9 +96,7 @@ const Keycap: React.FC<{ char: string; count: number }> = ({ char, count }) => (
     <div className="size-10 rounded-md border border-report-rule bg-report-faint flex items-center justify-center text-base font-medium text-report-ink">
       {char === ' ' ? '␣' : char}
     </div>
-    <span className="text-[0.625rem] tabular-nums text-report-muted">
-      {count}
-    </span>
+    <span className="text-[0.625rem] tabular-nums text-report-muted">{count}</span>
   </div>
 );
 
@@ -147,8 +132,8 @@ function buildBlocks(report: ReportModel): Block[] {
         </h1>
 
         <p className="mt-2 text-sm tabular-nums text-report-muted">
-          {report.rangeLabel} · {report.testCount}{' '}
-          {report.testCount === 1 ? 'test' : 'tests'} recorded
+          {report.rangeLabel} · {report.testCount} {report.testCount === 1 ? 'test' : 'tests'}{' '}
+          recorded
         </p>
 
         {/* The heavy rule is the document's signature - it only appears here. */}
@@ -184,18 +169,14 @@ function buildBlocks(report: ReportModel): Block[] {
                 i < report.metrics.length - 1 && 'sm:pr-5'
               )}
             >
-              <span className={cn(EYEBROW, 'text-report-muted')}>
-                {metric.label}
-              </span>
+              <span className={cn(EYEBROW, 'text-report-muted')}>{metric.label}</span>
               <span className="text-[2rem] leading-none font-semibold tabular-nums tracking-[-0.02em]">
                 {metric.value}
               </span>
               <div className="flex items-center gap-2 mt-0.5">
                 <DeltaChip metric={metric} />
                 {metric.caption && (
-                  <span className="text-[0.6875rem] text-report-muted">
-                    {metric.caption}
-                  </span>
+                  <span className="text-[0.6875rem] text-report-muted">{metric.caption}</span>
                 )}
               </div>
             </div>
@@ -270,10 +251,7 @@ function buildBlocks(report: ReportModel): Block[] {
     });
   }
 
-  if (
-    report.errorAnalysis &&
-    report.errorAnalysis.mostProblematicChars.length > 0
-  ) {
+  if (report.errorAnalysis && report.errorAnalysis.mostProblematicChars.length > 0) {
     const analysis = report.errorAnalysis;
     blocks.push({
       key: 'errors',
@@ -287,11 +265,7 @@ function buildBlocks(report: ReportModel): Block[] {
           </p>
           <div className="flex flex-wrap gap-3 mb-6">
             {analysis.mostProblematicChars.slice(0, 12).map((char) => (
-              <Keycap
-                key={char.character}
-                char={char.character}
-                count={char.errorCount}
-              />
+              <Keycap key={char.character} char={char.character} count={char.errorCount} />
             ))}
           </div>
           {analysis.improvementAreas.length > 0 && (
@@ -339,9 +313,7 @@ function buildBlocks(report: ReportModel): Block[] {
     node: (
       <section>
         <SectionHeading index={next()}>Conclusion</SectionHeading>
-        <p className="max-w-[62ch] text-sm leading-[1.7] text-report-ink/85">
-          {report.closing}
-        </p>
+        <p className="max-w-[62ch] text-sm leading-[1.7] text-report-ink/85">{report.closing}</p>
       </section>
     ),
   });
@@ -354,10 +326,7 @@ interface ReportDocumentProps {
   className?: string;
 }
 
-export const ReportDocument: React.FC<ReportDocumentProps> = ({
-  report,
-  className,
-}) => {
+export const ReportDocument: React.FC<ReportDocumentProps> = ({ report, className }) => {
   const blocks = buildBlocks(report);
   const measure = useRef<HTMLDivElement>(null);
   // Carries the block count it was packed from. Toggling a section re-renders
@@ -389,18 +358,14 @@ export const ReportDocument: React.FC<ReportDocumentProps> = ({
       }
 
       const footer = root.querySelector<HTMLElement>('[data-measure-footer]');
-      const heights = Array.from(
-        root.querySelectorAll<HTMLElement>('[data-measure-block]')
-      ).map((element) => element.offsetHeight);
+      const heights = Array.from(root.querySelectorAll<HTMLElement>('[data-measure-block]')).map(
+        (element) => element.offsetHeight
+      );
 
       if (!heights.length) return;
       setLayout({
         blockCount: heights.length,
-        pages: packPages(
-          heights,
-          PAGE_CONTENT_MM * pxPerMm,
-          footer?.offsetHeight ?? 0
-        ),
+        pages: packPages(heights, PAGE_CONTENT_MM * pxPerMm, footer?.offsetHeight ?? 0),
       });
     };
 
@@ -410,9 +375,7 @@ export const ReportDocument: React.FC<ReportDocumentProps> = ({
     // but the logo does not, and a font swapping in shifts every block. One
     // more pass once everything has settled costs nothing and catches both.
     Promise.all(
-      Array.from(root.querySelectorAll('img')).map((image) =>
-        image.decode().catch(() => undefined)
-      )
+      Array.from(root.querySelectorAll('img')).map((image) => image.decode().catch(() => undefined))
     ).then(() => {
       if (!cancelled) remeasure();
     });
@@ -426,10 +389,7 @@ export const ReportDocument: React.FC<ReportDocumentProps> = ({
   // A layout packed from a different set of blocks is stale by definition; one
   // unpaginated page is the right thing to show for the frame it takes the
   // effect to repack.
-  const laidOut =
-    layout?.blockCount === blocks.length
-      ? layout.pages
-      : [blocks.map((_, i) => i)];
+  const laidOut = layout?.blockCount === blocks.length ? layout.pages : [blocks.map((_, i) => i)];
 
   return (
     <>
@@ -454,10 +414,7 @@ export const ReportDocument: React.FC<ReportDocumentProps> = ({
         ))}
       </div>
 
-      <div
-        data-report-sheet
-        className={cn('flex flex-col gap-6 print:gap-0', className)}
-      >
+      <div data-report-sheet className={cn('flex flex-col gap-6 print:gap-0', className)}>
         {laidOut.map((indexes, page) => (
           <article
             key={page}

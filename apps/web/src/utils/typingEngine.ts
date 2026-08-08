@@ -1,13 +1,5 @@
-import type {
-  DetailedKeystrokeEvent,
-  Difficulty,
-  TestMode,
-  TestType,
-} from '@tactile/types';
-import {
-  CODE_SNIPPETS,
-  SYMBOL_LINES,
-} from '@tactile/content';
+import { CODE_SNIPPETS, SYMBOL_LINES } from '@tactile/content';
+import type { DetailedKeystrokeEvent, Difficulty, TestMode, TestType } from '@tactile/types';
 import { COMMON_WORDS, HARD_WORDS, QUOTES } from './words';
 
 export interface TypingStats {
@@ -119,8 +111,7 @@ export class TypingEngine {
 
       // Add timing data if not the first keystroke
       if (this.state.keystrokeEvents.length > 0) {
-        const lastEvent =
-          this.state.keystrokeEvents[this.state.keystrokeEvents.length - 1];
+        const lastEvent = this.state.keystrokeEvents[this.state.keystrokeEvents.length - 1];
         keystrokeEvent.timeSincePrevious = timestamp - lastEvent.timestamp;
       }
 
@@ -160,12 +151,10 @@ export class TypingEngine {
 
     // Calculate WPM (Words Per Minute)
     // Standard: 5 characters = 1 word
-    const wpm =
-      timeInMinutes > 0 ? Math.round(correctChars / 5 / timeInMinutes) : 0;
+    const wpm = timeInMinutes > 0 ? Math.round(correctChars / 5 / timeInMinutes) : 0;
 
     // Calculate accuracy
-    const accuracy =
-      totalChars > 0 ? Math.round((correctChars / totalChars) * 100) : 100;
+    const accuracy = totalChars > 0 ? Math.round((correctChars / totalChars) * 100) : 100;
 
     return {
       wpm,
@@ -209,9 +198,7 @@ export class TypingEngine {
     this.onStatsUpdate?.(this.calculateStats());
   }
 
-  public getCharacterStatus(
-    index: number
-  ): 'correct' | 'incorrect' | 'current' | 'pending' {
+  public getCharacterStatus(index: number): 'correct' | 'incorrect' | 'current' | 'pending' {
     if (index === this.state.currentIndex && !this.state.isComplete) {
       return 'current';
     } else if (index < this.state.currentIndex) {
@@ -228,10 +215,7 @@ export class TypingEngine {
   public getCompletedWords(): number {
     let wordCount = 0;
     let currentIndex = 0;
-    while (
-      currentIndex + (this.words[wordCount]?.length ?? 0) <=
-      this.state.currentIndex
-    ) {
+    while (currentIndex + (this.words[wordCount]?.length ?? 0) <= this.state.currentIndex) {
       currentIndex += (this.words[wordCount]?.length ?? 0) + 1; // +1 for space
       wordCount++;
     }
@@ -338,7 +322,6 @@ function getWordListForDifficulty(difficulty: Difficulty): string[] {
       return COMMON_WORDS.slice(0, Math.floor(COMMON_WORDS.length * 0.5)); // Use simpler half of common words
     case 'hard':
       return [...COMMON_WORDS, ...HARD_WORDS]; // Mix common and hard words
-    case 'medium':
     default:
       return COMMON_WORDS; // Use all common words
   }
@@ -371,10 +354,7 @@ export function generatePunctuationText(
 
   while (remainingWords > 0) {
     // Determine sentence length (3-15 words for natural variation)
-    const sentenceLength = Math.min(
-      Math.floor(Math.random() * 13) + 3,
-      remainingWords
-    );
+    const sentenceLength = Math.min(Math.floor(Math.random() * 13) + 3, remainingWords);
     remainingWords -= sentenceLength;
 
     const sentenceWords: string[] = [];
@@ -425,10 +405,7 @@ export function generateNumbersText(
 
   while (remainingWords > 0) {
     // Determine sentence length (3-15 words for natural variation)
-    const sentenceLength = Math.min(
-      Math.floor(Math.random() * 13) + 3,
-      remainingWords
-    );
+    const sentenceLength = Math.min(Math.floor(Math.random() * 13) + 3, remainingWords);
     remainingWords -= sentenceLength;
 
     const sentenceWords: string[] = [];
@@ -444,21 +421,21 @@ export function generateNumbersText(
 
         if (numberType < 0.3) {
           // Small numbers (1-99)
-          word = Math.floor(Math.random() * 99) + 1 + '';
+          word = `${Math.floor(Math.random() * 99) + 1}`;
         } else if (numberType < 0.5) {
           // Years (1900-2024)
-          word = Math.floor(Math.random() * 125) + 1900 + '';
+          word = `${Math.floor(Math.random() * 125) + 1900}`;
         } else if (numberType < 0.7) {
           // Prices ($1.00-$999.99)
           const dollars = Math.floor(Math.random() * 999) + 1;
           const cents = Math.floor(Math.random() * 100);
-          word = '$' + dollars + '.' + cents.toString().padStart(2, '0');
+          word = `$${dollars}.${cents.toString().padStart(2, '0')}`;
         } else if (numberType < 0.85) {
           // Phone numbers (simple format)
           const area = Math.floor(Math.random() * 900) + 100;
           const exchange = Math.floor(Math.random() * 900) + 100;
           const number = Math.floor(Math.random() * 9000) + 1000;
-          word = area + '-' + exchange + '-' + number;
+          word = `${area}-${exchange}-${number}`;
         } else {
           // Regular numbers (1-4 digits)
           const numDigits = Math.floor(Math.random() * 4) + 1;
@@ -542,17 +519,14 @@ export function getRandomQuote(): string {
 }
 
 export function getRandomCodeSnippet(): string {
-  const snippet =
-    CODE_SNIPPETS[Math.floor(Math.random() * CODE_SNIPPETS.length)];
+  const snippet = CODE_SNIPPETS[Math.floor(Math.random() * CODE_SNIPPETS.length)];
   return snippet.content.replace(/\n/g, ' ').replace(/\s+/g, ' ').trim();
 }
 
 export function getRandomSymbolsText(lineCount: number = 3): string {
   const lines: string[] = [];
   for (let i = 0; i < lineCount; i++) {
-    lines.push(
-      SYMBOL_LINES[Math.floor(Math.random() * SYMBOL_LINES.length)]
-    );
+    lines.push(SYMBOL_LINES[Math.floor(Math.random() * SYMBOL_LINES.length)]);
   }
   return lines.join(' ');
 }
@@ -600,7 +574,6 @@ export function initializeText(
       return generatePunctuationText(wordCount, difficulty);
     case 'numbers':
       return generateNumbersText(wordCount, difficulty);
-    case 'text':
     default:
       return generateSimpleText(wordCount, difficulty);
   }

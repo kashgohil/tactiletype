@@ -1,7 +1,8 @@
-import { Button } from '@/components/ui/button';
 import { Link, useNavigate } from '@tanstack/react-router';
 import { X } from 'lucide-react';
-import React, { useEffect, useState } from 'react';
+import type React from 'react';
+import { useEffect, useState } from 'react';
+import { Button } from '@/components/ui/button';
 import { CreateRoomModal } from '../components/multiplayer/CreateRoomModal';
 import { RoomBrowser } from '../components/multiplayer/RoomBrowser';
 import { useAuth } from '../contexts';
@@ -23,9 +24,7 @@ export const Multiplayer: React.FC = () => {
         setConnecting(true);
         multiplayerActions
           .connect(token)
-          .catch((e) =>
-            setActionError(e instanceof Error ? e.message : 'Connect failed')
-          )
+          .catch((e) => setActionError(e instanceof Error ? e.message : 'Connect failed'))
           .finally(() => setConnecting(false));
       }
     }
@@ -39,9 +38,7 @@ export const Multiplayer: React.FC = () => {
       multiplayerActions.joinRoom(roomId, user.id, user.username);
       navigate({ to: '/multiplayer/room/$roomId', params: { roomId } });
     } catch (error) {
-      setActionError(
-        error instanceof Error ? error.message : 'Failed to join room'
-      );
+      setActionError(error instanceof Error ? error.message : 'Failed to join room');
     }
   };
 
@@ -57,9 +54,7 @@ export const Multiplayer: React.FC = () => {
         search: { spectate: '1' } as never,
       });
     } catch (error) {
-      setActionError(
-        error instanceof Error ? error.message : 'Failed to spectate'
-      );
+      setActionError(error instanceof Error ? error.message : 'Failed to spectate');
     }
   };
 
@@ -71,9 +66,7 @@ export const Multiplayer: React.FC = () => {
       multiplayerActions.joinRoom(roomId, user.id, user.username);
       navigate({ to: '/multiplayer/room/$roomId', params: { roomId } });
     } catch (error) {
-      setActionError(
-        error instanceof Error ? error.message : 'Failed to open room'
-      );
+      setActionError(error instanceof Error ? error.message : 'Failed to open room');
     }
   };
 
@@ -82,9 +75,7 @@ export const Multiplayer: React.FC = () => {
       <div className="grow flex items-center justify-center">
         <div className="text-center">
           <h2 className="text-2xl font-bold mb-4">Authentication Required</h2>
-          <p className="text-text/50 mb-6">
-            Please log in to access multiplayer features.
-          </p>
+          <p className="text-text/50 mb-6">Please log in to access multiplayer features.</p>
           <Button asChild>
             <Link to="/login">Go to Login</Link>
           </Button>
@@ -124,9 +115,7 @@ export const Multiplayer: React.FC = () => {
                   const token = localStorage.getItem('auth_token');
                   if (!token) return;
                   setConnecting(true);
-                  multiplayerActions
-                    .connect(token)
-                    .finally(() => setConnecting(false));
+                  multiplayerActions.connect(token).finally(() => setConnecting(false));
                 }}
               >
                 {connecting ? 'Connecting...' : 'Reconnect'}
@@ -139,10 +128,9 @@ export const Multiplayer: React.FC = () => {
         {(multiplayerState.error || actionError) && (
           <div className="mb-6 p-4 bg-destructive/10 border border-destructive/30 rounded-md">
             <div className="flex items-center justify-between">
-              <p className="text-sm text-destructive">
-                {actionError || multiplayerState.error}
-              </p>
+              <p className="text-sm text-destructive">{actionError || multiplayerState.error}</p>
               <button
+                type="button"
                 onClick={() => {
                   setActionError(null);
                   multiplayerActions.clearError();

@@ -1,4 +1,3 @@
-import { ThemeContext } from '@/contexts/ThemeContext';
 import type { DetailedKeystrokeEvent } from '@tactile/types';
 import {
   CategoryScale,
@@ -11,8 +10,10 @@ import {
   Title,
   Tooltip,
 } from 'chart.js';
-import React, { useContext, useMemo } from 'react';
+import type React from 'react';
+import { useContext, useMemo } from 'react';
 import { Line } from 'react-chartjs-2';
+import { ThemeContext } from '@/contexts/ThemeContext';
 
 ChartJS.register(
   CategoryScale,
@@ -36,10 +37,7 @@ interface TimelineData {
   errors: number;
 }
 
-export const TimelineChart: React.FC<TimelineChartProps> = ({
-  keystrokeEvents,
-  height = 300,
-}) => {
+export const TimelineChart: React.FC<TimelineChartProps> = ({ keystrokeEvents, height = 300 }) => {
   const context = useContext(ThemeContext);
   const themeToApply = context?.themeToApply;
 
@@ -61,20 +59,13 @@ export const TimelineChart: React.FC<TimelineChartProps> = ({
       );
 
       // Count errors
-      const errors = eventsInSecond.filter(
-        (e) => !e.correct && !e.isBackspace
-      ).length;
+      const errors = eventsInSecond.filter((e) => !e.correct && !e.isBackspace).length;
 
       // Calculate WPM up to this second
-      const eventsUpToSecond = keystrokeEvents.filter(
-        (e) => e.timestamp < secondEnd
-      );
-      const correctChars = eventsUpToSecond.filter(
-        (e) => e.correct && !e.isBackspace
-      ).length;
+      const eventsUpToSecond = keystrokeEvents.filter((e) => e.timestamp < secondEnd);
+      const correctChars = eventsUpToSecond.filter((e) => e.correct && !e.isBackspace).length;
       const timeInMinutes = (secondEnd - startTime) / 60000;
-      const wpm =
-        timeInMinutes > 0 ? Math.round(correctChars / 5 / timeInMinutes) : 0;
+      const wpm = timeInMinutes > 0 ? Math.round(correctChars / 5 / timeInMinutes) : 0;
 
       data.push({ second, wpm, errors });
     }
@@ -89,8 +80,7 @@ export const TimelineChart: React.FC<TimelineChartProps> = ({
         label: 'WPM',
         data: timelineData.map((d) => d.wpm),
         borderColor: themeToApply?.accentColor || 'rgb(59, 130, 246)',
-        backgroundColor:
-          themeToApply?.primaryColor || 'rgba(59, 130, 246, 0.1)',
+        backgroundColor: themeToApply?.primaryColor || 'rgba(59, 130, 246, 0.1)',
         borderWidth: 2,
         fill: false,
         tension: 0.4,
@@ -110,9 +100,7 @@ export const TimelineChart: React.FC<TimelineChartProps> = ({
         fill: false,
         tension: 0.4,
         pointRadius: timelineData.map((d) => Math.max(2, d.errors * 2)), // Size based on error count
-        pointHoverRadius: timelineData.map((d) =>
-          Math.max(4, d.errors * 2 + 2)
-        ),
+        pointHoverRadius: timelineData.map((d) => Math.max(4, d.errors * 2 + 2)),
         pointBackgroundColor: 'rgb(239, 68, 68)',
         pointBorderColor: '#ffffff',
         pointBorderWidth: 1,

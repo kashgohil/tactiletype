@@ -60,18 +60,14 @@ analytics.get('/overview', async (c) => {
       const recent = recentInsights[0];
       const older = recentInsights[recentInsights.length - 1];
 
-      if (recent && older && older.avgWpm && recent.avgWpm) {
+      if (recent && older?.avgWpm && recent.avgWpm) {
         improvementRate =
-          ((Number(recent.avgWpm) - Number(older.avgWpm)) /
-            Number(older.avgWpm)) *
-          100;
+          ((Number(recent.avgWpm) - Number(older.avgWpm)) / Number(older.avgWpm)) * 100;
       }
 
       consistencyScore =
-        recentInsights.reduce(
-          (sum, insight) => sum + Number(insight.consistencyScore || 0),
-          0
-        ) / recentInsights.length;
+        recentInsights.reduce((sum, insight) => sum + Number(insight.consistencyScore || 0), 0) /
+        recentInsights.length;
     }
 
     const overview = {
@@ -100,9 +96,17 @@ analytics.get('/trends', async (c) => {
     const payload = c.get('jwtPayload') as JWTPayload;
     const userId = payload.userId;
     const timeframe = c.req.query('timeframe') || 'weekly';
-    const limit = parseInt(c.req.query('limit') || '30');
+    const limit = parseInt(c.req.query('limit') || '30', 10);
 
-    let insights;
+    // Both branches below are read for the same four chart fields, so they only
+    // have to agree on that shape — the daily branch returns raw rows, the
+    // aggregated one returns rolled-up periods.
+    let insights: Array<{
+      date: Date;
+      avgWpm: string | number | null;
+      avgAccuracy: string | number | null;
+      consistencyScore: string | number | null;
+    }>;
 
     if (timeframe === 'daily') {
       // Query existing daily insights
@@ -110,10 +114,7 @@ analytics.get('/trends', async (c) => {
         .select()
         .from(performanceInsights)
         .where(
-          and(
-            eq(performanceInsights.userId, userId),
-            eq(performanceInsights.timeframe, 'daily')
-          )
+          and(eq(performanceInsights.userId, userId), eq(performanceInsights.timeframe, 'daily'))
         )
         .orderBy(desc(performanceInsights.date))
         .limit(limit);
@@ -123,10 +124,7 @@ analytics.get('/trends', async (c) => {
         .select()
         .from(performanceInsights)
         .where(
-          and(
-            eq(performanceInsights.userId, userId),
-            eq(performanceInsights.timeframe, 'daily')
-          )
+          and(eq(performanceInsights.userId, userId), eq(performanceInsights.timeframe, 'daily'))
         )
         .orderBy(desc(performanceInsights.date))
         .limit(limit * 7); // Get more data to aggregate
@@ -153,20 +151,13 @@ analytics.get('/trends', async (c) => {
           };
         }
 
-        if (record.avgWpm !== null)
-          aggregatedData[periodKey].avgWpm.push(Number(record.avgWpm));
+        if (record.avgWpm !== null) aggregatedData[periodKey].avgWpm.push(Number(record.avgWpm));
         if (record.avgAccuracy !== null)
-          aggregatedData[periodKey].avgAccuracy.push(
-            Number(record.avgAccuracy)
-          );
+          aggregatedData[periodKey].avgAccuracy.push(Number(record.avgAccuracy));
         if (record.consistencyScore !== null)
-          aggregatedData[periodKey].consistencyScore.push(
-            Number(record.consistencyScore)
-          );
+          aggregatedData[periodKey].consistencyScore.push(Number(record.consistencyScore));
         aggregatedData[periodKey].testCount += Number(record.testCount || 0);
-        aggregatedData[periodKey].totalTimeSpent += Number(
-          record.totalTimeSpent || 0
-        );
+        aggregatedData[periodKey].totalTimeSpent += Number(record.totalTimeSpent || 0);
         aggregatedData[periodKey].count += 1;
       });
 
@@ -176,8 +167,7 @@ analytics.get('/trends', async (c) => {
           date: group.date,
           avgWpm:
             group.avgWpm.length > 0
-              ? group.avgWpm.reduce((a: number, b: number) => a + b, 0) /
-                group.avgWpm.length
+              ? group.avgWpm.reduce((a: number, b: number) => a + b, 0) / group.avgWpm.length
               : 0,
           avgAccuracy:
             group.avgAccuracy.length > 0
@@ -186,17 +176,13 @@ analytics.get('/trends', async (c) => {
               : 0,
           consistencyScore:
             group.consistencyScore.length > 0
-              ? group.consistencyScore.reduce(
-                  (a: number, b: number) => a + b,
-                  0
-                ) / group.consistencyScore.length
+              ? group.consistencyScore.reduce((a: number, b: number) => a + b, 0) /
+                group.consistencyScore.length
               : 0,
           testCount: group.testCount,
           totalTimeSpent: group.totalTimeSpent,
         }))
-        .sort(
-          (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
-        );
+        .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
       // Ensure current month is included even if no data
       const now = new Date();
@@ -303,7 +289,7 @@ analytics.get('/errors', async (c) => {
   try {
     const payload = c.get('jwtPayload') as JWTPayload;
     const userId = payload.userId;
-    const limit = parseInt(c.req.query('limit') || '10');
+    const limit = parseInt(c.req.query('limit') || '10', 10);
 
     const errorData = await db
       .select()
@@ -330,8 +316,7 @@ analytics.get('/errors', async (c) => {
 
       // Aggregate character errors
       Object.entries(charErrors).forEach(([char, count]) => {
-        characterErrors[char] =
-          (characterErrors[char] || 0) + (count as number);
+        characterErrors[char] = (characterErrors[char] || 0) + (count as number);
       });
 
       // Aggregate word errors
@@ -363,7 +348,7 @@ analytics.get('/errors', async (c) => {
                 (totalKeystrokes[keystroke.expectedChar] || 0) + 1;
             }
           });
-        } catch (e) {
+        } catch {
           // Skip malformed keystroke data
           console.warn('Skipping malformed keystroke data');
         }
@@ -382,10 +367,7 @@ analytics.get('/errors', async (c) => {
           character,
           errorCount,
           errorRate: Math.round(errorRate * 100) / 100, // Round to 2 decimal places
-          suggestions: [
-            `Practice typing "${character}" slowly`,
-            'Focus on finger placement',
-          ],
+          suggestions: [`Practice typing "${character}" slowly`, 'Focus on finger placement'],
         };
       });
 
@@ -489,7 +471,7 @@ analytics.get('/goals', async (c) => {
         let currentValue = 0;
 
         switch (goal.goalType) {
-          case 'wpm':
+          case 'wpm': {
             // Get user's best WPM using AnalyticsEngine
             const userTestsForWpm = await db.query.completedTests.findMany({
               where: eq(completedTests.userId, userId),
@@ -500,30 +482,28 @@ analytics.get('/goals', async (c) => {
                 completedAt: true,
               },
             });
-            const wpmStats =
-              AnalyticsEngine.calculateUserStats(userTestsForWpm);
+            const wpmStats = AnalyticsEngine.calculateUserStats(userTestsForWpm);
             currentValue = wpmStats.bestWpm;
             break;
+          }
 
-          case 'accuracy':
+          case 'accuracy': {
             // Get user's best accuracy using AnalyticsEngine
-            const userTestsForAccuracy = await db.query.completedTests.findMany(
-              {
-                where: eq(completedTests.userId, userId),
-                columns: {
-                  wpm: true,
-                  accuracy: true,
-                  timeTaken: true,
-                  completedAt: true,
-                },
-              }
-            );
-            const accuracyStats =
-              AnalyticsEngine.calculateUserStats(userTestsForAccuracy);
+            const userTestsForAccuracy = await db.query.completedTests.findMany({
+              where: eq(completedTests.userId, userId),
+              columns: {
+                wpm: true,
+                accuracy: true,
+                timeTaken: true,
+                completedAt: true,
+              },
+            });
+            const accuracyStats = AnalyticsEngine.calculateUserStats(userTestsForAccuracy);
             currentValue = accuracyStats.bestAccuracy;
             break;
+          }
 
-          case 'consistency':
+          case 'consistency': {
             // Get user's latest consistency score from performance insights
             const consistencyResult = await db
               .select({
@@ -535,8 +515,9 @@ analytics.get('/goals', async (c) => {
               .limit(1);
             currentValue = Number(consistencyResult[0]?.consistencyScore || 0);
             break;
+          }
 
-          case 'daily_tests':
+          case 'daily_tests': {
             // Count tests completed today
             const today = new Date();
             today.setHours(0, 0, 0, 0);
@@ -555,6 +536,7 @@ analytics.get('/goals', async (c) => {
               );
             currentValue = Number(dailyTestsResult[0]?.count || 0);
             break;
+          }
         }
 
         // Update the goal's current value in the database
@@ -614,10 +596,7 @@ analytics.get('/recommendations', async (c) => {
       .select()
       .from(userRecommendations)
       .where(eq(userRecommendations.userId, userId))
-      .orderBy(
-        desc(userRecommendations.priority),
-        desc(userRecommendations.createdAt)
-      )
+      .orderBy(desc(userRecommendations.priority), desc(userRecommendations.createdAt))
       .limit(10);
 
     return c.json({ recommendations });
@@ -633,7 +612,7 @@ analytics.get('/activity-heatmap', async (c) => {
     const payload = c.get('jwtPayload') as JWTPayload;
     const userId = payload.userId;
     const year = c.req.query('year')
-      ? parseInt(c.req.query('year')!)
+      ? parseInt(c.req.query('year')!, 10)
       : new Date().getFullYear();
 
     // Calculate date range for the specified year (handle timezone properly)
@@ -701,7 +680,7 @@ analytics.get('/accuracy-heatmap', async (c) => {
     const timeframe = c.req.query('timeframe') || 'all';
 
     // Calculate date filter based on timeframe
-    let dateFilter;
+    let dateFilter: Date | null;
     const now = new Date();
 
     switch (timeframe) {
@@ -715,7 +694,6 @@ analytics.get('/accuracy-heatmap', async (c) => {
         // Start of current month
         dateFilter = new Date(now.getFullYear(), now.getMonth(), 1);
         break;
-      case 'all':
       default:
         dateFilter = null; // No date filter
         break;
@@ -748,8 +726,7 @@ analytics.get('/accuracy-heatmap', async (c) => {
       .limit(timeframe === 'all' ? 200 : 100); // Get more data for calculations
 
     // Aggregate character errors and calculate accuracy
-    const characterStats: Record<string, { errors: number; total: number }> =
-      {};
+    const characterStats: Record<string, { errors: number; total: number }> = {};
 
     // Process each test's data
     testData.forEach((test) => {
@@ -768,7 +745,7 @@ analytics.get('/accuracy-heatmap', async (c) => {
               characterStats[keystroke.expectedChar]!.total += 1;
             }
           });
-        } catch (e) {
+        } catch {
           // Skip malformed keystroke data
           console.warn('Skipping malformed keystroke data in heatmap');
         }
@@ -784,7 +761,7 @@ analytics.get('/accuracy-heatmap', async (c) => {
             }
             characterStats[char].errors += count as number;
           });
-        } catch (e) {
+        } catch {
           // Skip malformed error data
           console.warn('Skipping malformed error data in heatmap');
         }
@@ -792,30 +769,26 @@ analytics.get('/accuracy-heatmap', async (c) => {
     });
 
     // Calculate accuracy for each character
-    const characters = Object.entries(characterStats).map(
-      ([character, stats]) => {
-        const accuracy =
-          stats.total > 0
-            ? Math.max(0, ((stats.total - stats.errors) / stats.total) * 100)
-            : 100; // If no keystrokes recorded but character exists, assume 100% accuracy
+    const characters = Object.entries(characterStats).map(([character, stats]) => {
+      const accuracy =
+        stats.total > 0 ? Math.max(0, ((stats.total - stats.errors) / stats.total) * 100) : 100; // If no keystrokes recorded but character exists, assume 100% accuracy
 
-        // Use actual frequency from keystroke data
-        const frequency = stats.total;
+      // Use actual frequency from keystroke data
+      const frequency = stats.total;
 
-        // Determine color based on accuracy
-        let color = '#22c55e'; // Green for good accuracy
-        if (accuracy < 85) color = '#fbbf24'; // Yellow for medium
-        if (accuracy < 70) color = '#f97316'; // Orange for poor
-        if (accuracy < 50) color = '#ef4444'; // Red for very poor
+      // Determine color based on accuracy
+      let color = '#22c55e'; // Green for good accuracy
+      if (accuracy < 85) color = '#fbbf24'; // Yellow for medium
+      if (accuracy < 70) color = '#f97316'; // Orange for poor
+      if (accuracy < 50) color = '#ef4444'; // Red for very poor
 
-        return {
-          character,
-          accuracy: Math.round(accuracy * 10) / 10,
-          frequency,
-          color,
-        };
-      }
-    );
+      return {
+        character,
+        accuracy: Math.round(accuracy * 10) / 10,
+        frequency,
+        color,
+      };
+    });
 
     // Sort by frequency (most used first), then by accuracy (worst first for same frequency)
     characters.sort((a, b) => {
@@ -852,12 +825,7 @@ analytics.post('/process-result/:testResultId', async (c) => {
     const result = await db
       .select()
       .from(completedTests)
-      .where(
-        and(
-          eq(completedTests.id, testResultId),
-          eq(completedTests.userId, userId)
-        )
-      )
+      .where(and(eq(completedTests.id, testResultId), eq(completedTests.userId, userId)))
       .limit(1);
 
     if (result.length === 0) {
@@ -884,18 +852,14 @@ analytics.post('/process-result/:testResultId', async (c) => {
     if (keystrokeEvents.length > 1) {
       const times: number[] = [];
       for (let i = 1; i < keystrokeEvents.length; i++) {
-        const timeDiff =
-          keystrokeEvents[i].timestamp - keystrokeEvents[i - 1].timestamp;
+        const timeDiff = keystrokeEvents[i].timestamp - keystrokeEvents[i - 1].timestamp;
         times.push(timeDiff);
       }
 
       if (times.length > 0) {
-        averageKeystrokeTime =
-          times.reduce((sum, time) => sum + time, 0) / times.length;
+        averageKeystrokeTime = times.reduce((sum, time) => sum + time, 0) / times.length;
         const mean = averageKeystrokeTime;
-        keystrokeVariance =
-          times.reduce((sum, time) => sum + Math.pow(time - mean, 2), 0) /
-          times.length;
+        keystrokeVariance = times.reduce((sum, time) => sum + (time - mean) ** 2, 0) / times.length;
 
         // Calculate consistency score (typing rhythm)
         const standardDeviation = Math.sqrt(keystrokeVariance);
@@ -906,20 +870,18 @@ analytics.post('/process-result/:testResultId', async (c) => {
 
     // Analyze errors
     const characterErrors: Record<string, number> = {};
-    const mostProblematicChars: string[] = [];
 
     keystrokeEvents.forEach((event: any) => {
       if (!event.correct && event.expectedChar) {
-        characterErrors[event.expectedChar] =
-          (characterErrors[event.expectedChar] || 0) + 1;
+        characterErrors[event.expectedChar] = (characterErrors[event.expectedChar] || 0) + 1;
       }
     });
 
     // Get most problematic characters
-    Object.entries(characterErrors)
+    const mostProblematicChars = Object.entries(characterErrors)
       .sort(([, a], [, b]) => b - a)
       .slice(0, 10)
-      .forEach(([char]) => mostProblematicChars.push(char));
+      .map(([char]) => char);
 
     // Create keystroke analytics
     await db.insert(keystrokeAnalytics).values({
@@ -971,20 +933,13 @@ analytics.post('/process-result/:testResultId', async (c) => {
     } else {
       // Update existing insight with new averages
       const insight = existingInsight[0];
-      if (
-        insight &&
-        insight.testCount !== null &&
-        insight.avgWpm &&
-        insight.avgAccuracy
-      ) {
+      if (insight && insight.testCount !== null && insight.avgWpm && insight.avgAccuracy) {
         const testCount = insight.testCount + 1;
         const newAvgWpm =
-          (parseFloat(insight.avgWpm) * (testCount - 1) +
-            parseFloat(completedTest.wpm)) /
+          (parseFloat(insight.avgWpm) * (testCount - 1) + parseFloat(completedTest.wpm)) /
           testCount;
         const newAvgAccuracy =
-          (parseFloat(insight.avgAccuracy) * (testCount - 1) +
-            parseFloat(completedTest.accuracy)) /
+          (parseFloat(insight.avgAccuracy) * (testCount - 1) + parseFloat(completedTest.accuracy)) /
           testCount;
 
         await db
@@ -1017,10 +972,7 @@ analytics.patch('/recommendations/:recommendationId/read', async (c) => {
       .update(userRecommendations)
       .set({ isRead: true })
       .where(
-        and(
-          eq(userRecommendations.id, recommendationId),
-          eq(userRecommendations.userId, userId)
-        )
+        and(eq(userRecommendations.id, recommendationId), eq(userRecommendations.userId, userId))
       );
 
     return c.json({ message: 'Recommendation marked as read' });
@@ -1041,10 +993,7 @@ analytics.patch('/recommendations/:recommendationId/applied', async (c) => {
       .update(userRecommendations)
       .set({ isApplied: true })
       .where(
-        and(
-          eq(userRecommendations.id, recommendationId),
-          eq(userRecommendations.userId, userId)
-        )
+        and(eq(userRecommendations.id, recommendationId), eq(userRecommendations.userId, userId))
       );
 
     return c.json({ message: 'Recommendation marked as applied' });
@@ -1061,9 +1010,7 @@ analytics.delete('/goals/:goalId', async (c) => {
     const userId = payload.userId;
     const goalId = c.req.param('goalId');
 
-    await db
-      .delete(userGoals)
-      .where(and(eq(userGoals.id, goalId), eq(userGoals.userId, userId)));
+    await db.delete(userGoals).where(and(eq(userGoals.id, goalId), eq(userGoals.userId, userId)));
 
     return c.json({ message: 'Goal deleted successfully' });
   } catch (error) {
@@ -1099,10 +1046,7 @@ analytics.get('/export', async (c) => {
       const csvContent = csvHeaders + csvRows;
 
       c.header('Content-Type', 'text/csv');
-      c.header(
-        'Content-Disposition',
-        'attachment; filename="typing-analytics.csv"'
-      );
+      c.header('Content-Disposition', 'attachment; filename="typing-analytics.csv"');
       return c.body(csvContent);
     } else {
       // Return JSON
@@ -1117,10 +1061,7 @@ analytics.get('/export', async (c) => {
       }));
 
       c.header('Content-Type', 'application/json');
-      c.header(
-        'Content-Disposition',
-        'attachment; filename="typing-analytics.json"'
-      );
+      c.header('Content-Disposition', 'attachment; filename="typing-analytics.json"');
       return c.json({ analytics: jsonData });
     }
   } catch (error) {

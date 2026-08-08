@@ -3,27 +3,103 @@
  * Tokens tint pending/correct glyphs; typing status still owns contrast.
  */
 
-export type CodeToken =
-  | 'keyword'
-  | 'string'
-  | 'comment'
-  | 'number'
-  | 'punct'
-  | 'plain';
+export type CodeToken = 'keyword' | 'string' | 'comment' | 'number' | 'punct' | 'plain';
 
 const KEYWORDS = new Set(
   [
-    'async', 'await', 'break', 'case', 'catch', 'class', 'const', 'continue',
-    'debugger', 'default', 'delete', 'do', 'else', 'enum', 'export', 'extends',
-    'false', 'finally', 'for', 'from', 'function', 'if', 'implements', 'import',
-    'in', 'instanceof', 'interface', 'let', 'new', 'null', 'of', 'package',
-    'private', 'protected', 'public', 'return', 'static', 'super', 'switch',
-    'this', 'throw', 'true', 'try', 'typeof', 'var', 'void', 'while', 'with',
-    'yield', 'type', 'as', 'def', 'elif', 'except', 'lambda', 'pass', 'print',
-    'raise', 'None', 'True', 'False', 'and', 'or', 'not', 'fn', 'mut', 'impl',
-    'struct', 'match', 'use', 'pub', 'mod', 'SELECT', 'FROM', 'WHERE', 'JOIN',
-    'LEFT', 'RIGHT', 'INNER', 'ON', 'GROUP', 'BY', 'ORDER', 'LIMIT', 'INSERT',
-    'INTO', 'VALUES', 'UPDATE', 'SET', 'DELETE', 'CREATE', 'TABLE', 'INDEX',
+    'async',
+    'await',
+    'break',
+    'case',
+    'catch',
+    'class',
+    'const',
+    'continue',
+    'debugger',
+    'default',
+    'delete',
+    'do',
+    'else',
+    'enum',
+    'export',
+    'extends',
+    'false',
+    'finally',
+    'for',
+    'from',
+    'function',
+    'if',
+    'implements',
+    'import',
+    'in',
+    'instanceof',
+    'interface',
+    'let',
+    'new',
+    'null',
+    'of',
+    'package',
+    'private',
+    'protected',
+    'public',
+    'return',
+    'static',
+    'super',
+    'switch',
+    'this',
+    'throw',
+    'true',
+    'try',
+    'typeof',
+    'var',
+    'void',
+    'while',
+    'with',
+    'yield',
+    'type',
+    'as',
+    'def',
+    'elif',
+    'except',
+    'lambda',
+    'pass',
+    'print',
+    'raise',
+    'None',
+    'True',
+    'False',
+    'and',
+    'or',
+    'not',
+    'fn',
+    'mut',
+    'impl',
+    'struct',
+    'match',
+    'use',
+    'pub',
+    'mod',
+    'SELECT',
+    'FROM',
+    'WHERE',
+    'JOIN',
+    'LEFT',
+    'RIGHT',
+    'INNER',
+    'ON',
+    'GROUP',
+    'BY',
+    'ORDER',
+    'LIMIT',
+    'INSERT',
+    'INTO',
+    'VALUES',
+    'UPDATE',
+    'SET',
+    'DELETE',
+    'CREATE',
+    'TABLE',
+    'INDEX',
   ].map((k) => k.toLowerCase())
 );
 
@@ -88,9 +164,7 @@ export function tokenizeCodeChars(text: string): CodeToken[] {
       const start = i;
       while (i < text.length && /[A-Za-z0-9_$]/.test(text[i]!)) i++;
       const word = text.slice(start, i);
-      const tok: CodeToken = KEYWORDS.has(word.toLowerCase())
-        ? 'keyword'
-        : 'plain';
+      const tok: CodeToken = KEYWORDS.has(word.toLowerCase()) ? 'keyword' : 'plain';
       for (let j = start; j < i; j++) out[j] = tok;
       continue;
     }

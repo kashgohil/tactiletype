@@ -1,9 +1,9 @@
+import type { UserRecommendation } from '@tactile/types';
+import { Target, X } from 'lucide-react';
+import type React from 'react';
 import { Button } from '@/components/ui/button';
 import { Panel } from '@/components/ui/panel';
 import { cn } from '@/lib/utils';
-import type { UserRecommendation } from '@tactile/types';
-import { Target, X } from 'lucide-react';
-import React from 'react';
 
 interface RecommendationsPanelProps {
   recommendations: UserRecommendation[];
@@ -87,9 +87,7 @@ export const RecommendationsPanel: React.FC<RecommendationsPanelProps> = ({
             </div>
             <div className="min-w-0">
               <div className="flex items-center flex-wrap gap-2 mb-1">
-                <h4 className="font-semibold tracking-tight">
-                  {recommendation.title}
-                </h4>
+                <h4 className="font-semibold tracking-tight">{recommendation.title}</h4>
                 {unread && (
                   <span className="bg-accent/20 text-accent text-xs px-2 py-0.5 rounded-full">
                     New
@@ -105,25 +103,14 @@ export const RecommendationsPanel: React.FC<RecommendationsPanelProps> = ({
                 <span className={cn('text-xs font-medium', priority.text)}>
                   {priority.label} priority
                 </span>
-                <span className="text-xs text-text/45">
-                  {formatDate(recommendation.createdAt)}
-                </span>
+                <span className="text-xs text-text/45">{formatDate(recommendation.createdAt)}</span>
                 {recommendation.validUntil && (
-                  <span
-                    className={cn(
-                      'text-xs',
-                      expired ? 'text-destructive' : 'text-text/45'
-                    )}
-                  >
-                    {expired
-                      ? 'Expired'
-                      : `Valid until ${formatDate(recommendation.validUntil)}`}
+                  <span className={cn('text-xs', expired ? 'text-destructive' : 'text-text/45')}>
+                    {expired ? 'Expired' : `Valid until ${formatDate(recommendation.validUntil)}`}
                   </span>
                 )}
               </div>
-              <p className="text-text/60 text-sm leading-relaxed">
-                {recommendation.description}
-              </p>
+              <p className="text-text/60 text-sm leading-relaxed">{recommendation.description}</p>
             </div>
           </div>
 
@@ -157,22 +144,18 @@ export const RecommendationsPanel: React.FC<RecommendationsPanelProps> = ({
               </Button>
             )}
 
-            {recommendation.type === 'practice_focus' &&
-              recommendation.actionData && (
-                <Button
-                  size="sm"
-                  variant="outline"
-                  onClick={() => {
-                    // TODO: Navigate to practice session with specific focus
-                    console.log(
-                      'Start practice session:',
-                      recommendation.actionData
-                    );
-                  }}
-                >
-                  Start practice
-                </Button>
-              )}
+            {recommendation.type === 'practice_focus' && recommendation.actionData && (
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => {
+                  // TODO: Navigate to practice session with specific focus
+                  console.log('Start practice session:', recommendation.actionData);
+                }}
+              >
+                Start practice
+              </Button>
+            )}
 
             {recommendation.type === 'goal_suggestion' && (
               <Button
@@ -180,10 +163,7 @@ export const RecommendationsPanel: React.FC<RecommendationsPanelProps> = ({
                 variant="outline"
                 onClick={() => {
                   // TODO: Open goal creation modal with pre-filled data
-                  console.log(
-                    'Create goal from recommendation:',
-                    recommendation.actionData
-                  );
+                  console.log('Create goal from recommendation:', recommendation.actionData);
                 }}
               >
                 Set goal
@@ -226,9 +206,7 @@ export const RecommendationsPanel: React.FC<RecommendationsPanelProps> = ({
       action={<span className="text-sm text-text/45">{unread.length} new</span>}
     >
       <div className="space-y-6">
-        {unread.length > 0 && (
-          <Group title="New" dot="bg-accent" items={unread} />
-        )}
+        {unread.length > 0 && <Group title="New" dot="bg-accent" items={unread} />}
 
         {read.length > 0 && (
           <Group
@@ -248,12 +226,7 @@ export const RecommendationsPanel: React.FC<RecommendationsPanelProps> = ({
         )}
 
         {expired.length > 0 && (
-          <Group
-            title="Expired"
-            dot="bg-destructive"
-            items={expired.slice(0, 3)}
-            expired
-          />
+          <Group title="Expired" dot="bg-destructive" items={expired.slice(0, 3)} expired />
         )}
 
         {recommendations.length === 0 && (
@@ -261,8 +234,7 @@ export const RecommendationsPanel: React.FC<RecommendationsPanelProps> = ({
             <Target className="mx-auto mb-4 h-12 w-12 text-accent" />
             <p className="text-lg font-medium mb-1">No recommendations yet</p>
             <p className="text-sm">
-              Complete more typing tests to get personalized improvement
-              suggestions.
+              Complete more typing tests to get personalized improvement suggestions.
             </p>
           </div>
         )}

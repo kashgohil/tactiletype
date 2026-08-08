@@ -1,4 +1,4 @@
-import { type Context, type MiddlewareHandler } from 'hono';
+import type { Context, MiddlewareHandler } from 'hono';
 
 /**
  * Failure throttling for credential endpoints.
@@ -132,9 +132,7 @@ export const failureRateLimit = (options: {
     const account = await attemptedAccount(c);
     const guards: Guard[] = [
       { key: `ip:${clientIp(c)}`, limit: MAX_FAILURES_PER_IP },
-      ...(account
-        ? [{ key: `account:${account}`, limit: MAX_FAILURES_PER_ACCOUNT }]
-        : []),
+      ...(account ? [{ key: `account:${account}`, limit: MAX_FAILURES_PER_ACCOUNT }] : []),
     ];
 
     for (const guard of guards) {

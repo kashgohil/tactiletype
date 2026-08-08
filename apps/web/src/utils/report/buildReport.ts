@@ -116,17 +116,12 @@ function deltaBetween(current: number, previous: number): ReportDelta {
     percentage,
     // Sub-1% swings are noise at these sample sizes; calling them a trend
     // would put an arrow on nothing.
-    direction:
-      Math.abs(percentage) < 1 ? 'flat' : percentage > 0 ? 'up' : 'down',
+    direction: Math.abs(percentage) < 1 ? 'flat' : percentage > 0 ? 'up' : 'down',
     comparable: true,
   };
 }
 
-function withinWindow(
-  rows: ReportResultRow[],
-  from: Date,
-  to: Date
-): ReportResultRow[] {
+function withinWindow(rows: ReportResultRow[], from: Date, to: Date): ReportResultRow[] {
   return rows.filter((row) => {
     const at = new Date(row.date).getTime();
     return at >= from.getTime() && at < to.getTime();
@@ -259,10 +254,7 @@ export function buildReport({
   const bestWpm = current.length ? Math.max(...current.map((r) => r.wpm)) : 0;
 
   const wpmDelta = deltaBetween(avgWpm, mean(previous.map((r) => r.wpm)));
-  const accuracyDelta = deltaBetween(
-    avgAccuracy,
-    mean(previous.map((r) => r.accuracy))
-  );
+  const accuracyDelta = deltaBetween(avgAccuracy, mean(previous.map((r) => r.accuracy)));
   const volumeDelta = deltaBetween(current.length, previous.length);
 
   const metrics: ReportMetric[] = [
@@ -314,9 +306,7 @@ export function buildReport({
         caption: `${describeTrend(
           trendPercentage,
           CHART_TITLES[chart.type] ?? chart.type
-        )} across ${points.length} recorded ${
-          points.length === 1 ? 'day' : 'days'
-        }.`,
+        )} across ${points.length} recorded ${points.length === 1 ? 'day' : 'days'}.`,
         points,
         trendPercentage,
       };
@@ -357,9 +347,7 @@ export function buildReport({
     periodLabel: PERIOD_NAME[period],
     rangeLabel: `${shortDate(from)} - ${shortDate(to)}, ${to.getFullYear()}`,
     generatedAt: formatDate(to),
-    summary: current.length
-      ? writeSummary(current, previous, days, wpmDelta)
-      : '',
+    summary: current.length ? writeSummary(current, previous, days, wpmDelta) : '',
     metrics,
     charts: reportCharts,
     stats,
@@ -377,23 +365,17 @@ export function buildReport({
  * nothing behind it would promise a page that never appears. The UI reads this
  * to say so up front.
  */
-export function sectionAvailability(
-  model: ReportModel
-): Record<keyof ReportSections, boolean> {
+export function sectionAvailability(model: ReportModel): Record<keyof ReportSections, boolean> {
   return {
     charts: model.charts.length > 0,
     detailedStats:
-      model.stats.length > 0 ||
-      (model.errorAnalysis?.mostProblematicChars.length ?? 0) > 0,
+      model.stats.length > 0 || (model.errorAnalysis?.mostProblematicChars.length ?? 0) > 0,
     recommendations: model.recommendations.length > 0,
   };
 }
 
 /** Narrows a full report to the sections the reader asked for. */
-export function applySections(
-  model: ReportModel,
-  sections: ReportSections
-): ReportModel {
+export function applySections(model: ReportModel, sections: ReportSections): ReportModel {
   return {
     ...model,
     charts: sections.charts ? model.charts : [],

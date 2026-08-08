@@ -12,10 +12,7 @@ import { useEffect, useMemo, useRef } from 'react';
 export function useArmedHotkey(
   keys: string[],
   handler: () => void,
-  {
-    enabled = true,
-    delayMs = 400,
-  }: { enabled?: boolean; delayMs?: number } = {}
+  { enabled = true, delayMs = 400 }: { enabled?: boolean; delayMs?: number } = {}
 ) {
   const latest = useRef(handler);
   // `keys` is rebuilt every render, so the serialised form stands in for it —
@@ -36,10 +33,7 @@ export function useArmedHotkey(
 
     const onKey = (e: KeyboardEvent) => {
       if (!armed) return;
-      if (
-        e.target instanceof HTMLInputElement ||
-        e.target instanceof HTMLTextAreaElement
-      ) {
+      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) {
         return;
       }
       if (!watched.has(e.key)) return;

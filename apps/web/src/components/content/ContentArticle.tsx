@@ -1,10 +1,10 @@
+import { Link } from '@tanstack/react-router';
+import { ArrowRight } from 'lucide-react';
+import type React from 'react';
 import { JsonLd } from '@/components/JsonLd';
 import { Panel } from '@/components/ui/panel';
 import type { Block, ContentPage, Section } from '@/content/types';
 import { contentPageGraph } from '@/lib/seo';
-import { Link } from '@tanstack/react-router';
-import { ArrowRight } from 'lucide-react';
-import React from 'react';
 import { RichText } from './RichText';
 
 /** Router paths are a typed union; authored content is strings. */
@@ -36,10 +36,7 @@ const BlockView: React.FC<{ block: Block }> = ({ block }) => {
         <ul className={`${prose} space-y-2 mb-4 last:mb-0`}>
           {block.items.map((item, i) => (
             <li key={i} className="flex gap-3">
-              <span
-                aria-hidden
-                className="mt-2.5 size-1 rounded-full bg-accent shrink-0"
-              />
+              <span aria-hidden className="mt-2.5 size-1 rounded-full bg-accent shrink-0" />
               <span>
                 <RichText text={item} />
               </span>
@@ -78,9 +75,7 @@ const BlockView: React.FC<{ block: Block }> = ({ block }) => {
               className="rounded-xl border border-accent/15 bg-accent/[0.05] p-4"
             >
               <p className="text-xl font-bold tracking-tight">{item.value}</p>
-              <p className="text-[13px] text-text/50 mt-1 leading-snug">
-                {item.label}
-              </p>
+              <p className="text-[13px] text-text/50 mt-1 leading-snug">{item.label}</p>
             </div>
           ))}
         </div>
@@ -88,9 +83,7 @@ const BlockView: React.FC<{ block: Block }> = ({ block }) => {
 
     case 'note':
       return (
-        <p
-          className={`${prose} my-5 border-l-2 border-accent/40 pl-4 text-[15px]`}
-        >
+        <p className={`${prose} my-5 border-l-2 border-accent/40 pl-4 text-[15px]`}>
           <RichText text={block.text} />
         </p>
       );
@@ -99,9 +92,7 @@ const BlockView: React.FC<{ block: Block }> = ({ block }) => {
 
 const SectionView: React.FC<{ section: Section }> = ({ section }) => (
   <section id={section.id} className="scroll-mt-24">
-    <h2 className="text-lg font-semibold tracking-tight text-text mb-3">
-      {section.heading}
-    </h2>
+    <h2 className="text-lg font-semibold tracking-tight text-text mb-3">{section.heading}</h2>
     {section.blocks.map((block, i) => (
       <BlockView key={i} block={block} />
     ))}
@@ -123,11 +114,7 @@ interface ContentArticleProps {
  * The FAQ markup is emitted only because the questions are also rendered
  * visibly below — schema that doesn't match the page is a manual-action risk.
  */
-export const ContentArticle: React.FC<ContentArticleProps> = ({
-  page,
-  trail,
-  cta,
-}) => {
+export const ContentArticle: React.FC<ContentArticleProps> = ({ page, trail, cta }) => {
   return (
     <div className="space-y-10">
       <JsonLd id="content" data={contentPageGraph(page, trail)} />
@@ -138,10 +125,7 @@ export const ContentArticle: React.FC<ContentArticleProps> = ({
             <ol className="flex items-center gap-2 text-[13px] text-text/40">
               {trail.slice(0, -1).map((crumb) => (
                 <li key={crumb.path} className="flex items-center gap-2">
-                  <Link
-                    to={crumb.path as AnyPath}
-                    className="hover:text-accent transition-colors"
-                  >
+                  <Link to={crumb.path as AnyPath} className="hover:text-accent transition-colors">
                     {crumb.name}
                   </Link>
                   <span aria-hidden>/</span>
@@ -196,11 +180,7 @@ export const ContentArticle: React.FC<ContentArticleProps> = ({
       </div>
 
       {page.faq?.length ? (
-        <Panel
-          title="Frequently asked questions"
-          className="max-w-3xl"
-          id="faq"
-        >
+        <Panel title="Frequently asked questions" className="max-w-3xl" id="faq">
           <div className="divide-y divide-line">
             {page.faq.map((item) => (
               <div key={item.q} className="py-4 first:pt-0 last:pb-0">
@@ -252,9 +232,7 @@ export const ContentArticle: React.FC<ContentArticleProps> = ({
                   {item.label}
                   <ArrowRight className="size-3.5 text-accent opacity-0 -translate-x-1 group-hover:opacity-100 group-hover:translate-x-0 transition-all" />
                 </p>
-                <p className="text-[13px] text-text/45 mt-1 leading-snug">
-                  {item.hint}
-                </p>
+                <p className="text-[13px] text-text/45 mt-1 leading-snug">{item.hint}</p>
               </Link>
             ))}
           </div>

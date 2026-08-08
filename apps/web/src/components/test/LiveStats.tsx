@@ -1,7 +1,8 @@
+import type React from 'react';
+import { useEffect, useRef, useState } from 'react';
+import { cn } from '@/lib/utils';
 import type { ComboState } from '@/utils/combo';
 import type { TypingStats } from '@/utils/typingEngine';
-import { cn } from '@/lib/utils';
-import React, { useEffect, useRef, useState } from 'react';
 
 interface LiveStatsProps {
   stats: TypingStats;
@@ -43,9 +44,7 @@ export const LiveStats: React.FC<LiveStatsProps> = ({ stats, hidden, combo }) =>
           className={cn(
             'tabular-nums inline-flex items-center gap-0.5 rounded-md px-1.5 py-0.5',
             'transition-[transform,color,background-color] duration-150 ease-[cubic-bezier(0.23,1,0.32,1)]',
-            combo.multiplier >= 3
-              ? 'text-warning bg-warning/10'
-              : 'text-text/70 bg-accent/10',
+            combo.multiplier >= 3 ? 'text-warning bg-warning/10' : 'text-text/70 bg-accent/10',
             pulse && 'scale-110'
           )}
           title={`Best combo this run: ${combo.best}`}
@@ -54,9 +53,7 @@ export const LiveStats: React.FC<LiveStatsProps> = ({ stats, hidden, combo }) =>
           <span className="font-semibold">{combo.current}</span>
           <span className="text-text/35 text-xs">combo</span>
           {combo.multiplier > 1 && (
-            <span className="ml-0.5 text-accent text-xs font-semibold">
-              ×{combo.multiplier}
-            </span>
+            <span className="ml-0.5 text-accent text-xs font-semibold">×{combo.multiplier}</span>
           )}
         </span>
       )}

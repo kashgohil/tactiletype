@@ -1,3 +1,5 @@
+import { Link, useParams } from '@tanstack/react-router';
+import type React from 'react';
 import { GhostRaceMode } from '@/components/play/GhostRaceMode';
 import { LessonPathMode } from '@/components/play/LessonPathMode';
 import { MemoryFlashMode } from '@/components/play/MemoryFlashMode';
@@ -6,8 +8,6 @@ import { WeakStormMode } from '@/components/play/WeakStormMode';
 import { WordStormMode } from '@/components/play/WordStormMode';
 import { Button } from '@/components/ui/button';
 import { getPlayMode, type PlayModeId } from '@/utils/playModes';
-import { Link, useParams } from '@tanstack/react-router';
-import React from 'react';
 
 const MODES: Record<PlayModeId, React.FC> = {
   'sudden-death': SuddenDeathMode,

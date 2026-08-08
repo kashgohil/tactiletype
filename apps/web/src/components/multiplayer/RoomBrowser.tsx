@@ -1,7 +1,8 @@
-import { Button } from '@/components/ui/button';
 import type { MultiplayerRoomWithDetails } from '@tactile/types';
 import { Loader2, Plus, RefreshCw, Users } from 'lucide-react';
-import React, { useEffect, useState } from 'react';
+import type React from 'react';
+import { useEffect, useState } from 'react';
+import { Button } from '@/components/ui/button';
 import { multiplayerApi } from '../../services/multiplayerApi';
 
 interface RoomBrowserProps {
@@ -66,9 +67,7 @@ export const RoomBrowser: React.FC<RoomBrowserProps> = ({
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold">Races</h1>
-          <p className="text-text/60">
-            Join a room, or start one and share the link.
-          </p>
+          <p className="text-text/60">Join a room, or start one and share the link.</p>
         </div>
         <div className="flex items-center gap-2">
           <Button variant="ghost" onClick={() => loadRooms(1)} disabled={loading}>
@@ -118,9 +117,7 @@ export const RoomBrowser: React.FC<RoomBrowserProps> = ({
                 <div className="flex items-start justify-between gap-3">
                   <div className="min-w-0">
                     <h2 className="font-medium truncate">{room.name}</h2>
-                    <p className="text-sm text-text/50 truncate">
-                      Host: {room.host.username}
-                    </p>
+                    <p className="text-sm text-text/50 truncate">Host: {room.host.username}</p>
                   </div>
                   <span
                     className={`text-xs font-medium shrink-0 ${
@@ -133,9 +130,7 @@ export const RoomBrowser: React.FC<RoomBrowserProps> = ({
 
                 <div className="text-sm">
                   <p className="truncate">{room.testText.title}</p>
-                  <p className="text-xs text-text/50">
-                    {room.testText.wordCount} words
-                  </p>
+                  <p className="text-xs text-text/50">{room.testText.wordCount} words</p>
                 </div>
 
                 <div className="flex items-center justify-between gap-2 mt-auto">
@@ -145,19 +140,11 @@ export const RoomBrowser: React.FC<RoomBrowserProps> = ({
                   </span>
                   <div className="flex items-center gap-1">
                     {onSpectateRoom && (
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => onSpectateRoom(room.id)}
-                      >
+                      <Button variant="ghost" size="sm" onClick={() => onSpectateRoom(room.id)}>
                         Spectate
                       </Button>
                     )}
-                    <Button
-                      size="sm"
-                      disabled={isFull}
-                      onClick={() => onJoinRoom(room.id)}
-                    >
+                    <Button size="sm" disabled={isFull} onClick={() => onJoinRoom(room.id)}>
                       {isFull ? 'Full' : 'Join'}
                     </Button>
                   </div>

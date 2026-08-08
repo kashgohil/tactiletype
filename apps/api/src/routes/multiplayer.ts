@@ -1,11 +1,5 @@
-import {
-  db,
-  multiplayerRooms,
-  roomParticipants,
-  testTexts,
-  users,
-} from '@tactile/database';
 import { zValidator } from '@hono/zod-validator';
+import { db, multiplayerRooms, roomParticipants, testTexts, users } from '@tactile/database';
 import { and, desc, eq, inArray } from 'drizzle-orm';
 import { Hono } from 'hono';
 import { z } from 'zod';
@@ -39,7 +33,7 @@ multiplayerRoutes.post(
       const { name, testTextId, maxPlayers } = c.req.valid('json');
 
       let textId = testTextId;
-      let testTextRow;
+      let testTextRow: typeof testTexts.$inferSelect | undefined;
 
       if (textId) {
         const found = await db
@@ -49,20 +43,13 @@ multiplayerRoutes.post(
           .limit(1);
         testTextRow = found[0];
       } else {
-        const all = await db
-          .select()
-          .from(testTexts)
-          .where(eq(testTexts.isActive, true))
-          .limit(50);
+        const all = await db.select().from(testTexts).where(eq(testTexts.isActive, true)).limit(50);
         testTextRow = all[Math.floor(Math.random() * all.length)];
         textId = testTextRow?.id;
       }
 
       if (!testTextRow || !textId) {
-        return c.json(
-          { error: 'No test text available — run db:seed' },
-          404
-        );
+        return c.json({ error: 'No test text available — run db:seed' }, 404);
       }
 
       const [room] = await db
@@ -86,13 +73,7 @@ multiplayerRoutes.post(
         userId: user.userId,
       });
 
-      multiplayerHub.createRoom(
-        room.id,
-        room.name,
-        user.userId,
-        textId,
-        maxPlayers
-      );
+      multiplayerHub.createRoom(room.id, room.name, user.userId, textId, maxPlayers);
 
       return c.json({
         message: 'Room created successfully',
@@ -122,8 +103,8 @@ multiplayerRoutes.post(
 
 multiplayerRoutes.get('/rooms', async (c) => {
   try {
-    const page = parseInt(c.req.query('page') || '1');
-    const limit = Math.min(parseInt(c.req.query('limit') || '20'), 50);
+    const page = parseInt(c.req.query('page') || '1', 10);
+    const limit = Math.min(parseInt(c.req.query('limit') || '20', 10), 50);
     const offset = (page - 1) * limit;
     // waiting | active | all — active rooms can be spectated
     const statusFilter = c.req.query('status') || 'waiting';
@@ -279,9 +260,7 @@ multiplayerRoutes.get('/rooms/:roomId', async (c) => {
             joinedAt: p.joinedAt,
             finishedAt: p.finishedAt,
             finalWpm: p.finalWpm ? parseFloat(p.finalWpm) : null,
-            finalAccuracy: p.finalAccuracy
-              ? parseFloat(p.finalAccuracy)
-              : null,
+            finalAccuracy: p.finalAccuracy ? parseFloat(p.finalAccuracy) : null,
           })),
           liveParticipants,
         },
@@ -325,12 +304,7 @@ multiplayerRoutes.post('/rooms/:roomId/join', authMiddleware, async (c) => {
       const existing = await db
         .select()
         .from(roomParticipants)
-        .where(
-          and(
-            eq(roomParticipants.roomId, roomId),
-            eq(roomParticipants.userId, user.userId)
-          )
-        )
+        .where(and(eq(roomParticipants.roomId, roomId), eq(roomParticipants.userId, user.userId)))
         .limit(1);
 
       if (existing.length === 0) {
@@ -375,12 +349,7 @@ multiplayerRoutes.post('/rooms/:roomId/leave', authMiddleware, async (c) => {
 
     await db
       .delete(roomParticipants)
-      .where(
-        and(
-          eq(roomParticipants.roomId, roomId),
-          eq(roomParticipants.userId, user.userId)
-        )
-      );
+      .where(and(eq(roomParticipants.roomId, roomId), eq(roomParticipants.userId, user.userId)));
 
     return c.json({ message: 'Left room' });
   } catch (error) {

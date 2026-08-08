@@ -1,7 +1,7 @@
-import { Footer } from '@/components/layout/Footer';
-import { Seo } from '@/components/Seo';
 import { createRootRoute, Outlet } from '@tanstack/react-router';
 import { TanStackRouterDevtools } from '@tanstack/router-devtools';
+import { Footer } from '@/components/layout/Footer';
+import { Seo } from '@/components/Seo';
 import { Navbar } from '../components/layout/Navbar';
 
 export const Route = createRootRoute({
