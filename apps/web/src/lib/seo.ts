@@ -1,3 +1,4 @@
+import { getPlayModePage, type PlayModePage } from '@/content/play-modes';
 import { getContentPage } from '@/content/registry';
 import type { ContentPage } from '@/content/types';
 import { pageToText, stripLinks } from '@/content/types';
@@ -199,17 +200,14 @@ export function resolvePageMeta(pathname: string): PageMeta {
   // /test is redirected to / - keep meta aligned if hit before redirect
   if (path === '/test') return PAGE_META['/'];
 
-  // Play mode detail
-  const playMode = path.match(/^\/play\/([^/]+)$/);
-  if (playMode) {
-    const mode = playMode[1];
-    const label = mode
-      .split('-')
-      .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
-      .join(' ');
+  // Play mode detail. Only the six real modes resolve here; anything else
+  // under /play/ renders an "Unknown mode" shell and falls through to the
+  // noindex default, which is what an invented slug deserves.
+  const playModePage = getPlayModePage(path);
+  if (playModePage) {
     return {
-      title: `${label} - Typing Mode | tactiletype`,
-      description: `Play ${label} on tactiletype - a training mode that builds speed and accuracy beyond a basic timer.`,
+      title: playModePage.title,
+      description: playModePage.description,
       path,
       robots: INDEX,
     };
@@ -388,4 +386,32 @@ export function contentPageGraph(
   const graph: Schema[] = [webPageSchema(page), articleSchema(page), breadcrumbSchema(trail)];
   if (page.faq?.length) graph.push(faqPageSchema(page.faq, page.path));
   return { '@context': 'https://schema.org', '@graph': graph };
+}
+
+/**
+ * Graph for a `/play/:mode` page.
+ *
+ * Deliberately no `Article`, unlike the guides: the primary content of these
+ * URLs is an interactive game, and the copy underneath explains it rather than
+ * standing as a piece of writing. `WebPage` + `BreadcrumbList` + the visibly
+ * rendered `FAQPage` describes what is actually on the page and nothing more.
+ */
+export function playModeGraph(page: PlayModePage, trail: { name: string; path: string }[]): Schema {
+  return {
+    '@context': 'https://schema.org',
+    '@graph': [
+      webPageSchema({ path: page.path, title: page.title, description: page.description }),
+      breadcrumbSchema(trail),
+      faqPageSchema(page.faq, page.path),
+    ],
+  };
+}
+
+/** Home > Play > mode. Shared by the runtime page and the prerender step. */
+export function playModeTrail(page: PlayModePage, name: string) {
+  return [
+    { name: 'Home', path: '/' },
+    { name: 'Play', path: '/play' },
+    { name, path: page.path },
+  ];
 }

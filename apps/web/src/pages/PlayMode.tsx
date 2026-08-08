@@ -3,10 +3,12 @@ import type React from 'react';
 import { GhostRaceMode } from '@/components/play/GhostRaceMode';
 import { LessonPathMode } from '@/components/play/LessonPathMode';
 import { MemoryFlashMode } from '@/components/play/MemoryFlashMode';
+import { PlayModeAbout } from '@/components/play/PlayModeAbout';
 import { SuddenDeathMode } from '@/components/play/SuddenDeathMode';
 import { WeakStormMode } from '@/components/play/WeakStormMode';
 import { WordStormMode } from '@/components/play/WordStormMode';
 import { Button } from '@/components/ui/button';
+import { getPlayModePage } from '@/content/play-modes';
 import { getPlayMode, type PlayModeId } from '@/utils/playModes';
 
 const MODES: Record<PlayModeId, React.FC> = {
@@ -35,5 +37,15 @@ export const PlayMode: React.FC = () => {
     );
   }
 
-  return <Component />;
+  const copy = getPlayModePage(meta.id);
+
+  return (
+    <>
+      <Component />
+      {/* The mode's display name comes from `PLAY_MODES`, the same record the
+          hub and the shell read, so the copy block and the schema breadcrumb
+          can't drift into a third spelling of it. */}
+      {copy && <PlayModeAbout page={copy} h1={meta.title} />}
+    </>
+  );
 };
