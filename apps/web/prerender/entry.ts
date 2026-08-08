@@ -26,6 +26,7 @@ import {
   playModeTrail,
   resolvePageMeta,
   SITE_NAME,
+  SITE_URL,
   TWITTER_CARD_TYPE,
 } from '@/lib/seo';
 import { getPlayMode } from '@/utils/playModes';
@@ -374,6 +375,91 @@ export function buildSitemap(routes: PrerenderRoute[]): string {
   return `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${entries}\n</urlset>\n`;
 }
 
+/** `Free Typing Test - Check Your WPM | tactiletype` -> `Free Typing Test - Check Your WPM`. */
+function shortTitle(title: string): string {
+  return title.split('|')[0].trim();
+}
+
+/**
+ * Sections of `llms.txt`, in the order an unfamiliar reader should meet them.
+ * `Optional` is the convention's own name for the tail an assistant may skip
+ * when it is short on context, so the trust pages live there rather than
+ * competing with the product for attention.
+ */
+const LLMS_SECTIONS: { heading: string; match: (path: string) => boolean; lead?: string }[] = [
+  {
+    heading: 'Core pages',
+    match: (p) =>
+      [
+        '/',
+        '/typing-test',
+        '/practice',
+        '/play',
+        '/daily',
+        '/leaderboard',
+        '/multiplayer',
+      ].includes(p),
+  },
+  {
+    heading: 'Guides',
+    match: (p) => p === '/guides' || p.startsWith('/guides/'),
+    // The hub is generated last but reads first: it is the page that explains
+    // what the other four are.
+    lead: '/guides',
+  },
+  { heading: 'Play modes', match: (p) => p.startsWith('/play/') },
+  {
+    heading: 'Optional',
+    match: (p) => ['/contact', '/login', '/register', '/privacy', '/terms'].includes(p),
+  },
+];
+
+/**
+ * `llms.txt`: the site in one plain-text file, for assistants that read a page
+ * rather than crawl a site.
+ *
+ * Generated from the same route list as the sitemap for the same reason - a
+ * hand-written index of a site that ships weekly is a list of things that used
+ * to be true. The format is the llms.txt convention: an H1, a one-paragraph
+ * summary, then linked sections with a note on each URL.
+ */
+export function buildLlmsTxt(routes: PrerenderRoute[]): string {
+  const indexable = routes.filter((r) => r.meta.robots !== 'noindex, nofollow');
+  const lines: string[] = [
+    `# ${SITE_NAME}`,
+    '',
+    '> A free online typing test and trainer. Measure words per minute and accuracy, drill the keys you actually miss, play six training modes with different rules, and race other people in real time. No account is needed to take a test.',
+    '',
+    `${SITE_NAME} is a web application, so most URLs below are interactive rather than articles. Each play mode explains its own rules in writing on the same page as the game. The guides are plain-language explainers with cited sources, and each carries a visible last-updated date.`,
+    '',
+    'Figures quoted across the site come from named research rather than from our own users: the 2018 Aalto University and University of Cambridge study of 136 million keystrokes for the ~52 WPM average, and the long-standing five-characters-per-word convention for how WPM is counted.',
+  ];
+
+  for (const section of LLMS_SECTIONS) {
+    const matches = indexable
+      .filter((r) => section.match(r.path))
+      .sort((a, b) => Number(b.path === section.lead) - Number(a.path === section.lead));
+    if (!matches.length) continue;
+    lines.push('', `## ${section.heading}`, '');
+    for (const route of matches) {
+      lines.push(
+        `- [${shortTitle(route.meta.title)}](${absoluteUrl(route.path)}): ${route.meta.description}`
+      );
+    }
+  }
+
+  lines.push(
+    '',
+    '## Notes',
+    '',
+    `- Canonical origin: ${SITE_URL}`,
+    `- Full URL list with change dates: ${SITE_URL}/sitemap.xml`,
+    '- Crawling policy: all major search and AI crawlers are allowed; private and ephemeral app surfaces (profiles, settings, analytics, race rooms) are disallowed and carry noindex.',
+    ''
+  );
+
+  return lines.join('\n');
+}
 /** Head constants the writer needs but shouldn't re-derive. */
 export const HEAD = {
   siteName: SITE_NAME,

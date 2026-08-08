@@ -25,7 +25,7 @@ const here = dirname(fileURLToPath(import.meta.url));
 const root = resolve(here, '..');
 const dist = join(root, 'dist');
 
-const { getPrerenderRoutes, buildSitemap, HEAD } = await import(
+const { getPrerenderRoutes, buildSitemap, buildLlmsTxt, HEAD } = await import(
   new URL('../dist-ssr/entry.js', import.meta.url).href
 );
 
@@ -126,12 +126,14 @@ for (const route of routes) {
   written++;
 }
 
-// Generated rather than checked in, so it can't fall behind the route list.
+// Both generated rather than checked in, so they can't fall behind the routes.
 const sitemap = buildSitemap(routes);
 await writeFile(join(dist, 'sitemap.xml'), sitemap, 'utf8');
 const listed = routes.filter((r) => r.sitemap).length;
 
-console.log(`prerender: wrote ${written} pages, sitemap with ${listed} urls`);
+await writeFile(join(dist, 'llms.txt'), buildLlmsTxt(routes), 'utf8');
+
+console.log(`prerender: wrote ${written} pages, sitemap with ${listed} urls, llms.txt`);
 for (const route of routes) {
   console.log(`  ${route.sitemap ? '+' : ' '} ${route.path}`);
 }
