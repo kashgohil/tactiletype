@@ -5,7 +5,7 @@ This guide will help you deploy the TactileType API server to your VPS using Doc
 > **Run exactly one container.** `ConnectionManager` (`src/websocket/hub.ts`)
 > holds rooms, connections, and race state in process memory. A second replica
 > does not share it, so two players who join the same room from different
-> replicas sit in what looks like an empty lobby — no error, no log line. Moving
+> replicas sit in what looks like an empty lobby - no error, no log line. Moving
 > that state to Redis is the prerequisite for scaling out, and until then this
 > is a hard constraint rather than a tuning choice.
 
@@ -61,7 +61,7 @@ PORT=3021
 NODE_ENV=production
 
 # Origins. FRONTEND_URL is an exact-match CORS allowlist entry, so it must carry
-# the scheme and no trailing slash. BASE_URL is the API's own origin — it is what
+# the scheme and no trailing slash. BASE_URL is the API's own origin - it is what
 # the OAuth callback URLs are built from, not where users land.
 FRONTEND_URL=https://trytactiletype.com
 BASE_URL=https://api.trytactiletype.com
@@ -80,7 +80,7 @@ GOOGLE_CLIENT_SECRET=your-google-client-secret
 
 > **If Postgres runs on this VPS rather than a managed host**, `localhost` in
 > `DATABASE_URL` resolves to the *container*, not the machine. Use
-> `host.docker.internal` — `deploy.sh` maps it to the host gateway — and make
+> `host.docker.internal` - `deploy.sh` maps it to the host gateway - and make
 > sure Postgres listens on the Docker bridge and `pg_hba.conf` accepts it.
 
 Two settings the API depends on and cannot check for you: `NODE_ENV=production`
@@ -169,7 +169,7 @@ sudo nano /etc/nginx/sites-available/tactile-api
 # basePath (see apps/api/src/index.ts). Proxying only /api would 404 every
 # multiplayer connection.
 #
-# The Upgrade/Connection headers below are what make that WebSocket work —
+# The Upgrade/Connection headers below are what make that WebSocket work -
 # without them nginx answers the upgrade with a plain 200 and the client's
 # reconnect loop retries forever.
 server {

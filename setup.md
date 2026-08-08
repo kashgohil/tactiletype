@@ -1,4 +1,4 @@
-# TactileType — Project Setup Guide
+# TactileType - Project Setup Guide
 
 This document is the **canonical setup guide** for humans and coding agents. Follow it on any machine to get a working local environment.
 
@@ -14,8 +14,8 @@ Monorepo (Bun workspaces) for an advanced typing-test platform:
 |------|---------|------|--------------|
 | `apps/web` | `web` | React 19 + Vite + Tailwind frontend | **3020** |
 | `apps/api` | `api` | Hono API + WebSocket server (Bun) | **3021** |
-| `packages/database` | `@tactile/database` | Drizzle ORM schema, migrations, seed | — |
-| `packages/types` | `@tactile/types` | Shared TypeScript types | — |
+| `packages/database` | `@tactile/database` | Drizzle ORM schema, migrations, seed | - |
+| `packages/types` | `@tactile/types` | Shared TypeScript types | - |
 
 **Stack:** Bun, TypeScript, PostgreSQL, Drizzle, Hono, React, TanStack Router/Query, WebSockets, JWT (+ optional Google/GitHub OAuth).
 
@@ -64,7 +64,7 @@ bun install
 
 This installs all workspace packages from the root `bun.lock`.
 
-**Do not use `npm install` / `yarn` as the primary path** — the repo is Bun-first (`bun.lock`, Bun scripts, Bun API runtime).
+**Do not use `npm install` / `yarn` as the primary path** - the repo is Bun-first (`bun.lock`, Bun scripts, Bun API runtime).
 
 ---
 
@@ -77,7 +77,7 @@ cp apps/api/.env.example apps/api/.env
 cp apps/web/.env.example apps/web/.env
 ```
 
-### 4.1 Backend — `apps/api/.env`
+### 4.1 Backend - `apps/api/.env`
 
 | Variable | Required | Default / example | Purpose |
 |----------|----------|-------------------|---------|
@@ -87,8 +87,8 @@ cp apps/web/.env.example apps/web/.env
 | `NODE_ENV` | No | `development` | Cookie/CSRF security flags |
 | `FRONTEND_URL` | **Yes** for CORS | `http://localhost:3020` | Allowed frontend origin |
 | `BASE_URL` | OAuth | `http://localhost:3021` | Public API URL for OAuth redirects |
-| `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` | No | — | Google OAuth |
-| `GITHUB_CLIENT_ID` / `GITHUB_CLIENT_SECRET` | No | — | GitHub OAuth |
+| `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` | No | - | Google OAuth |
+| `GITHUB_CLIENT_ID` / `GITHUB_CLIENT_SECRET` | No | - | GitHub OAuth |
 
 Generate a local JWT secret:
 
@@ -107,7 +107,7 @@ FRONTEND_URL=http://localhost:3020
 BASE_URL=http://localhost:3021
 ```
 
-### 4.2 Frontend — `apps/web/.env`
+### 4.2 Frontend - `apps/web/.env`
 
 | Variable | Required | Default / example | Purpose |
 |----------|----------|-------------------|---------|
@@ -289,7 +289,7 @@ Use this checklist when setting up on a **new machine** or in a **fresh clone**:
 3. **`DATABASE_URL` for migrations/seed:** root scripts invoke the database package; if migrate/seed cannot connect, export `DATABASE_URL` in the shell (or run from a context that loads `apps/api/.env`). Default fallback in code is `postgresql://localhost:5432/tactile`.
 4. **Port conflicts:** many machines already run other apps on 3021/3020. Free the ports or remap **all** related env vars together.
 5. **Seed hang (fixed):** `packages/database/src/seed.ts` must `process.exit(0)` after seeding so the postgres-js connection does not keep the process alive.
-6. **Workspace packages:** `@tactile/database` and `@tactile/types` are `workspace:*` deps — install only from the monorepo root.
+6. **Workspace packages:** `@tactile/database` and `@tactile/types` are `workspace:*` deps - install only from the monorepo root.
 7. **Structure drift:** older README mentions `packages/ui`, `packages/utils`, and `docs/`; those may not exist. Trust this file + actual tree under `apps/` and `packages/`.
 
 ---
@@ -302,9 +302,9 @@ Use this checklist when setting up on a **new machine** or in a **fresh clone**:
 | `database "tactile" does not exist` | DB not created | `createdb tactile` |
 | `password authentication failed` | Wrong user/password in URL | Fix `DATABASE_URL` |
 | `Failed to start server. Is port 3021 in use?` | Port taken | `lsof -nP -iTCP:3021 -sTCP:LISTEN` then free port or change `PORT` |
-| Vite starts on a port other than 3020 | 3020 taken | Free 3020, or set Vite `server.port` and update `FRONTEND_URL`. Do not let it land on 3021 — that is the API |
+| Vite starts on a port other than 3020 | 3020 taken | Free 3020, or set Vite `server.port` and update `FRONTEND_URL`. Do not let it land on 3021 - that is the API |
 | CORS errors in browser | `FRONTEND_URL` ≠ actual web origin | Align `FRONTEND_URL` with the URL in the browser |
-| OAuth redirect fails | Wrong callback URL or missing secrets | Match provider console to `BASE_URL` + `/api/auth/sso/<provider>/callback` exactly — providers require a character-for-character match |
+| OAuth redirect fails | Wrong callback URL or missing secrets | Match provider console to `BASE_URL` + `/api/auth/sso/<provider>/callback` exactly - providers require a character-for-character match |
 | Empty test list | Seed not run | `bun run db:seed` |
 | `bun: command not found` | Bun not installed / shell not reloaded | Install Bun; open new terminal or source profile |
 
@@ -329,7 +329,7 @@ bun install
 
 cp apps/api/.env.example apps/api/.env
 cp apps/web/.env.example apps/web/.env
-# Edit apps/api/.env — set JWT_SECRET at minimum
+# Edit apps/api/.env - set JWT_SECRET at minimum
 
 createdb tactile 2>/dev/null || true
 export DATABASE_URL=postgresql://localhost:5432/tactile

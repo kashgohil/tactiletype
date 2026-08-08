@@ -1,4 +1,4 @@
-# TactileType — Product Improvement Plan
+# TactileType - Product Improvement Plan
 
 Canonical plan for redesigning the **profile**, expanding **typing exercises**, and improving the product end-to-end. Use this document to prioritize work, write design specs, and guide implementation PRs.
 
@@ -13,7 +13,7 @@ Canonical plan for redesigning the **profile**, expanding **typing exercises**, 
 
 **Positioning**
 
-> TactileType = a beautiful free typing test **plus** a coach-like profile that turns mistakes into exercises — especially code and real-world text.
+> TactileType = a beautiful free typing test **plus** a coach-like profile that turns mistakes into exercises - especially code and real-world text.
 
 ---
 
@@ -37,7 +37,7 @@ Canonical plan for redesigning the **profile**, expanding **typing exercises**, 
 ### 1.2 Gaps that hurt most
 
 1. **Profile is a data dump**, not a progress home (no hierarchy, no next action).
-2. **Content is thin** — modes exist, curriculum does not.
+2. **Content is thin** - modes exist, curriculum does not.
 3. **No closed loop** from errors → recommended drill → retest.
 4. **Open UX feedback**: hard to distinguish typed vs untyped characters; limited test-screen customizability.
 5. **Profile schema underused**: display name, bio, country, keyboard, `isPublic`.
@@ -77,11 +77,11 @@ Prefer **wiring and expanding** these over inventing parallel systems.
 
 1. **One primary CTA** on profile (e.g. “Practice weak keys” or “Today’s challenge”).
 2. **Numbers with context** (“72 WPM · +4 vs last week”), not bare metrics.
-3. **Less chrome, more type** — profile should feel like a sibling of the test UI (same tokens, mono, restrained motion).
-4. **Empty states teach** — first visit shows structure + “complete 3 tests to unlock insights”.
+3. **Less chrome, more type** - profile should feel like a sibling of the test UI (same tokens, mono, restrained motion).
+4. **Empty states teach** - first visit shows structure + “complete 3 tests to unlock insights”.
 5. **Insight → action** every time analytics surface a problem.
-6. **Accessibility** — focus, reduced motion, high contrast options.
-7. **Don’t spam** — streaks and badges reward; they don’t nag.
+6. **Accessibility** - focus, reduced motion, high contrast options.
+7. **Don’t spam** - streaks and badges reward; they don’t nag.
 
 ---
 
@@ -181,7 +181,7 @@ Modes already exist on the test page. This section expands **content**, **exerci
 
 Separate **free Test** (sandbox) from **Play modes** (unique rules) and **Practice** (targeted drills):
 
-**Play modes** (`/play`) — each has different win conditions and pressure:
+**Play modes** (`/play`) - each has different win conditions and pressure:
 
 | Mode | Rules | Skill |
 |------|-------|--------|
@@ -194,7 +194,7 @@ Separate **free Test** (sandbox) from **Play modes** (unique rules) and **Practi
 
 **Main test:** word combo chain (live multiplier + best combo on results).
 
-**Practice drills** (`/practice`) — still use the test engine, but text is *generated for a skill*:
+**Practice drills** (`/practice`) - still use the test engine, but text is *generated for a skill*:
 
 | Drill | Purpose |
 |-------|---------|
@@ -243,17 +243,17 @@ Surface as a single **Recommended next exercise** card on profile.
 
 ## 6. Broader product improvements
 
-### 6.1 P0 — Feel right every session
+### 6.1 P0 - Feel right every session
 
 | Item | Notes |
 |------|--------|
-| Clear typed vs untyped characters | Done — high-contrast typed trail + underline |
-| Test UI customizability | Done — caret, font size, hide live WPM, smooth caret |
-| Optional sound / error feedback | Done — off by default (Web Audio beeps) |
-| Keyboard layout awareness | Done — QWERTY / Colemak / Dvorak in test prefs + drills |
-| Guest → account continuity | Done — last 20 local results; merge on login/register/OAuth |
+| Clear typed vs untyped characters | Done - high-contrast typed trail + underline |
+| Test UI customizability | Done - caret, font size, hide live WPM, smooth caret |
+| Optional sound / error feedback | Done - off by default (Web Audio beeps) |
+| Keyboard layout awareness | Done - QWERTY / Colemak / Dvorak in test prefs + drills |
+| Guest → account continuity | Done - last 20 local results; merge on login/register/OAuth |
 
-### 6.2 P1 — Retention loop
+### 6.2 P1 - Retention loop
 
 | Item | Notes |
 |------|--------|
@@ -263,16 +263,16 @@ Surface as a single **Recommended next exercise** card on profile.
 | Starter achievements | First 100 WPM, 7-day streak, 50 tests, etc. |
 | Daily challenge | Shared text + small leaderboard |
 
-### 6.3 P2 — Differentiation
+### 6.3 P2 - Differentiation
 
 | Item | Notes |
 |------|--------|
-| Code typing + language packs | Done — packs + lightweight syntax tints |
-| Multiplayer polish | Done — Bun WS hub, race room, themed lobby |
-| Shareable result cards | Done — canvas PNG export + Web Share / clipboard |
-| Custom paste / personal playlists | Done — modal + local playlist |
+| Code typing + language packs | Done - packs + lightweight syntax tints |
+| Multiplayer polish | Done - Bun WS hub, race room, themed lobby |
+| Shareable result cards | Done - canvas PNG export + Web Share / clipboard |
+| Custom paste / personal playlists | Done - modal + local playlist |
 
-### 6.4 P3 — Growth & social
+### 6.4 P3 - Growth & social
 
 | Item | Notes |
 |------|--------|
@@ -288,9 +288,9 @@ Surface as a single **Recommended next exercise** card on profile.
 | Result metadata on `completed_tests` | Enables profile filters & charts |
 | Content pipeline | Packs + seed scripts |
 | Aggregated analytics endpoints | Don’t over-fetch raw keystrokes for charts |
-| A11y & reduced motion | Done — prefers-reduced-motion, ARIA on test/heatmap |
-| Layout-aware heatmaps | Done — QWERTY/Colemak/Dvorak from test prefs |
-| Guest merge hardening | Done — retries + continue on failure |
+| A11y & reduced motion | Done - prefers-reduced-motion, ARIA on test/heatmap |
+| Layout-aware heatmaps | Done - QWERTY/Colemak/Dvorak from test prefs |
+| Guest merge hardening | Done - retries + continue on failure |
 | Port / env consistency | See `setup.md` |
 
 ---
@@ -299,7 +299,7 @@ Surface as a single **Recommended next exercise** card on profile.
 
 Each phase should be shippable alone and leave the product better.
 
-### Phase A — Profile UI redesign (mostly frontend)
+### Phase A - Profile UI redesign (mostly frontend)
 
 **Outcome:** Profile looks intentional and hierarchical using existing APIs.
 
@@ -312,7 +312,7 @@ Each phase should be shippable alone and leave the product better.
 
 **Exit criteria:** Logged-in user sees a redesigned profile that is usable on mobile; no regression in stats load.
 
-### Phase B — Result metadata
+### Phase B - Result metadata
 
 **Outcome:** Every completed test stores enough context for filtering and charts.
 
@@ -322,7 +322,7 @@ Each phase should be shippable alone and leave the product better.
 
 **Exit criteria:** New results filterable by mode/type; chart shows real trend data.
 
-### Phase C — Content packs
+### Phase C - Content packs
 
 **Outcome:** Library no longer feels empty.
 
@@ -332,7 +332,7 @@ Each phase should be shippable alone and leave the product better.
 
 **Exit criteria:** ≥ hundreds of distinct practice units available in dev seed; test page never feels “same 10 strings”.
 
-### Phase D — Practice hub + weak-key drills
+### Phase D - Practice hub + weak-key drills
 
 **Outcome:** Insight → action loop works.
 
@@ -343,7 +343,7 @@ Each phase should be shippable alone and leave the product better.
 
 **Exit criteria:** From profile, user can start a drill targeting a weak key in one click; completion updates progress.
 
-### Phase E — Goals, badges, daily challenge
+### Phase E - Goals, badges, daily challenge
 
 **Outcome:** Light retention hooks.
 
@@ -353,7 +353,7 @@ Each phase should be shippable alone and leave the product better.
 
 **Exit criteria:** User can set a WPM goal and see progress; daily challenge completes and ranks.
 
-### Phase F — Differentiation & social foundation
+### Phase F - Differentiation & social foundation
 
 **Outcome:** Clear niche + shareability.
 
@@ -364,9 +364,9 @@ Each phase should be shippable alone and leave the product better.
 
 **Exit criteria:** Code exercise pack live; public profile shareable; optional multiplayer milestone defined separately.
 
-### Phase G — Growth (later)
+### Phase G - Growth (later)
 
-- Follow/feed, clubs, tournaments, PWA — see §6.4 and `DEVELOPMENT_ROADMAP.md`.
+- Follow/feed, clubs, tournaments, PWA - see §6.4 and `DEVELOPMENT_ROADMAP.md`.
 
 ---
 
@@ -450,7 +450,7 @@ P3  Multiplayer polish, social graph, PWA
 
 ---
 
-## 12. Quick reference — phase checklist
+## 12. Quick reference - phase checklist
 
 ```text
 [x] Phase A  Profile UI redesign
@@ -459,7 +459,7 @@ P3  Multiplayer polish, social graph, PWA
 [x] Phase D  Practice hub + weak-key drills + recommendations
 [x] Phase E  Goals, achievements, daily challenge
 [x] Phase F  Code packs, public profiles, share cards
-[~] Phase G (deferred — social/PWA later)  Social / multiplayer / PWA growth features
+[~] Phase G (deferred - social/PWA later)  Social / multiplayer / PWA growth features
 ```
 
 ---
